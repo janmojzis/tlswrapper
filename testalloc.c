@@ -41,7 +41,7 @@ void allocmalloc(void) {
 
 void alloclimit(void) {
     unsigned char *x = alloc((unsigned long long) alloc_LIMIT + 1ULL);
-    if (!x) _exit(222);
+    if (!x) _exit(111);
     _exit(0);
 }
 
@@ -56,7 +56,7 @@ void alloc32bit(void) {
 
 void alloclonglongoverflow(void) {
     unsigned char *x = alloc((unsigned long long)-1LL);
-    if (!x) _exit(222);
+    if (!x) _exit(111);
     _exit(0);
 }
 
