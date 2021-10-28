@@ -29,7 +29,7 @@ The cipher preference depends on the \-c option order.
 .B \-e \fIephemeral\fR
 Add ephemeral algorithm \fIephemeral\fR. See ALGORITHMS. (default: \-e x25519 \-e secp256r1).
 The algorithm preference currently \fBdoesn't\fR depend on the \-e option order.
-Right now we use a fixed preference order x25519, secp256r1, secp384r1, secp521r1, x448.
+Right now we use a fixed preference order x25519, secp256r1, secp384r1, secp521r1.
 .TP
 .B \-m
 The minimal TLS version. See ALGORITHMS. (default: tls12).
@@ -113,8 +113,6 @@ x25519	ECDHE using X25519	default
 secp256r1	ECDHE using NIST P-256	default
 secp384r1	ECDHE using NIST P-384	optional
 secp521r1	ECDHE using NIST P-521	optional
-x448	ECDHE using X448	optional
-.TE
 .TE
 .SH EXAMPLES
 .PP
@@ -178,7 +176,6 @@ Enable TLS 1.0 - TLS 1.2 and all supported algorithms:
                 \-e secp256r1 \\
                 \-e secp384r1 \\
                 \-e secp521r1 \\
-                \-e x448 \\
                 ...
 .fi
 .RE
@@ -196,7 +193,6 @@ Enable TLS 1.0 - TLS 1.2 and all supported algorithms, but different order (pref
                 \-c AES_256_CBC_SHA384 \\
                 \-c AES_256_CBC_SHA \\
                 \-e x25519 \\
-                \-e x448 \\
                 \-e secp256r1 \\
                 \-e secp384r1 \\
                 \-e secp521r1 \\

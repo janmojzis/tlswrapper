@@ -12,7 +12,9 @@ static const tls_ecdhe tls_ecdhes[] = {
     { "secp256r1", tls_ecdhe_SECP256R1 },
     { "secp384r1", tls_ecdhe_SECP384R1 },
     { "secp521r1", tls_ecdhe_SECP521R1 },
+#ifdef X448
     { "x448", tls_ecdhe_X448 },
+#endif
     { 0, 0 }
 };
 
