@@ -1,0 +1,227 @@
+.TH tlswrapper 8
+.SH NAME
+tlswrapper \- TLS encryption wrapper
+.SH SYNOPSIS
+.B tlswrapper [ options ] \fIprog\fR
+.SH DESCRIPTION
+.PP
+The \fBtlswrapper\fR is an TLS encryption wrapper between remote client and local program \fIprog\fR. Is executed from systemd.socket/inetd/tcpserver/... as follows:
+.PP
+Internet \-\-> systemd.socket/inetd/tcpserver/... \-\-> \fBtlswrapper\fR \-\-> \fIprog\fR
+.PP
+.SH OPTIONS
+.B \-v
+Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3.
+.TP
+.B \-f \fIcertfile\fR
+Add file containing key+certificate(s) in PEM format.
+.TP
+.B \-d \fIcertdir\fR
+Add directory containing multiple key+certificate(s) files in PEM format. The file in the directory is selected by hostname extracted from SNI extension.
+.TP
+.B \-a \fIanchorfile\fR
+Enable client certificate authentication. Use CA trust anchor \fIanchorfile\fR. Only one \-a option supported.
+.TP
+.B \-c \fIcipher\fR
+Add symmetric encryption \fIcipher\fR. See ALGORITHMS. (default: \-c CHACHA20_POLY1305_SHA256 \-c AES_256_GCM_SHA384 \-c AES_128_GCM_SHA256).
+The cipher preference depends on the \-c option order.
+.TP
+.B \-e \fIephemeral\fR
+Add ephemeral algorithm \fIephemeral\fR. See ALGORITHMS. (default: \-e x25519 \-e secp256r1).
+The algorithm preference currently \fBdoesn't\fR depend on the \-e option order.
+Right now we use a fixed preference order x25519, secp256r1, secp384r1, secp521r1, x448.
+.TP
+.B \-m
+The minimal TLS version. See ALGORITHMS. (default: tls12).
+.TP
+.B \-M
+The maximal TLS version. See ALGORITHMS. (default: tls12).
+.TP
+.B \-t \fIseconds\fR
+Set the network timeout to seconds \fIseconds\fR. (default 3600).
+.TP
+.B \-T \fIseconds\fR
+Set the TLS handshake timeout to seconds \fIseconds\fR. (default 10).
+.TP
+.B \-u \fIuser\fR
+Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
+.TP
+.B \-p
+Enforce TLS server preferences. (default).
+.TP
+.B \-P
+Don't enforce TLS server preferences.
+.TP
+.I prog
+program
+.SH SECURITY
+.B Separate process for every connection
+.PP
+The \fBtlswrapper\fR is executed from systemd.socket/inetd/tcpserver/... which runs separate instance of \fBtlswrapper\fR for each TLS connection.
+It ensures that a vulnerability in the code (e.g. bug in the TLS library) can't be used to compromise the memory of another connection.
+.PP
+.B Separate process for network connection and separate process for secret-key operation
+.PP
+To protect against secret-information leaks to the network connection (such Heartbleed) \fBtlswrapper\fR  runs two independent processes for every TLS connection. One process holds secret-keys and runs secret-keys operations and second talks to the network. Processes communicate with each other through UNIX pipes.
+.PP
+.B JAIL - Privilege separation, filesystem isolation, limits
+.PP
+The \fBtlswrapper\fR processes run under dedicated non-zero uid to prohibit kill, ptrace, etc. Is chrooted into an empty, unwritable directory to prohibit filesystem access. Sets ulimits to prohibit new files, sockets, etc. Sets ulimits to prohibit forks.
+.PP
+.B PEM files
+.PP
+The \fBtlswrapper\fR uses for simplicity both secret-key and certificates in one PEM file. When the server starts, runs two independent UNIX processes, one for network communication, second for secret-key operations. The network process is immediately jailed and starts TLS handshake. Second process starts under root privileges, waits when parent process receives SNI extension from client-hello packet. Then the parent process assemble the PEM filename and sends the name to the second process. Second process loads the PEM file and immediatelly is jailed and drops it's privileges. Since here both processes runs jailed (see JAIL above). Note that PEM files are loaded under root privileges, but parsed in jailed process. It ensures that a vulnerability in the parsing code can't be used to gain root privileges/informations. Warning: For security \fBtlswrapper\fR replaces any slash-dots in PEM filename with slash-colons before opening.
+.PP
+.B TLS library
+.PP
+The \fBtlswrapper\fR  uses BearSSL. BearSSL is an implementation of the SSL/TLS protocol (RFC 5246) written in C. It aims at offering the following features:
+ \- Be correct and secure. In particular, insecure protocol versions and choices of algorithms are not supported, by design; cryptographic algorithm implementations are constant-time by default.
+ \- Be small, both in RAM and code footprint. For instance, a minimal server implementation may fit in about 20 kilobytes of compiled code and 25 kilobytes of RAM.
+ \- Be highly portable. BearSSL targets not only big operating systems like Linux and Windows, but also small embedded systems and even special contexts like bootstrap code.
+ \- Be feature-rich and extensible. SSL/TLS has many defined cipher suites and extensions; BearSSL should implement most of them, and allow extra algorithm implementations to be added afterwards, possibly from third parties.
+.PP
+.SH ALGORITHMS
+.TS
+allbox;
+c s s
+l l l.
+TLS version (\-m option -M option)
+tls10	TLS 1.0	optional
+tls11	TLS 1.1	optional
+tls12	TLS 1.2	default
+tls13	TLS 1.3	TODO
+.TE
+.TS
+allbox;
+c s s
+l l l.
+ciphers (\-c option)
+CHACHA20_POLY1305_SHA256	ChaCha20+Poly1305 encryption (TLS 1.2+)	default
+AES_256_GCM_SHA384	AES-256/GCM encryption (TLS 1.2+)	default
+AES_128_GCM_SHA256	AES-128/GCM encryption (TLS 1.2+)	default
+AES_256_CBC_SHA384	AES-256/CBC + SHA-384 (TLS 1.2+)	optional
+AES_128_CBC_SHA256	AES-128/CBC + SHA-384 (TLS 1.2+)	optional
+AES_256_CBC_SHA	AES-256/CBC + SHA-1	optional
+AES_128_CBC_SHA	AES-128/CBC + SHA-1	optional
+.TE
+.TS
+allbox;
+c s s
+l l l.
+ephemeral (\-e option)
+x25519	ECDHE using X25519	default
+secp256r1	ECDHE using NIST P-256	default
+secp384r1	ECDHE using NIST P-384	optional
+secp521r1	ECDHE using NIST P-521	optional
+x448	ECDHE using X448	optional
+.TE
+.TE
+.SH EXAMPLES
+.PP
+Run tlswrapper using tcpserver/busybox/inetd on port 443.
+.RS 4
+.nf
+tcpserver -HRDl0 0 443 tlswrapper [ options ] prog
+busybox tcpsvd 0 443 tlswrapper [ options ] prog
+inetd.conf line: https stream tcp nowait root /usr/bin/tlswrapper tlswrapper [ options ] prog
+.fi
+.RE
+.PP
+Simple usage, one RSA certificate:
+.RS 4
+.nf
+ ... tlswrapper \-f rsa.pem ...
+.fi
+.RE
+.PP
+Use ECDSA certificate and fall-back to RSA certificate, if client doesn't support ECDSA:
+.RS 4
+.nf
+ ... tlswrapper \-f ecdsa.pem -f rsa.pem ...
+.fi
+.RE
+.PP
+Enable SNI extension and use RSA certdir (one certificate for one hostname):
+.RS 4
+.nf
+ ... tlswrapper \-d rsa.d/ ...
+.fi
+.RE
+.PP
+Enable SNI extension and use ECDSA certdir backuped by RSA certdir:
+.RS 4
+.nf
+ ... tlswrapper \-d ecdsa.d/ \-d rsa.d/ ...
+.fi
+.RE
+.PP
+Enable SNI extension and use ECDSA certdir backuped by RSA certfile:
+.RS 4
+.nf
+ ... tlswrapper \-d ecdsa.d/ \-f rsa.pem ...
+.fi
+.RE
+.PP
+Enable TLS 1.0 - TLS 1.2 and all supported algorithms:
+.RS 4
+.nf
+ ... tlswrapper \-m tls10 \\
+                \-M tls12 \\
+                \-c CHACHA20_POLY1305_SHA256 \\
+                \-c AES_256_GCM_SHA384 \\
+                \-c AES_128_GCM_SHA256 \\
+                \-c AES_256_CBC_SHA384 \\
+                \-c AES_128_CBC_SHA256 \\
+                \-c AES_256_CBC_SHA \\
+                \-c AES_128_CBC_SHA \\
+                \-e x25519 \\
+                \-e secp256r1 \\
+                \-e secp384r1 \\
+                \-e secp521r1 \\
+                \-e x448 \\
+                ...
+.fi
+.RE
+.PP
+Enable TLS 1.0 - TLS 1.2 and all supported algorithms, but different order (prefer AES128):
+.RS 4
+.nf
+ ... tlswrapper \-m tls10 \\
+                \-M tls12 \\
+                \-c CHACHA20_POLY1305_SHA256 \\
+                \-c AES_128_GCM_SHA256 \\
+                \-c AES_128_CBC_SHA256 \\
+                \-c AES_128_CBC_SHA \\
+                \-c AES_256_GCM_SHA384 \\
+                \-c AES_256_CBC_SHA384 \\
+                \-c AES_256_CBC_SHA \\
+                \-e x25519 \\
+                \-e x448 \\
+                \-e secp256r1 \\
+                \-e secp384r1 \\
+                \-e secp521r1 \\
+                ...
+.fi
+.RE
+.PP
+Enable only 256-bit symmetric ciphers:
+.RS 4
+.nf
+ ... tlswrapper \-c CHACHA20_POLY1305_SHA256 \\
+                \-c AES_256_GCM_SHA384 \\
+                \-c AES_256_CBC_SHA384 \\
+                \-c AES_256_CBC_SHA \\
+                ...
+.fi
+.RE
+.PP
+Enable client certificate authentication:
+.RS 4
+.nf
+ ... tlswrapper \-a anchorCA.pem \-f rsa.pem ...
+.fi
+.RE
+.SH SEE ALSO
+.BR systemd.socket (5),
+.BR inetd (8),
+.BR tcpserver (1)
