@@ -6,17 +6,17 @@
 
 
 static int run(void (*op)(void)) {
-	pid_t pid;
-	int status;
+    pid_t pid;
+    int status;
 
-	pid = fork();
-	if (pid == -1) return 222;
-	if (pid == 0) {
-		op();
-	}
-	while (waitpid(pid, &status, 0) != pid) {};
-	if (!WIFEXITED(status)) return 222;
-	return WEXITSTATUS(status);
+    pid = fork();
+    if (pid == -1) return 222;
+    if (pid == 0) {
+        op();
+    }
+    while (waitpid(pid, &status, 0) != pid) {};
+    if (!WIFEXITED(status)) return 222;
+    return WEXITSTATUS(status);
 }
 
 void alloc0(void) {

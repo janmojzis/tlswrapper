@@ -58,7 +58,7 @@ int jail(const char *dir) {
 
         /* prohibit kill, ptrace, etc. */
 #ifdef PR_SET_DUMPABLE
-	    if (prctl(PR_SET_DUMPABLE, 0) == -1) return -1;
+        if (prctl(PR_SET_DUMPABLE, 0) == -1) return -1;
 #endif
         if (jail_droproot() == -1) return -1;
     }
