@@ -11,6 +11,7 @@
 #include "randombytes.h"
 #include "droppriv.h"
 #include "alloc.h"
+#include "connectioninfo.h"
 #include "tls.h"
 
 /* clang-format off */
@@ -203,7 +204,7 @@ int main(int argc, char **argv) {
     hstimeout = timeout_parse(hstimeoutstr);
 
     /* start */
-    log_id(getenv("TCPREMOTEIP"));
+    log_id(connectioninfo());
     log_time(1);
     log_i1("start");
 
