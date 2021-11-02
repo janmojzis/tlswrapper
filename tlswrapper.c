@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
                 if (argv[1]) { ctx.empty_dir = (*++argv); break; }
             }
-            if (*x == 'U') {
+            if (*x == 'J') {
                 if (x[1]) { ctx.account = (x + 1); break; }
                 if (argv[1]) { ctx.account = (*++argv); break; }
             }
