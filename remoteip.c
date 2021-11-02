@@ -1,13 +1,24 @@
+/*
+20201103
+Jan Mojzis
+Public domain.
+*/
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include "connectioninfo.h"
+#include "remoteip.h"
 
 static char buf[INET_ADDRSTRLEN] = {0};
 
-const char *connectioninfo(void) {
+/*
+The 'remoteip' the IP address of the remote peer.
+Is extracted from the getpeername() function or
+from TCPREMOTEIP env. variable.
+*/
+const char *remoteip(void) {
 
     int fd = 0;
     struct sockaddr_storage sa;
