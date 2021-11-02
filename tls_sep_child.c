@@ -114,7 +114,7 @@ void tls_sep_child(struct tls_context *ctx) {
     }
 
     /* KEYJAIL starts here */
-    if (jail(ctx->empty_dir) == -1) goto cleanup;
+    if (jail(ctx->account, ctx->empty_dir, 1) == -1) goto cleanup;
 
     /* scalar multiplication - keygen */
     if (pipe_readall(0, &curve_id, sizeof(curve_id)) == -1) goto cleanup;

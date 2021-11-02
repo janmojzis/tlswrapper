@@ -9,7 +9,6 @@
 #include "e.h"
 #include "jail.h"
 #include "randombytes.h"
-#include "droppriv.h"
 #include "alloc.h"
 #include "connectioninfo.h"
 #include "tls.h"
@@ -18,6 +17,7 @@
 
 static struct tls_context ctx = {
     .flags = (tls_flags_ENFORCE_SERVER_PREFERENCES | tls_flags_NO_RENEGOTIATION),
+    .account = 0,
     .empty_dir = "/var/lib/tlswraper/empty",
     .version_min = tls_version_TLS12,
     .version_max = tls_version_TLS12,
@@ -239,12 +239,12 @@ int main(int argc, char **argv) {
                 if (accountlen <= 1) break;
                 account[accountlen - 1] = 0;
                 if (!userfromcn) break;
-                if (!droppriv(account)) die_fatal("unable to drop privileges to", account, 0);
+                if (jail(account, 0, 0) == -1) die_fatal("unable to drop privileges to", account, 0);
             } while (0);
 #endif
 
             /* drop root */
-            if (user) if (!droppriv(user)) die_fatal("unable to drop privileges to", user, 0);
+            if (user) if (jail(user, 0, 0) == -1) die_fatal("unable to drop privileges to", user, 0);
 
             signal(SIGPIPE, SIG_DFL);
             signal(SIGCHLD, SIG_DFL);
@@ -306,8 +306,8 @@ int main(int argc, char **argv) {
     signal(SIGALRM, signalhandler);
     alarm(hstimeout);
 
-    /* drop privileges + set limits */
-    if (jail(ctx.empty_dir) == -1) die_fatal("unable to drop privileges", 0, 0);
+    /* set limits + chroot + drop privileges */
+    if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_fatal("unable to create jail", 0, 0);
 
     if (ctx.anchorfn) {
         char *pubpem;
@@ -418,6 +418,7 @@ int main(int argc, char **argv) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("read from standard input failed"); break; }
             br_ssl_engine_recvrec_ack(&ctx.cc.eng, r);
+            alarm(timeout); /* refresh timeout */
             continue;
         }
 
@@ -439,10 +440,12 @@ int main(int argc, char **argv) {
 
         /* signal received */
         if (watchfromselfpipe) {
+            log_d1("signal received");
             break;
         }
     }
 
+    log_i1("finished");
     die(0);
 }
 /* clang-format on */

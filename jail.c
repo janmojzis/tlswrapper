@@ -1,125 +1,149 @@
-#include <sys/select.h>
-#include <sys/time.h>
+/*
+20201103
+Jan Mojzis
+Public domain.
+*/
+
 #include <sys/types.h>
 #include <unistd.h>
-#include <time.h>
+#include <stdlib.h>
+#include <grp.h>
+#include <pwd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <grp.h>
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif
+#include "log.h"
+#include "randommod.h"
 #include "jail.h"
 
-#define JAIL_BASEUID 141500000
-#define JAIL_MAXPID 1000000000
+/*
+The 'jail' function has 3 purposes:
+1. drops root priviledges to unpriviledged uid/gid
+  - if the 'account' is 0, then uid/gid is derived from process id and randomized.
+  - if the 'account' is string and the account exist, then uid/gid
+    is retrieved from the system user database.
+2. chroots into an empty directory
+3. sets resource limits
+*/
+int jail(const char *account, const char *dir, int limits) {
 
-int jail_droproot(void) {
-
-    uid_t targetuid;
-    gid_t targetgid;
-    pid_t pid = getpid();
-
-    if (pid < 0 || pid > JAIL_MAXPID) return -1;
-    pid += JAIL_BASEUID;
-    targetgid = targetuid = pid;
-
-    if (setgroups(1, &targetgid) == -1) return -1;
-    if (setgid(targetgid) == -1) return -1;
-    if (setuid(targetuid) == -1) return -1;
-    if (getgid() != targetgid) return -1;
-    if (getuid() != targetuid) return -1;
-    return 0;
-}
-
-
-int jail(const char *dir) {
-
+    int ret = -1;
+    struct passwd *pw = 0;
+    uid_t uid;
+    gid_t gid;
+    char *name = 0;
+    char *shell = 0;
+    char *home = 0;
 #ifdef RLIM_INFINITY
     struct rlimit r;
     r.rlim_cur = 0;
     r.rlim_max = 0;
 #endif
 
+    log_t1("jail()");
 
-/* prohibit new files, new sockets, etc. */
-#ifdef RLIM_INFINITY
+    if (!account) {
+        gid = uid = 100000000 + 100000 * randommod(1000) + (getpid() % 100000);
+    }
+    else {
+        pw = getpwnam(account);
+        if (!pw) {
+            log_e3("getpwnam for account ", account, " failed");
+            goto cleanup;
+        }
+        gid = pw->pw_gid;
+        uid = pw->pw_uid;
+        home = pw->pw_dir;
+        name = pw->pw_name;
+        shell = pw->pw_shell;
+    }
+
 #ifdef RLIMIT_NOFILE
-    if (setrlimit(RLIMIT_NOFILE, &r) == -1) return -1;
-#endif
+    /* prohibit new files, new sockets, etc. */
+    if (limits) {
+        if (setrlimit(RLIMIT_NOFILE, &r) == -1) {
+            log_e1("unable to set RLIMIT_NOFILE to 0");
+            goto cleanup;
+        }
+    }
 #endif
 
-    if (geteuid() == 0) {
 
-        /* prohibit access to filesystem */
-        if (!dir) return -1;
-        if (chdir(dir) == -1) return -1;
-        if (chroot(".") == -1) return -1;
-
-        /* prohibit kill, ptrace, etc. */
-#ifdef PR_SET_DUMPABLE
-        if (prctl(PR_SET_DUMPABLE, 0) == -1) return -1;
-#endif
-        if (jail_droproot() == -1) return -1;
+    /* set gid */
+    if (setgid(gid) == -1 || getgid() != gid) {
+        log_e3("setgid(", lognum(gid),") failed");
+        goto cleanup;
     }
 
-    /* prohibit fork */
-#ifdef RLIM_INFINITY
+    /* init groups */
+    if (pw) {
+        if (initgroups(name, gid) == -1) {
+            log_e5("initgroups(", pw->pw_name, ", ", lognum(gid), ") failed");
+            goto cleanup;
+        }
+    }
+    else {
+        if (setgroups(1, &gid) == -1) {
+            log_e3("setgroups(1, [", lognum(gid), "]) failed");
+            goto cleanup;
+        }
+    }
+
+    /* chroot */
+    if (dir) {
+        if (chdir(dir) == -1) {
+            log_e2("unable to change directory to ", dir);
+            goto cleanup;
+        }
+        if (chroot(".") == -1) {
+            log_e2("unable to chroot to ", dir);
+            goto cleanup;
+        }
+        log_d2("chrooted into ", dir);
+    }
+
+    /* set uid */
+    if (setuid(uid) == -1 || getuid() != uid) {
+        log_e3("setuid(", lognum(uid), ") failed");
+        goto cleanup;
+    }
+
+    if (pw) {
+        if (setenv("HOME", home, 1) == -1) goto cleanup;
+        if (setenv("SHELL", shell, 1) == -1) goto cleanup;
+        if (setenv("USER", name, 1) == -1) goto cleanup;
+        if (setenv("LOGNAME", name, 1) == -1) goto cleanup;
+    }
+
 #ifdef RLIMIT_NPROC
-    if (setrlimit(RLIMIT_NPROC, &r) == -1) return -1;
-#endif
-#endif
-    return 0;
-}
-
-int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
-
-    struct timeval *tvp = 0;
-    struct timeval tv;
-    fd_set rfds;
-    fd_set wfds;
-    nfds_t nfds;
-    int fd, r;
-    nfds_t i;
-
-    for (i = 0; i < len; ++i) x[i].revents = 0;
-
-    FD_ZERO(&rfds);
-    FD_ZERO(&wfds);
-
-    nfds = 1;
-    for (i = 0; i < len; ++i) {
-        fd = x[i].fd;
-        if (fd < 0) continue;
-        if (fd >= (int) (8 * sizeof(fd_set))) continue;
-        if ((unsigned int) fd >= nfds) nfds = fd + 1;
-        if (x[i].events & POLLIN) FD_SET(fd, &rfds);
-        if (x[i].events & POLLOUT) FD_SET(fd ,&wfds);
-    }
-
-    if (millisecs >= 0) {
-        tv.tv_sec = millisecs / 1000;
-        tv.tv_usec = 1000 * (millisecs % 1000);
-        tvp = &tv;
-    }
-
-    r = select(nfds, &rfds, &wfds, (fd_set *) 0, tvp);
-    if (r <= 0) return r;
-
-    r = 0;
-    for (i = 0; i < len; ++i) {
-        fd = x[i].fd;
-        if (fd < 0) continue;
-        if (fd >= (int) (8 * sizeof(fd_set))) continue;
-
-        if (x[i].events & POLLIN) {
-            if (FD_ISSET(fd, &rfds)) x[i].revents |= POLLIN;
-            ++r;
-        }
-        if (x[i].events & POLLOUT) {
-            if (FD_ISSET(fd, &wfds)) x[i].revents |= POLLOUT;
-            ++r;
+    /* prohibit fork */
+    if (limits) {
+        if (setrlimit(RLIMIT_NPROC, &r) == -1) {
+            log_e1("unable to set RLIMIT_NPROC to 0");
+            goto cleanup;
         }
     }
-    return r;
+#endif
+
+#ifdef PR_SET_DUMPABLE
+    /* prohibit core dumping */
+    if (limits) {
+        if (prctl(PR_SET_DUMPABLE, 0) == -1) {
+            log_e1("unable to set prctl(PR_SET_DUMPABLE, 0)");
+            goto cleanup;
+         }
+    }
+#endif
+
+    log_d4("running under uid = ", lognum(gid), ", gid = ", lognum(gid));
+
+    ret = 0;
+
+cleanup:
+
+    log_t2("jail() = ", lognum(ret));
+
+    return ret;
 }
