@@ -10,7 +10,7 @@
 #include "jail.h"
 #include "randombytes.h"
 #include "alloc.h"
-#include "connectioninfo.h"
+#include "remoteip.h"
 #include "tls.h"
 
 /* clang-format off */
@@ -195,6 +195,17 @@ int main(int argc, char **argv) {
                 if (x[1]) { cipher_add(x + 1); break; }
                 if (argv[1]) { cipher_add(*++argv); break; }
             }
+
+            /* privilege separation */
+            if (*x == 'D') {
+                if (x[1]) { ctx.empty_dir = (x + 1); break; }
+                if (argv[1]) { ctx.empty_dir = (*++argv); break; }
+            }
+            if (*x == 'U') {
+                if (x[1]) { ctx.account = (x + 1); break; }
+                if (argv[1]) { ctx.account = (*++argv); break; }
+            }
+
             die_usage(USAGE);
         }
     }
@@ -204,7 +215,7 @@ int main(int argc, char **argv) {
     hstimeout = timeout_parse(hstimeoutstr);
 
     /* start */
-    log_id(connectioninfo());
+    log_id(remoteip());
     log_time(1);
     log_i1("start");
 
@@ -239,12 +250,12 @@ int main(int argc, char **argv) {
                 if (accountlen <= 1) break;
                 account[accountlen - 1] = 0;
                 if (!userfromcn) break;
-                if (jail(account, 0, 0) == -1) die_fatal("unable to drop privileges to", account, 0);
+                if (jail_droppriv(account) == -1) die_fatal("unable to drop privileges to", account, 0);
             } while (0);
 #endif
 
             /* drop root */
-            if (user) if (jail(user, 0, 0) == -1) die_fatal("unable to drop privileges to", user, 0);
+            if (user) if (jail_droppriv(user) == -1) die_fatal("unable to drop privileges to", user, 0);
 
             signal(SIGPIPE, SIG_DFL);
             signal(SIGCHLD, SIG_DFL);
