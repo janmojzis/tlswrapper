@@ -205,6 +205,7 @@ int main(int argc, char **argv) {
                 if (x[1]) { ctx.account = (x + 1); break; }
                 if (argv[1]) { ctx.account = (*++argv); break; }
             }
+            if (*x == 'j') { ctx.account = 0; continue; }
 
             die_usage(USAGE);
         }
