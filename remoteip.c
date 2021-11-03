@@ -14,7 +14,7 @@ Public domain.
 static char buf[INET_ADDRSTRLEN] = {0};
 
 /*
-The 'remoteip' the IP address of the remote peer.
+The 'remoteip' returns IP address of the remote peer.
 Is extracted from the getpeername() function or
 from TCPREMOTEIP env. variable.
 */
