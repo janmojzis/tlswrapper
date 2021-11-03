@@ -60,8 +60,8 @@ int jail(const char *account, const char *dir, int limits) {
         shell = pw->pw_shell;
     }
 
+/* prohibit new files, new sockets, etc. */
 #ifdef RLIMIT_NOFILE
-    /* prohibit new files, new sockets, etc. */
     if (limits) {
         if (setrlimit(RLIMIT_NOFILE, &r) == -1) {
             log_e1("unable to set RLIMIT_NOFILE to 0");
@@ -69,7 +69,6 @@ int jail(const char *account, const char *dir, int limits) {
         }
     }
 #endif
-
 
     /* set gid */
     if (setgid(gid) == -1 || getgid() != gid) {
@@ -117,8 +116,8 @@ int jail(const char *account, const char *dir, int limits) {
         if (setenv("LOGNAME", name, 1) == -1) goto cleanup;
     }
 
+/* prohibit fork */
 #ifdef RLIMIT_NPROC
-    /* prohibit fork */
     if (limits) {
         if (setrlimit(RLIMIT_NPROC, &r) == -1) {
             log_e1("unable to set RLIMIT_NPROC to 0");
@@ -127,8 +126,16 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
+/* prohibit core dumping */
+#ifdef RLIMIT_CORE
+    if (limits) {
+        if (setrlimit(RLIMIT_CORE, &r) == -1) {
+            log_e1("unable to set RLIMIT_CORE to 0");
+            goto cleanup;
+        }
+    }
+#endif
 #ifdef PR_SET_DUMPABLE
-    /* prohibit core dumping */
     if (limits) {
         if (prctl(PR_SET_DUMPABLE, 0) == -1) {
             log_e1("unable to set prctl(PR_SET_DUMPABLE, 0)");
