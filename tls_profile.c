@@ -26,7 +26,7 @@ int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_cont
     struct tls_context *ctx = (struct tls_context *)pctx;
     const char *server_name;
 
-    log_t1("tls_choose");
+    log_t1("tls_choose()");
 
     st = br_ssl_server_get_client_suites(cc, &st_num);
     chashes = br_ssl_server_get_client_hashes(cc);
@@ -123,8 +123,8 @@ void tls_profile(struct tls_context *ctx) {
     br_ssl_engine_set_versions(&cc->eng, ctx->version_min, ctx->version_max);
 
     /*
-    Set flags
-    */
+     * Set flags
+     */
     br_ssl_engine_set_all_flags(&cc->eng, ctx->flags);
     
     /*
