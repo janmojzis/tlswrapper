@@ -11,6 +11,7 @@ Public domain.
 #include "alloc.h"
 #include "readall.h"
 #include "randombytes.h"
+#include "log.h"
 #include "tls.h"
 
 
@@ -85,11 +86,18 @@ void tls_pem_encrypt(struct tls_pem *ctx, const unsigned char *key) {
     br_chacha20_ct_run(key, nonce, 0, ctx->sec, ctx->seclen);
 }
 
+/*
+The 'tls_pem_load' loads secret PEM part and public PEM part
+from the file fn to the memory and immediately encrypts secret part.
+*/
+
 int tls_pem_load(struct tls_pem *ctx, const char *fn, const unsigned char *key) {
 
     int fd = -1;
     int ret = 0;
     struct stat st;
+
+    log_t3("tls_pem_load(fn = ", fn, ")");
 
     tls_pem_free(ctx);
 
@@ -110,5 +118,6 @@ int tls_pem_load(struct tls_pem *ctx, const char *fn, const unsigned char *key) 
 cleanup:
     if (fd != -1) close(fd);
     if (ret == 0) tls_pem_free(ctx);
+    log_t4("tls_pem_load(fn = ", fn, ") = ", lognum(ret));
     return ret;
 }

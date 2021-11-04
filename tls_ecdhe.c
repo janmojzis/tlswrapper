@@ -1,5 +1,12 @@
+/*
+20211103
+Jan Mojzis
+Public domain.
+*/
+
 #include <string.h>
 #include <stdlib.h>
+#include "log.h"
 #include "tls.h"
 
 typedef struct {
@@ -32,6 +39,11 @@ int tls_ecdhe_add(struct tls_context *ctx, const char *x) {
         if (strcmp(x, tls_ecdhes[i].name)) continue;
         ctx->ecdhe_enabled |= (uint32_t) 1 << tls_ecdhes[i].curve;
         return 1;
+    }
+
+    log_f2("unable to parse ephemeral algorithm from the string ", x);
+    for (i = 0; tls_ecdhes[i].name; ++i) {
+        log_f2("available: ", tls_ecdhes[i].name);
     }
     return 0;
 }

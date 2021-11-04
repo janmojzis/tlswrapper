@@ -1,4 +1,11 @@
+/*
+20211103
+Jan Mojzis
+Public domain.
+*/
+
 #include <string.h>
+#include "log.h"
 #include "tls.h"
 
 typedef struct {
@@ -35,6 +42,11 @@ int tls_version_setmin(struct tls_context *ctx, const char *x) {
             return 1;
         }
     }
+
+    log_f2("unable to parse TLS min. version from the string ", x);
+    for (i = 0; tls_versions[i].name; ++i) {
+        log_f2("available: ", tls_versions[i].name);
+    }
     return 0;
 }
 
@@ -48,6 +60,10 @@ int tls_version_setmax(struct tls_context *ctx, const char *x) {
             ctx->version_max = tls_versions[i].version;
             return 1;
         }
+    }
+    log_f2("unable to parse TLS max. version from the string ", x);
+    for (i = 0; tls_versions[i].name; ++i) {
+        log_f2("available: ", tls_versions[i].name);
     }
     return 0;
 }

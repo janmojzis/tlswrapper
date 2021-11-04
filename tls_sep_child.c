@@ -90,6 +90,9 @@ void tls_sep_child(struct tls_context *ctx) {
     br_ssl_server_context *cc = &ctx->cc;
     struct tls_pem pem = {0};
 
+    log_name("tlswrapper key");
+    log_d1("start");
+
     /*
     read filename and write content to the pipe
     */
@@ -100,7 +103,7 @@ void tls_sep_child(struct tls_context *ctx) {
         if (fn_len == 0) break;
         fn[fn_len - 1] = 0;
         fixpath(fn);
-        log_t2("file=", fn);
+        log_t2("file = ", fn);
 
         randombytes(pemkey, sizeof pemkey);
         if (!tls_pem_load(&pem, fn, pemkey)) {
@@ -271,5 +274,5 @@ void tls_sep_child(struct tls_context *ctx) {
     }
 
 cleanup:
-    log_d1("tls_sep_child done");
+    log_d1("finished");
 }

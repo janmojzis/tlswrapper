@@ -1,5 +1,12 @@
-#include "tls.h"
+/*
+20211103
+Jan Mojzis
+Public domain.
+*/
+
 #include <string.h>
+#include "log.h"
+#include "tls.h"
 
 typedef struct {
     const char *name;
@@ -82,6 +89,12 @@ int tls_cipher_add(struct tls_context *ctx, const char *x) {
         suite = tls_ciphers[i].suite;
         goto ok;
     }
+
+    log_f2("unable to parse cipher from the string ", x);
+    for (i = 0; tls_ciphers[i].name; ++i) {
+        log_f2("available: ", tls_ciphers[i].name);
+    }
+
     return 0;
 
 ok:
@@ -99,10 +112,11 @@ ok:
         ctx->cipher_enabled[ctx->cipher_enabled_len++] = (suite >> 16) & 0xffff;
         ctx->cipher_enabled[ctx->cipher_enabled_len++] = (suite >>  0) & 0xffff;
     }
+
     return 1;
 }
 
-extern uint32_t tls_cipher_get(uint16_t suite) {
+uint32_t tls_cipher_get(uint16_t suite) {
 
     long long i;
 

@@ -46,9 +46,7 @@ static struct tls_context ctx = {
 static const char *hstimeoutstr = "10";
 static const char *timeoutstr = "3600";
 static const char *user = 0;
-#ifdef TODO_USERFROMCN
 static int userfromcn = 0;
-#endif
 
 static long long starttimeout = 3;
 static long long hstimeout;
@@ -80,30 +78,35 @@ static void cleanup(void) {
     }
 }
 
+void die_perm(void) {
+    cleanup();
+    _exit(100);
+}
+
 void version_setmax(const char *x) {
-    if (!tls_version_setmax(&ctx, x)) die_fatal("unable to parse TLS max. version from the string", x, 0);
+    if (!tls_version_setmax(&ctx, x)) die_perm();
 }
 void version_setmin(const char *x) {
-    if (!tls_version_setmin(&ctx, x)) die_fatal("unable to parse TLS min. version from the string", x, 0);
+    if (!tls_version_setmin(&ctx, x)) die_perm();
 }
 void certfile_add_dir(const char *x) {
-    if (!tls_certfile_add_dir(&ctx, x)) die_fatal("unable to add certdir", x, 0);
+    if (!tls_certfile_add_dir(&ctx, x)) die_perm();
 }
 void certfile_add_file(const char *x) {
-    if (!tls_certfile_add_file(&ctx, x)) die_fatal("unable to add certfile", x, 0);
+    if (!tls_certfile_add_file(&ctx, x)) die_perm();
 }
 void anchor_add(const char *x) {
-    if (!tls_anchor_add(&ctx, x)) die_fatal("unable to add more than one anchor file", x, 0);
+    if (!tls_anchor_add(&ctx, x)) die_perm();
 }
 void ecdhe_add(const char *x) {
-    if (!tls_ecdhe_add(&ctx, x)) die_fatal("unable to parse ephemeral algorithm from the string", x, 0);
+    if (!tls_ecdhe_add(&ctx, x)) die_perm();
 }
 void cipher_add(const char *x) {
-    if (!tls_cipher_add(&ctx, x)) die_fatal("unable to parse cipher from the string", x, 0);
+    if (!tls_cipher_add(&ctx, x)) die_perm();
 }
 long long timeout_parse(const char *x) {
     long long ret;
-    if (!tls_timeout_parse(&ret, x) || ret <= 0) die_fatal("unable to parse timeout from the string", x, 0);
+    if (!tls_timeout_parse(&ret, x)) die_perm();
     return ret;
 }
 
@@ -218,7 +221,6 @@ int main(int argc, char **argv) {
     /* start */
     log_id(remoteip());
     log_time(1);
-    log_i1("start");
 
     /* non-blockning stdin/stdout */
     blocking_disable(0);
@@ -242,7 +244,6 @@ int main(int argc, char **argv) {
             blocking_enable(0);
             blocking_enable(1);
 
-#ifdef TODO_USERFROMCN
             /* drop root to account from client certificate CN */
             do {
                 char account[256];
@@ -253,7 +254,6 @@ int main(int argc, char **argv) {
                 if (!userfromcn) break;
                 if (jail_droppriv(account) == -1) die_fatal("unable to drop privileges to", account, 0);
             } while (0);
-#endif
 
             /* drop root */
             if (user) if (jail_droppriv(user) == -1) die_fatal("unable to drop privileges to", user, 0);
@@ -318,6 +318,9 @@ int main(int argc, char **argv) {
     signal(SIGALRM, signalhandler);
     alarm(hstimeout);
 
+    log_name("tlswrapper net");
+    log_d1("start");
+
     /* set limits + chroot + drop privileges */
     if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_fatal("unable to create jail", 0, 0);
 
@@ -327,8 +330,8 @@ int main(int argc, char **argv) {
         /* get anchor PEM file, and parse it */
         if (pipe_write(tls_sep_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_fatal("unable to write to pipe", 0, 0);
         pubpem = pipe_readalloc(tls_sep_fromchild, &pubpemlen);
-        if (!pubpem) die_fatal("unable to read PEM file", ctx.anchorfn, 0);
-        if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen)) die_fatal("unable to parse PEM file", ctx.anchorfn, 0);
+        if (!pubpem) die_fatal("unable to read anchor PEM file", ctx.anchorfn, 0);
+        if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen)) die_fatal("unable to parse anchor PEM file", ctx.anchorfn, 0);
         alloc_free(pubpem);
     }
 
@@ -354,7 +357,7 @@ int main(int argc, char **argv) {
             int err;
             err = br_ssl_engine_last_error(&ctx.cc.eng);
             if (err == BR_ERR_OK) {
-                log_i1("SSL closed normally");
+                log_d1("SSL closed normally");
             }
             else {
                 if (err >= BR_ERR_SEND_FATAL_ALERT) {
@@ -376,8 +379,10 @@ int main(int argc, char **argv) {
 
 #ifdef TODO_USERFROMCN
             const char *account = (char *)ctx.xc.cn;
-            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) break;
+#else
+            const char *account = "";
 #endif
+            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) break;
 
             alarm(timeout);
             handshakedone = 1;
@@ -457,7 +462,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    log_i1("finished");
+    log_d1("finished");
     die(0);
 }
 /* clang-format on */
