@@ -113,7 +113,7 @@ long long timeout_parse(const char *x) {
 
 #define USAGE "tlswrapper [options] [ -d certdir ] [ -f certfile ] prog"
 
-int main(int argc, char **argv) {
+int main_tlswrapper(int argc, char **argv) {
 
     char *x;
     int handshakedone = 0;
