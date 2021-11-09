@@ -17,6 +17,8 @@ static char *basename(char *str) {
     char *s;
     char *ret = str;
 
+    if (!str) return str;
+
     for (s = str; *s; ++s) {
         if (*s == '/') ret = s + 1;
     }
@@ -33,19 +35,14 @@ int main(int argc, char **argv) {
     x = basename(argv[0]);
     if (!x) _exit(100);
 
-    if (!strcmp(x, "tlswrapper")) {
-        return main_tlswrapper(argc, argv);
-    }
-    else if (!strcmp(x, "tlswrapper-tcpproxy")){
+    if (!strcmp(x, "tlswrapper-tcpproxy")){
         return main_tlswrapper_tcpproxy(argc, argv);
     }
-    else if (!strcmp(x, "tlswrapper-loadpem")){
+    if (!strcmp(x, "tlswrapper-loadpem")){
         return main_tlswrapper_loadpem(argc, argv);
     }
-    else {
-        return main_tlswrapper(argc, argv);
-    }
+    return main_tlswrapper(argc, argv);
 
     _exit(111);
-    return 111;
+    return 111; /* make compiler happy */
 }
