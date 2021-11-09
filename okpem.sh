@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+rm -f tlswrapper-loadpem
+ln -s tlswrapper tlswrapper-loadpem
+
 (
   (
     echo 'okpem00.pem # public-part only'
@@ -12,7 +15,7 @@ set -e
   ) | (
     while read name comment; do
       echo "${comment}"
-      ./testpemload "${name}"
+      ./tlswrapper-loadpem "${name}"
       echo
     done
   ) 
