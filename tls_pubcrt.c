@@ -72,6 +72,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
     br_pem_decoder_context pc;
     br_x509_decoder_context dc5;
     br_x509_pkey *pk;
+    int err;
 
     log_t3("tls_pubcrt_parse(buflen = ", lognum(buflen), ")");
 
@@ -122,7 +123,17 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
                     sa.len = 0;
                     br_x509_decoder_init(&dc5, sa_append, &sa);
                     br_x509_decoder_push(&dc5, crt->crt[crt->crtlen].data, crt->crt[crt->crtlen].data_len);
-                    if (sa.error) goto cleanup;
+                    if (sa.error) {
+                        log_e3("br_x509_decoder_push(len = ", lognum( crt->crt[crt->crtlen].data_len), "), failed");
+                        goto cleanup;
+                    }
+
+                    err = br_x509_decoder_last_error(&dc5);
+                    if (err != 0) {
+                        log_e2("unable to decode public-key, err=", tls_error_str(err));
+                        goto cleanup;
+                    }
+
                     pk = br_x509_decoder_get_pkey(&dc5);
                     if (!pk) {
                         log_e1("br_x509_decoder_get_pkey no public-key in PEM public-object");
