@@ -7,6 +7,7 @@
 #include "log.h"
 #include "alloc.h"
 #include "tls.h"
+#include "fsyncfd.h"
 #include "writeall.h"
 
 static struct tls_pem pem = {0};
@@ -22,7 +23,8 @@ static char *fnin = 0;
 static char *fnout = 0;
 static int fdout = 1;
 
-static void cleanup(void) {
+static int die(int x) {
+
     tls_pem_free(&pem);
     randombytes(&crt, sizeof crt);
     randombytes(&keycrt, sizeof keycrt);
@@ -32,12 +34,10 @@ static void cleanup(void) {
         unsigned char stack[4096];
         randombytes(stack, sizeof stack);
     }
-    (void) fsync(fdout);
-    (void) close(fdout);
-}
+    if (x != 0 && fnout) {
+        (void) unlink(fnout);
+    }
 
-static int die(int x) {
-    cleanup();
     _exit(x);
 }
 
@@ -121,6 +121,11 @@ int main_tlswrapper_loadpem(int argc, char **argv) {
             log_f2("unable to write output to the file ", fnout);
             die(111);
         }
+    }
+
+    if (fsyncfd(fdout) == -1 || close(fdout) == -1) {
+        log_f2("unable to write output to the file ", fnout);
+        die(111);
     }
 
     die(0);
