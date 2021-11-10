@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall -I/usr/include/bearssl
 LDFLAGS+=-lbearssl
 
-all:  testalloc testjail tlswrapper
+all:  testalloc testchacha20 testjail testrandombytes tlswrapper
 
 alloc.o: alloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS)  -c alloc.c
@@ -79,8 +79,20 @@ remoteip.o: remoteip.c remoteip.h
 testalloc.o: testalloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS)  -c testalloc.c
 
+testchacha20.o: testchacha20.c log.h /usr/include/bearssl/bearssl.h \
+ /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
+ /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
+ /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
+ /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
+ /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
+ /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+	$(CC) $(CFLAGS) $(CPPFLAGS)  -c testchacha20.c
+
 testjail.o: testjail.c log.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS)  -c testjail.c
+
+testrandombytes.o: testrandombytes.c log.h randombytes.h
+	$(CC) $(CFLAGS) $(CPPFLAGS)  -c testrandombytes.c
 
 tls_anchor.o: tls_anchor.c log.h tls.h /usr/include/bearssl/bearssl.h \
  /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
@@ -242,12 +254,18 @@ writeall.o: writeall.c writeall.h
 testalloc: testalloc.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o testalloc testalloc.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o $(LDFLAGS)
 
+testchacha20: testchacha20.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o testchacha20 testchacha20.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o $(LDFLAGS)
+
 testjail: testjail.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o testjail testjail.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o $(LDFLAGS)
+
+testrandombytes: testrandombytes.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o testrandombytes testrandombytes.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o $(LDFLAGS)
 
 tlswrapper: tlswrapper.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o $(LDFLAGS)
 
 clean:
-	rm -f *.o  testalloc testjail tlswrapper
+	rm -f *.o  testalloc testchacha20 testjail testrandombytes tlswrapper
 
