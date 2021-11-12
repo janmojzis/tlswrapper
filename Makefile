@@ -4,7 +4,7 @@ LDFLAGS+=-lbearssl
 
 all:  testalloc testchacha20 testjail testrandombytes tlswrapper
 
-alloc.o: alloc.c alloc.h log.h
+alloc.o: alloc.c randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS)  -c alloc.c
 
 blocking.o: blocking.c blocking.h
