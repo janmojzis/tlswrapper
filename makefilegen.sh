@@ -1,19 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
-top="`pwd`"
-build="`pwd`/build"
-
-rm -rf "${build}"
-#mkdir -p "${build}"
-
-#cp *.c *.h "${build}"
 (
-  #cd "${build}"
   (
     echo "CC=gcc"
-    #echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -I../BearSSL/inc -Wall"
-    #echo "LDFLAGS+=-L../BearSSL/build -lbearssl -static"
-    #echo "LDFLAGS+=-L../BearSSL/build -lbearssl"
     echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall" -I/usr/include/bearssl
     echo "LDFLAGS+=-lbearssl"
     echo 
@@ -36,13 +25,7 @@ rm -rf "${build}"
     for file in `ls *.c`; do
       (
         gcc -I/usr/include/bearssl -MM "${file}"
-        start=`echo "${file}" | cut -b1-7`
-        if [ x"`echo "${file}" | cut -b1-7`" = xcrypto_ ]; then
-          opt="-O3"
-        else
-          opt=""
-        fi
-        echo -e "\t\$(CC) \$(CFLAGS) \$(CPPFLAGS) ${opt} -c ${file}"
+        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c ${file}"
         echo 
       )
     done
@@ -51,13 +34,13 @@ rm -rf "${build}"
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
         echo "${x}: ${x}.o ${objects}"
-        echo -e "\t\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o ${objects} \$(LDFLAGS)"
+        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o ${objects} \$(LDFLAGS)"
         echo 
       fi
     done
 
     echo "clean:"
-    echo -e "\trm -f *.o ${binaries}"
+    echo "	rm -f *.o ${binaries}"
     echo 
 
   ) > Makefile
