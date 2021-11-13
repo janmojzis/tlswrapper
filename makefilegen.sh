@@ -39,6 +39,10 @@
       fi
     done
 
+    echo "test: ${binaries}"
+    echo "	./test.sh"
+    echo
+
     echo "clean:"
     echo "	rm -f *.o ${binaries}"
     echo 

@@ -266,6 +266,9 @@ testrandombytes: testrandombytes.o  alloc.o blocking.o crypto_scalarmult_curve25
 tlswrapper: tlswrapper.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o  alloc.o blocking.o crypto_scalarmult_curve25519.o e.o fsyncfd.o jail.o jail_poll.o log.o main_tlswrapper.o main_tlswrapper_loadpem.o main_tlswrapper_tcpproxy.o pipe.o randombytes.o randommod.o readall.o remoteip.o tls_anchor.o tls_certfile.o tls_cipher.o tls_crypto_scalarmult.o tls_ecdhe.o tls_ecdsa.o tls_error.o tls_key.o tls_pem.o tls_profile.o tls_pubcrt.o tls_seccrt.o tls_sep.o tls_sep_child.o tls_timeout.o tls_version.o writeall.o $(LDFLAGS)
 
+test:  testalloc testchacha20 testjail testrandombytes tlswrapper
+	./test.sh
+
 clean:
 	rm -f *.o  testalloc testchacha20 testjail testrandombytes tlswrapper
 

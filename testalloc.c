@@ -82,6 +82,23 @@ void allocfree(void) {
     _exit(0);
 }
 
+void allocfreeall(void) {
+    unsigned char *x;
+
+    x = alloc(1);
+    if (!x) _exit(222);
+    x = alloc(1);
+    if (!x) _exit(222);
+    x = alloc(alloc_STATICSPACE);
+    if (!x) _exit(222);
+
+    alloc_freeall();
+    alloc_freeall();
+    alloc_freeall();
+
+    _exit(0);
+}
+
 
 int main() {
 
@@ -102,6 +119,8 @@ int main() {
     if (run(alloclonglongoverflow) != 111) return 111;
     log_i1("allocfree");
     if (run(allocfree) != 0) return 111;
+    log_i1("allocfreeall");
+    if (run(allocfreeall) != 0) return 111;
 
 
     return 0;
