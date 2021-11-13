@@ -2,7 +2,7 @@
 set -e
 
 rm -f tlswrapper-loadpem
-ln -s tlswrapper tlswrapper-loadpem
+ln -s ../tlswrapper tlswrapper-loadpem
 
 cleanup() {
   ex=$?
