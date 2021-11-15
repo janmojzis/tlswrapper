@@ -102,14 +102,13 @@ tls_anchor.o: tls_anchor.c tls.h /usr/include/bearssl/bearssl.h \
  /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_anchor.c
 
-tls_certfile.o: tls_certfile.c log.h e.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h
+tls_certfile.o: tls_certfile.c tls.h /usr/include/bearssl/bearssl.h \
+ /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
+ /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
+ /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
+ /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
+ /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
+ /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_certfile.c
 
 tls_cipher.o: tls_cipher.c tls.h /usr/include/bearssl/bearssl.h \

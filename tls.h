@@ -6,17 +6,17 @@
 #include <sys/stat.h>
 #include "bearssl.h"
 
-#define tls_MAXcertfiles 16
+#define tls_MAXCERTFILES 16
 
 struct tls_pubcrt {
 
     /* crt */
     char key_type;  /* BR_KEYTYPE_RSA or BR_KEYTYPE_EC */
-    br_x509_certificate crt[tls_MAXcertfiles];
+    br_x509_certificate crt[tls_MAXCERTFILES];
     size_t crtlen;
 
     /* ta */
-    br_x509_trust_anchor ta[tls_MAXcertfiles];
+    br_x509_trust_anchor ta[tls_MAXCERTFILES];
     size_t talen;
 };
 
@@ -36,7 +36,7 @@ struct tls_certfile {
 
 struct tls_context {
     const br_ssl_server_policy_class *vtable;
-    br_x509_certificate chain[tls_MAXcertfiles];
+    br_x509_certificate chain[tls_MAXCERTFILES];
     size_t chain_len;
     char key_type;
 

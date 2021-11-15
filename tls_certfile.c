@@ -4,66 +4,28 @@ Jan Mojzis
 Public domain.
 */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include "log.h"
-#include "e.h"
 #include "tls.h"
 
 int tls_certfile_add_dir(struct tls_context *ctx, const char *fn) {
 
-    struct stat st;
-    int ret = 0;
-
-    if (stat(fn, &st) == -1) {
-        log_e2("unable to stat certdir ", fn);
-        goto cleanup;
-    }
-    if ((st.st_mode & S_IFMT) != S_IFDIR) {
-        errno = ENOTDIR;
-        log_e2("unable to add certdir ", fn);
-        goto cleanup;
-    }
-
     if ((sizeof ctx->certfiles / sizeof ctx->certfiles[0]) <= ctx->certfiles_len) {
-        log_e3("unable to add certdir ", fn, ": too many certdirs");
-        goto cleanup;
+        return 0;
     }
 
     ctx->certfiles[ctx->certfiles_len].name = fn;
     ctx->certfiles[ctx->certfiles_len].filetype = S_IFDIR;
     ++ctx->certfiles_len;
-    ret = 1;
-
-cleanup:
-    return ret;
+    return 1;
 }
 
 int tls_certfile_add_file(struct tls_context *ctx, const char *fn) {
 
-    struct stat st;
-    int ret = 0;
-
-    if (stat(fn, &st) == -1) {
-        log_e2("unable to stat certfile ", fn);
-        goto cleanup;
-    }
-    if ((st.st_mode & S_IFMT) != S_IFREG) {
-        log_e3("unable to add certfile ", fn, ": not a file");
-        goto cleanup;
-    }
-
     if ((sizeof ctx->certfiles / sizeof ctx->certfiles[0]) <= ctx->certfiles_len) {
-        log_e3("unable to add certfile ", fn, ": too many certfiles");
-        goto cleanup;
+        return 0;
     }
 
     ctx->certfiles[ctx->certfiles_len].name = fn;
     ctx->certfiles[ctx->certfiles_len].filetype = S_IFREG;
     ++ctx->certfiles_len;
-    ret = 1;
-
-cleanup:
-    return ret;
+    return 1;
 }
