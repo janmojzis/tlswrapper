@@ -81,10 +81,16 @@ extern void tls_profile(struct tls_context *);
 /* tls_error.c */
 extern const char *tls_error_str(int);
 
-/* tls_key.c */
-extern const char *tls_key_str(int);
+/* tls_keytype.c */
+extern const char *tls_keytype_str(int);
 
 /* tls_version.c */
+typedef struct {
+    const char *name;
+    unsigned int version;
+    const char *comment;
+} tls_version;
+extern const tls_version tls_versions[];
 #define tls_version_TLS10 BR_TLS10
 #define tls_version_TLS11 BR_TLS11
 #define tls_version_TLS12 BR_TLS12
@@ -93,6 +99,11 @@ extern int tls_version_setmax(struct tls_context *, const char *);
 extern const char *tls_version_str(unsigned int);
 
 /* tls_ecdhe.c */
+typedef struct {
+    const char *name;
+    uint32_t curve;
+} tls_ecdhe;
+extern const tls_ecdhe tls_ecdhes[];
 #define tls_ecdhe_X25519    BR_EC_curve25519
 #define tls_ecdhe_X448      BR_EC_curve448
 #define tls_ecdhe_SECP256R1 BR_EC_secp256r1
@@ -102,6 +113,13 @@ extern const br_ec_impl *tls_ecdhe_get_default(struct tls_context *);
 extern int tls_ecdhe_add(struct tls_context *, const char *);
 
 /* tls_cipher.c */
+typedef struct {
+    const char *name;
+    uint32_t suite;
+    const char *eccomment;
+    const char *rsacomment;
+} tls_cipher;
+extern const tls_cipher tls_ciphers[];
 #define tls_cipher_CHACHA20_POLY1305_SHA256 ((BR_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 << 16) + BR_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256)
 #define tls_cipher_AES_256_GCM_SHA384       ((BR_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 << 16) + BR_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384)
 #define tls_cipher_AES_128_GCM_SHA256       ((BR_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 << 16) + BR_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)

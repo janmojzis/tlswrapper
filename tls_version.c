@@ -1,14 +1,7 @@
 #include <string.h>
-#include "log.h"
 #include "tls.h"
 
-typedef struct {
-    const char *name;
-    unsigned int version;
-    const char *comment;
-} tls_version;
-
-static const tls_version tls_versions[] = {
+const tls_version tls_versions[] = {
     { "tls10", BR_TLS10, "TLS 1.0" },
     { "tls11", BR_TLS11, "TLS 1.1" },
     { "tls12", BR_TLS12, "TLS 1.2" },
@@ -36,11 +29,6 @@ int tls_version_setmin(struct tls_context *ctx, const char *x) {
             return 1;
         }
     }
-
-    log_f2("unable to parse TLS min. version from the string ", x);
-    for (i = 0; tls_versions[i].name; ++i) {
-        log_f2("available: ", tls_versions[i].name);
-    }
     return 0;
 }
 
@@ -54,10 +42,6 @@ int tls_version_setmax(struct tls_context *ctx, const char *x) {
             ctx->version_max = tls_versions[i].version;
             return 1;
         }
-    }
-    log_f2("unable to parse TLS max. version from the string ", x);
-    for (i = 0; tls_versions[i].name; ++i) {
-        log_f2("available: ", tls_versions[i].name);
     }
     return 0;
 }

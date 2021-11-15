@@ -13,6 +13,11 @@ set -e
   ./badpem.sh
   echo "badpem test end"
   echo
+
+  echo "opts test begin"
+  ./opts.sh
+  echo "opts test end"
+  echo
 )
 
 echo "testalloc begin"

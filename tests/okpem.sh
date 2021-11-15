@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-rm -f tlswrapper-loadpem
+rm -f tlswrapper-loadpem okpem.out
 ln -s ../tlswrapper tlswrapper-loadpem
 
 cleanup() {

@@ -88,29 +88,81 @@ static void cleanup(void) {
 #define die_parseanchorpem(x) { log_f2("unable to parse anchor PEM file ", (x)); die(111); }
 
 static void version_setmax(const char *x) {
-    if (!tls_version_setmax(&ctx, x)) die(100);
+
+    long long i;
+
+    if (!tls_version_setmax(&ctx, x)) {
+        log_f2("unable to parse TLS max. version from the string ", x);
+        for (i = 0; tls_versions[i].name; ++i) {
+            log_f2("available: ", tls_versions[i].name);
+        }
+        die(100);
+    }
 }
 static void version_setmin(const char *x) {
-    if (!tls_version_setmin(&ctx, x)) die(100);
+
+    long long i;
+
+    if (!tls_version_setmin(&ctx, x)) {
+        log_f2("unable to parse TLS min. version from the string ", x);
+        for (i = 0; tls_versions[i].name; ++i) {
+            log_f2("available: ", tls_versions[i].name);
+        }
+        die(100);
+    }
 }
 static void certfile_add_dir(const char *x) {
-    if (!tls_certfile_add_dir(&ctx, x)) die(100);
+    if (!tls_certfile_add_dir(&ctx, x)) {
+        log_f2("unable to add certdir ", x);
+        die(100);
+    }
 }
 static void certfile_add_file(const char *x) {
-    if (!tls_certfile_add_file(&ctx, x)) die(100);
+    if (!tls_certfile_add_file(&ctx, x)) {
+        log_f2("unable to add certfile ", x);
+        die(100);
+    }
 }
 static void anchor_add(const char *x) {
-    if (!tls_anchor_add(&ctx, x)) die(100);
+    if (!tls_anchor_add(&ctx, x)) {
+        log_f1("unable to add more than one anchor file");
+        die(100);
+    }
 }
 static void ecdhe_add(const char *x) {
-    if (!tls_ecdhe_add(&ctx, x)) die(100);
+
+    long long i;
+
+    if (!tls_ecdhe_add(&ctx, x)) {
+        log_f2("unable to parse ephemeral algorithm from the string ", x);
+        for (i = 0; tls_ecdhes[i].name; ++i) {
+            log_f2("available: ", tls_ecdhes[i].name);
+        }
+        die(100);
+    }
 }
 static void cipher_add(const char *x) {
-    if (!tls_cipher_add(&ctx, x)) die(100);
+
+    long long i;
+
+    if (!tls_cipher_add(&ctx, x)) {
+        log_f2("unable to parse cipher from the string ", x);
+        for (i = 0; tls_ciphers[i].name; ++i) {
+            log_f2("available: ", tls_ciphers[i].name);
+        }
+        die(100);
+    }
 }
 static long long timeout_parse(const char *x) {
     long long ret;
-    if (!tls_timeout_parse(&ret, x)) die(100);
+    if (!tls_timeout_parse(&ret, x)) {
+        log_f2("unable to parse timeout from the string ", x);
+        die(100);
+    }
+    if (ret < 1) {
+        log_f2("timeout must be a number > 0, not ", x);
+        die(100);
+    }
     return ret;
 }
 

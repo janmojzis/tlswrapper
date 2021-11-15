@@ -167,8 +167,8 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
                             goto cleanup;
                     }
                     {
-                        const char *sigtype = tls_key_str(br_x509_decoder_get_signer_key_type(&dc5));
-                        const char *pktype = tls_key_str(pk->key_type);
+                        const char *sigtype = tls_keytype_str(br_x509_decoder_get_signer_key_type(&dc5));
+                        const char *pktype = tls_keytype_str(pk->key_type);
                         const char *strca = "0";
                         if (br_x509_decoder_isCA(&dc5)) strca = "1";
                         log_t8("crt=", lognum(crt->crtlen), ", pk=", pktype, ", sig=", sigtype, ", ca=", strca);

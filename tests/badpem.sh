@@ -6,7 +6,7 @@ ln -s ../tlswrapper tlswrapper-loadpem
 
 cleanup() {
   ex=$?
-  rm -f tlswrapper-loadpem
+  rm -f tlswrapper-loadpem badpem.out
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT

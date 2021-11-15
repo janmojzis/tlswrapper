@@ -1,14 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
-#include "log.h"
 #include "tls.h"
 
-typedef struct {
-    const char *name;
-    uint32_t curve;
-} tls_ecdhe;
-
-static const tls_ecdhe tls_ecdhes[] = {
+const tls_ecdhe tls_ecdhes[] = {
     { "x25519", tls_ecdhe_X25519 },
     { "secp256r1", tls_ecdhe_SECP256R1 },
     { "secp384r1", tls_ecdhe_SECP384R1 },
@@ -35,10 +29,6 @@ int tls_ecdhe_add(struct tls_context *ctx, const char *x) {
         return 1;
     }
 
-    log_f2("unable to parse ephemeral algorithm from the string ", x);
-    for (i = 0; tls_ecdhes[i].name; ++i) {
-        log_f2("available: ", tls_ecdhes[i].name);
-    }
     return 0;
 }
 
@@ -60,7 +50,7 @@ static size_t xoff(int curve, size_t *len) {
     return ret;
 }
 
-/* fake order, not used */
+/* fake X448 order, not used */
 static const unsigned char _o[56] = {0xff};
 
 static const unsigned char *order(int curve, size_t *len) {

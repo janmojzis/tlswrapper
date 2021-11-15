@@ -1,15 +1,7 @@
 #include <string.h>
-#include "log.h"
 #include "tls.h"
 
-typedef struct {
-    const char *name;
-    uint32_t suite;
-    const char *eccomment;
-    const char *rsacomment;
-} tls_cipher;
-
-static const tls_cipher tls_ciphers[] = {
+const tls_cipher tls_ciphers[] = {
     {
         "CHACHA20_POLY1305_SHA256",
         tls_cipher_CHACHA20_POLY1305_SHA256,
@@ -82,11 +74,6 @@ int tls_cipher_add(struct tls_context *ctx, const char *x) {
         if (strcmp(x, tls_ciphers[i].name)) continue;
         suite = tls_ciphers[i].suite;
         goto ok;
-    }
-
-    log_f2("unable to parse cipher from the string ", x);
-    for (i = 0; tls_ciphers[i].name; ++i) {
-        log_f2("available: ", tls_ciphers[i].name);
     }
 
     return 0;
