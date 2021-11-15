@@ -29,15 +29,14 @@ jail_poll.o: jail_poll.c log.h jail.h
 log.o: log.c e.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
-main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h die.h e.h \
- jail.h randombytes.h alloc.h remoteip.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h
+main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
+ randombytes.h alloc.h remoteip.h tls.h /usr/include/bearssl/bearssl.h \
+ /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
+ /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
+ /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
+ /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
+ /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
+ /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \

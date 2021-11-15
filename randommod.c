@@ -1,4 +1,4 @@
-/* taken from nacl-20110221, from curvecp/randommod.c */
+/* taken from public-domain nacl-20110221, from curvecp/randommod.c */
 #include "randombytes.h"
 #include "randommod.h"
 

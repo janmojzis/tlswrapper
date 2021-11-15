@@ -5,7 +5,6 @@
 #include "blocking.h"
 #include "pipe.h"
 #include "log.h"
-#include "die.h"
 #include "e.h"
 #include "jail.h"
 #include "randombytes.h"
@@ -78,40 +77,48 @@ static void cleanup(void) {
     }
 }
 
-void die_perm(void) {
-    cleanup();
-    _exit(100);
-}
+#define die(x) { cleanup(); _exit(x); }
+#define die_pipe() { log_f1("unable to create pipe"); die(111); }
+#define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
+#define die_fork() { log_f1("unable to fork"); die(111); }
+#define die_dup() { log_f1("unable to dup"); die(111); }
+#define die_droppriv(x) { log_f2("unable to drop privileges to ", (x)); die(111); }
+#define die_jail() { log_f1("unable to create jail"); die(111); }
+#define die_readanchorpem(x) { log_f2("unable to read anchor PEM file ", (x)); die(111); }
+#define die_parseanchorpem(x) { log_f2("unable to parse anchor PEM file ", (x)); die(111); }
 
-void version_setmax(const char *x) {
-    if (!tls_version_setmax(&ctx, x)) die_perm();
+static void version_setmax(const char *x) {
+    if (!tls_version_setmax(&ctx, x)) die(100);
 }
-void version_setmin(const char *x) {
-    if (!tls_version_setmin(&ctx, x)) die_perm();
+static void version_setmin(const char *x) {
+    if (!tls_version_setmin(&ctx, x)) die(100);
 }
-void certfile_add_dir(const char *x) {
-    if (!tls_certfile_add_dir(&ctx, x)) die_perm();
+static void certfile_add_dir(const char *x) {
+    if (!tls_certfile_add_dir(&ctx, x)) die(100);
 }
-void certfile_add_file(const char *x) {
-    if (!tls_certfile_add_file(&ctx, x)) die_perm();
+static void certfile_add_file(const char *x) {
+    if (!tls_certfile_add_file(&ctx, x)) die(100);
 }
-void anchor_add(const char *x) {
-    if (!tls_anchor_add(&ctx, x)) die_perm();
+static void anchor_add(const char *x) {
+    if (!tls_anchor_add(&ctx, x)) die(100);
 }
-void ecdhe_add(const char *x) {
-    if (!tls_ecdhe_add(&ctx, x)) die_perm();
+static void ecdhe_add(const char *x) {
+    if (!tls_ecdhe_add(&ctx, x)) die(100);
 }
-void cipher_add(const char *x) {
-    if (!tls_cipher_add(&ctx, x)) die_perm();
+static void cipher_add(const char *x) {
+    if (!tls_cipher_add(&ctx, x)) die(100);
 }
-long long timeout_parse(const char *x) {
+static long long timeout_parse(const char *x) {
     long long ret;
-    if (!tls_timeout_parse(&ret, x)) die_perm();
+    if (!tls_timeout_parse(&ret, x)) die(100);
     return ret;
 }
 
+static void usage(void) {
+    log_u1("tlswrapper [options] [ -d certdir ] [ -f certfile ] prog");
+    die(100);
+}
 
-#define USAGE "tlswrapper [options] [ -d certdir ] [ -f certfile ] prog"
 
 int main_tlswrapper(int argc, char **argv) {
 
@@ -126,7 +133,7 @@ int main_tlswrapper(int argc, char **argv) {
     log_name("tlswrapper");
 
     (void) argc;
-    if (!argv[0]) die_usage(USAGE);
+    if (!argv[0]) usage();
     for (;;) {
         if (!argv[1]) break;
         if (argv[1][0] != '-') break;
@@ -210,11 +217,11 @@ int main_tlswrapper(int argc, char **argv) {
             }
             if (*x == 'j') { ctx.account = 0; continue; }
 
-            die_usage(USAGE);
+            usage();
         }
     }
-    if (!*++argv) die_usage(USAGE);
-    if (!ctx.certfiles_len) die_usage(USAGE);
+    if (!*++argv) usage();
+    if (!ctx.certfiles_len) usage();
     timeout = timeout_parse(timeoutstr);
     hstimeout = timeout_parse(hstimeoutstr);
 
@@ -227,20 +234,19 @@ int main_tlswrapper(int argc, char **argv) {
     blocking_disable(1);
 
     /* run child process */
-    if (pipe(fromchild) == -1) die_fatal("unable to create pipe", 0, 0);
-    if (pipe(tochild) == -1) die_fatal("unable to create pipe", 0, 0);
+    if (pipe(fromchild) == -1) die_pipe();
+    if (pipe(tochild) == -1) die_pipe();
     child = fork();
     switch (child) {
         case -1:
-            log_f1("unable to fork()");
-            die(111);
+            die_fork();
         case 0:
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
-            if (dup(tochild[0]) != 0) die_fatal("unable to dup", 0, 0);
+            if (dup(tochild[0]) != 0) die_dup();
             close(1);
-            if (dup(fromchild[1]) != 1) die_fatal("unable to dup", 0, 0);
+            if (dup(fromchild[1]) != 1) die_dup();
             blocking_enable(0);
             blocking_enable(1);
 
@@ -252,11 +258,11 @@ int main_tlswrapper(int argc, char **argv) {
                 if (accountlen <= 1) break;
                 account[accountlen - 1] = 0;
                 if (!userfromcn) break;
-                if (jail_droppriv(account) == -1) die_fatal("unable to drop privileges to", account, 0);
+                if (jail_droppriv(account) == -1) die_droppriv(account);
             } while (0);
 
             /* drop root */
-            if (user) if (jail_droppriv(user) == -1) die_fatal("unable to drop privileges to", user, 0);
+            if (user) if (jail_droppriv(user) == -1) die_droppriv(user);
 
             signal(SIGPIPE, SIG_DFL);
             signal(SIGCHLD, SIG_DFL);
@@ -278,22 +284,21 @@ int main_tlswrapper(int argc, char **argv) {
     }
 
     /* run service process for loading keys and secret-key operations */
-    if (pipe(fromsecchild) == -1) die_fatal("unable to create pipe", 0, 0);
-    if (pipe(tosecchild) == -1) die_fatal("unable to create pipe", 0, 0);
+    if (pipe(fromsecchild) == -1) die_pipe();
+    if (pipe(tosecchild) == -1) die_pipe();
     secchild = fork();
     switch (secchild) {
         case -1:
-            log_f1("unable to fork()");
-            die(111);
+            die_fork();
         case 0:
             close(fromsecchild[0]);
             close(tosecchild[1]);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
-            if (dup(tosecchild[0]) != 0) die_fatal("unable to dup", 0, 0);
+            if (dup(tosecchild[0]) != 0) die_dup();
             close(1);
-            if (dup(fromsecchild[1]) != 1) die_fatal("unable to dup", 0, 0);
+            if (dup(fromsecchild[1]) != 1) die_dup();
             blocking_enable(0);
             blocking_enable(1);
             signal(SIGPIPE, SIG_IGN);
@@ -312,7 +317,7 @@ int main_tlswrapper(int argc, char **argv) {
     tls_pipe_eng = &ctx.cc.eng;
 
     /* create selfpipe */
-    if (pipe(selfpipe) == -1) die_fatal("unable to create pipe", 0, 0);
+    if (pipe(selfpipe) == -1) die_pipe();
 
     /* handshake timeout */
     signal(SIGALRM, signalhandler);
@@ -322,16 +327,16 @@ int main_tlswrapper(int argc, char **argv) {
     log_d1("start");
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
-    if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_fatal("unable to create jail", 0, 0);
+    if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_jail();
 
     if (ctx.anchorfn) {
         char *pubpem;
         size_t pubpemlen;
         /* get anchor PEM file, and parse it */
-        if (pipe_write(tls_pipe_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_fatal("unable to write to pipe", 0, 0);
+        if (pipe_write(tls_pipe_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_writetopipe();
         pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
-        if (!pubpem) die_fatal("unable to read anchor PEM file", ctx.anchorfn, 0);
-        if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen)) die_fatal("unable to parse anchor PEM file", ctx.anchorfn, 0);
+        if (!pubpem) die_readanchorpem(ctx.anchorfn);
+        if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen)) die_parseanchorpem(ctx.anchorfn);
         alloc_free(pubpem);
     }
 

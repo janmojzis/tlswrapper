@@ -1,9 +1,3 @@
-/*
-20211103
-Jan Mojzis
-Public domain.
-*/
-
 #include <string.h>
 #include "log.h"
 #include "tls.h"
