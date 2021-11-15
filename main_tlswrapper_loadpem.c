@@ -7,7 +7,7 @@
 #include "log.h"
 #include "alloc.h"
 #include "tls.h"
-#include "fsyncfd.h"
+#include "fsyncfile.h"
 #include "writeall.h"
 
 static struct tls_pem pem = {0};
@@ -123,7 +123,7 @@ int main_tlswrapper_loadpem(int argc, char **argv) {
         }
     }
 
-    if (fsyncfd(fdout) == -1 || close(fdout) == -1) {
+    if (fsyncfile(fdout) == -1 || close(fdout) == -1) {
         log_f2("unable to write output to the file ", fnout);
         die(111);
     }
