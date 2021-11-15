@@ -126,6 +126,10 @@ static void certfile_add_dir(const char *x) {
         log_f3("unable to add certdir '", x, "'");
         die(100)
     }
+    if (x[0] != '/') {
+        log_f3("unable to add certdir '", x, "': directory path must be absolute");
+        die(100);
+    }
     if (!tls_certfile_add_dir(&ctx, x)) {
         log_f3("unable to add more than ", lognum(tls_CERTFILES), " certdirs+certfiles");
         die(100);

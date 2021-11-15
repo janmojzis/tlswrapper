@@ -17,7 +17,7 @@ Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is
 Add file containing key+certificate(s) in PEM format.
 .TP
 .B \-d \fIcertdir\fR
-Add directory containing multiple key+certificate(s) files in PEM format. The file in the directory is selected by hostname extracted from SNI extension.
+Add directory containing multiple key+certificate(s) files in PEM format. The file in the directory is selected by hostname extracted from SNI extension. Warning: For security \fIcertdir\fR directory path must be absolute.
 .TP
 .B \-a \fIanchorfile\fR
 Enable client certificate authentication. Use CA trust anchor \fIanchorfile\fR. Only one \-a option supported.
