@@ -47,14 +47,14 @@ int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_cont
         if (ctx->certfiles[i].filetype == S_IFDIR) {
             /* certificate directory, but server didn't send SNI server_name */
             if (strlen(server_name) == 0) continue;
-            if (!tls_sep_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfiles[i].name, server_name)) {
+            if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfiles[i].name, server_name)) {
                 log_w4("unable to get certificate from PEM file ", ctx->certfiles[i].name, "/", server_name);
                 continue;
             }
         }
         if (ctx->certfiles[i].filetype == S_IFREG) {
             /* certificate file -> ignore SNI server_name */
-            if (!tls_sep_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, 0, ctx->certfiles[i].name)) {
+            if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, 0, ctx->certfiles[i].name)) {
                 log_w2("unable to get certificate from PEM file ", ctx->certfiles[i].name);
                 continue;
             }
@@ -105,7 +105,7 @@ static const br_ssl_server_policy_class tls_policy_vtable = {
     sizeof(struct tls_context),
     tls_choose,
     0, /* keyx */ 
-    tls_sep_dosign
+    tls_pipe_dosign
 };
 
 void tls_profile(struct tls_context *ctx) {
@@ -155,17 +155,17 @@ void tls_profile(struct tls_context *ctx) {
     /*
      * Set the PRF implementations.
      */
-    br_ssl_engine_set_prf10(&cc->eng, &tls_sep_prf);
-    br_ssl_engine_set_prf_sha256(&cc->eng, &tls_sep_prf);
-    br_ssl_engine_set_prf_sha384(&cc->eng, &tls_sep_prf);
+    br_ssl_engine_set_prf10(&cc->eng, &tls_pipe_prf);
+    br_ssl_engine_set_prf_sha256(&cc->eng, &tls_pipe_prf);
+    br_ssl_engine_set_prf_sha384(&cc->eng, &tls_pipe_prf);
     
     /*
      * Symmetric encryption.
      */
-    br_ssl_engine_set_chapol(&cc->eng, &tls_sep_chapol_in_vtable, &tls_sep_chapol_out_vtable);
-    br_ssl_engine_set_gcm(&cc->eng, &tls_sep_gcm_in_vtable, &tls_sep_gcm_out_vtable);
+    br_ssl_engine_set_chapol(&cc->eng, &tls_pipe_chapol_in_vtable, &tls_pipe_chapol_out_vtable);
+    br_ssl_engine_set_gcm(&cc->eng, &tls_pipe_gcm_in_vtable, &tls_pipe_gcm_out_vtable);
     br_ssl_engine_set_default_aes_cbc(&cc->eng);
-    br_ssl_engine_set_cbc(&cc->eng, &tls_sep_cbc_in_vtable, &tls_sep_cbc_out_vtable);
+    br_ssl_engine_set_cbc(&cc->eng, &tls_pipe_cbc_in_vtable, &tls_pipe_cbc_out_vtable);
 
     /*
      * If trust anchors have been configured, then set an X.509

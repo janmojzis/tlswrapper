@@ -119,27 +119,27 @@ extern uint32_t tls_cipher_get(uint16_t);
 extern int tls_crypto_scalarmult_base(int, unsigned char *, size_t *, unsigned char *);
 extern int tls_crypto_scalarmult(int, unsigned char *, size_t *, unsigned char *);
 
-/* tls_sep_child.c */
-extern void tls_sep_child(struct tls_context *);
+/* tls_keyjail.c */
+extern void tls_keyjail(struct tls_context *);
 
-/* tls_sep.c */
-extern int tls_sep_fromchild;
-extern int tls_sep_tochild;
-extern br_ssl_engine_context *tls_sep_eng;
-extern int tls_sep_getcert(br_x509_certificate *, size_t *, char *, const char *, const char *);
-extern size_t tls_sep_dosign(const br_ssl_server_policy_class **, unsigned int, unsigned char *, size_t, size_t);;
-extern size_t tls_sep_mulgen(unsigned char *, const unsigned char *, size_t, int);
-extern uint32_t tls_sep_mul(unsigned char *, size_t, const unsigned char *, size_t, int);
-extern void tls_sep_prf(void *, size_t, const void *, size_t, const char *, size_t, const br_tls_prf_seed_chunk *);
-#define tls_sep_PRF 0
-#define tls_sep_DECRYPT 1
-#define tls_sep_ENCRYPT 2
-extern const br_sslrec_in_chapol_class tls_sep_chapol_in_vtable;
-extern const br_sslrec_out_chapol_class tls_sep_chapol_out_vtable;
-extern const br_sslrec_in_gcm_class tls_sep_gcm_in_vtable;
-extern const br_sslrec_out_gcm_class tls_sep_gcm_out_vtable;
-extern const br_sslrec_in_cbc_class tls_sep_cbc_in_vtable;
-extern const br_sslrec_out_cbc_class tls_sep_cbc_out_vtable;
+/* tls_pipe.c */
+extern int tls_pipe_fromchild;
+extern int tls_pipe_tochild;
+extern br_ssl_engine_context *tls_pipe_eng;
+extern int tls_pipe_getcert(br_x509_certificate *, size_t *, char *, const char *, const char *);
+extern size_t tls_pipe_dosign(const br_ssl_server_policy_class **, unsigned int, unsigned char *, size_t, size_t);;
+extern size_t tls_pipe_mulgen(unsigned char *, const unsigned char *, size_t, int);
+extern uint32_t tls_pipe_mul(unsigned char *, size_t, const unsigned char *, size_t, int);
+extern void tls_pipe_prf(void *, size_t, const void *, size_t, const char *, size_t, const br_tls_prf_seed_chunk *);
+#define tls_pipe_PRF 0
+#define tls_pipe_DECRYPT 1
+#define tls_pipe_ENCRYPT 2
+extern const br_sslrec_in_chapol_class tls_pipe_chapol_in_vtable;
+extern const br_sslrec_out_chapol_class tls_pipe_chapol_out_vtable;
+extern const br_sslrec_in_gcm_class tls_pipe_gcm_in_vtable;
+extern const br_sslrec_out_gcm_class tls_pipe_gcm_out_vtable;
+extern const br_sslrec_in_cbc_class tls_pipe_cbc_in_vtable;
+extern const br_sslrec_out_cbc_class tls_pipe_cbc_out_vtable;
 
 /* tls_certfile.c */
 extern int tls_certfile_add_dir(struct tls_context *, const char *);

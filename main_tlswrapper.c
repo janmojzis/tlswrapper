@@ -300,16 +300,16 @@ int main_tlswrapper(int argc, char **argv) {
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
             alarm(0);
-            tls_sep_child(&ctx);
+            tls_keyjail(&ctx);
             die(0);
     }
     close(fromsecchild[1]);
     close(tosecchild[0]);
     blocking_enable(fromsecchild[0]);
     blocking_enable(tosecchild[1]);
-    tls_sep_fromchild = fromsecchild[0];
-    tls_sep_tochild = tosecchild[1];
-    tls_sep_eng = &ctx.cc.eng;
+    tls_pipe_fromchild = fromsecchild[0];
+    tls_pipe_tochild = tosecchild[1];
+    tls_pipe_eng = &ctx.cc.eng;
 
     /* create selfpipe */
     if (pipe(selfpipe) == -1) die_fatal("unable to create pipe", 0, 0);
@@ -328,8 +328,8 @@ int main_tlswrapper(int argc, char **argv) {
         char *pubpem;
         size_t pubpemlen;
         /* get anchor PEM file, and parse it */
-        if (pipe_write(tls_sep_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_fatal("unable to write to pipe", 0, 0);
-        pubpem = pipe_readalloc(tls_sep_fromchild, &pubpemlen);
+        if (pipe_write(tls_pipe_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_fatal("unable to write to pipe", 0, 0);
+        pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
         if (!pubpem) die_fatal("unable to read anchor PEM file", ctx.anchorfn, 0);
         if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen)) die_fatal("unable to parse anchor PEM file", ctx.anchorfn, 0);
         alloc_free(pubpem);

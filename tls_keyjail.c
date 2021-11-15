@@ -78,7 +78,7 @@ static void fixpath(char *s) {
     s[j] = 0;
 }
 
-void tls_sep_child(struct tls_context *ctx) {
+void tls_keyjail(struct tls_context *ctx) {
 
     pid_t ppid = getppid();
     unsigned char curve_id;
@@ -93,30 +93,31 @@ void tls_sep_child(struct tls_context *ctx) {
     log_name("tlswrapper key");
     log_d1("start");
 
-    /*
-    read filename and write content to the pipe
-    */
     for (;;) {
         char fn[512];
         size_t fn_len = sizeof fn;
+        /* read filename from the pipe  */
         if (pipe_readmax(0, fn, &fn_len) == -1) goto cleanup;
         if (fn_len == 0) break;
         fn[fn_len - 1] = 0;
+        /* for security reasons replace '/.' -> '/:' in the filename */
         fixpath(fn);
         log_t2("file = ", fn);
 
+        /* load the file content to the memory */
         randombytes(pemkey, sizeof pemkey);
         if (!tls_pem_load(&pem, fn, pemkey)) {
             if (pipe_writeerrno(1) == -1) goto cleanup;
             continue;
         }
 
+        /* write public-part to the pipe as is (without PEM parsing)  */
         if (pipe_write(1, pem.pub, pem.publen) == -1) {
             goto cleanup;
         }
     }
 
-    /* KEYJAIL starts here */
+    /* drop privileges, chroot, set limits, ... JAIL starts here */
     if (jail(ctx->account, ctx->empty_dir, 1) == -1) goto cleanup;
 
     /* scalar multiplication - keygen */
@@ -205,7 +206,7 @@ void tls_sep_child(struct tls_context *ctx) {
         unsigned char ch;
         if (pipe_readall(0, &ch, sizeof ch) == -1) goto cleanup;
         switch (ch) {
-            case tls_sep_PRF:
+            case tls_pipe_PRF:
                 {
                     char label[16];
                     unsigned char seed[48];
@@ -219,7 +220,7 @@ void tls_sep_child(struct tls_context *ctx) {
                     if (pipe_write(1, data, sizeof data) == -1) goto cleanup;
                 }
                 break;
-            case tls_sep_DECRYPT:
+            case tls_pipe_DECRYPT:
                 /* decrypt */
                 {
                     int record_type;
@@ -247,7 +248,7 @@ void tls_sep_child(struct tls_context *ctx) {
                     }
                 }
                 break;
-            case tls_sep_ENCRYPT:
+            case tls_pipe_ENCRYPT:
                 /* encrypt */
                 {
                     int record_type;
