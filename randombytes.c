@@ -13,12 +13,12 @@ static void _init(void) {
 
     chacha_run = br_chacha20_sse2_get();
     if (chacha_run) {
-        log_d1("randombytes use chacha20 SSE2");
+        log_d1("randombytes - chacha20 SSE2");
         return;
     }
 
     chacha_run = &br_chacha20_ct_run;
-    log_d1("randombytes use chacha20 CT");
+    log_d1("randombytes - chacha20 CT");
 }
 
 static void _key(unsigned char k[32]) {
