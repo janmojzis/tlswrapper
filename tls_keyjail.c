@@ -117,7 +117,7 @@ void tls_keyjail(struct tls_context *ctx) {
         }
     }
 
-    /* drop privileges, chroot, set limits, ... JAIL starts here */
+    /* drop privileges, chroot, set limits, ... KEYJAIL starts here */
     if (jail(ctx->account, ctx->empty_dir, 1) == -1) goto cleanup;
 
     /* scalar multiplication - keygen */

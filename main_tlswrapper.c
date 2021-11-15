@@ -321,7 +321,7 @@ int main_tlswrapper(int argc, char **argv) {
     log_name("tlswrapper net");
     log_d1("start");
 
-    /* set limits + chroot + drop privileges */
+    /* drop privileges, chroot, set limits, ... NETJAIL starts here */
     if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_fatal("unable to create jail", 0, 0);
 
     if (ctx.anchorfn) {
