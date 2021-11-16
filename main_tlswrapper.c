@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <poll.h>
 #include "blocking.h"
 #include "pipe.h"
 #include "log.h"
@@ -493,7 +494,7 @@ int main_tlswrapper(int argc, char **argv) {
         if (st & BR_SSL_SENDAPP) { watchfromchild = q; q->fd = fromchild[0]; q->events = POLLIN; ++q; }
         watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
 
-        if (jail_poll(p, q - p, -1) < 0) {
+        if (poll(p, q - p, -1) < 0) {
             watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe =  0;
         }
         else {

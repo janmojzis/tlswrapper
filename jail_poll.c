@@ -1,6 +1,8 @@
 /*
 Poll() doesn't work when RLIMIT_NOFILE is set to 0;
 Imitate poll() using select().
+
+warning: poll() handle EBADF in different way
 */
 
 #include <poll.h>
@@ -19,7 +21,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     int fd, r;
     nfds_t i;
 
-    log_t1("jail_poll()");
+    log_t5("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs), ")");
 
     for (i = 0; i < len; ++i) x[i].revents = 0;
 
@@ -62,6 +64,6 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     }
 
 cleanup:
-    log_t2("jail_poll() = ", lognum(r));
+    log_t6("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs), ") = ", lognum(r));
     return r;
 }

@@ -61,6 +61,7 @@ int jail(const char *account, const char *dir, int limits) {
     }
 
 /* prohibit new files, new sockets, etc. */
+#if 1
 #ifdef RLIMIT_NOFILE
     if (limits) {
         if (setrlimit(RLIMIT_NOFILE, &r) == -1) {
@@ -68,6 +69,7 @@ int jail(const char *account, const char *dir, int limits) {
             goto cleanup;
         }
     }
+#endif
 #endif
 
     /* set gid */
