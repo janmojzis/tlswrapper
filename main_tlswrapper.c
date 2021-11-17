@@ -148,7 +148,7 @@ static void certfile_add_file(const char *x) {
         log_f3("unable to add certfile '", x, "': not a regular file");
         die(100);
     }
-    if (!tls_certfile_add_dir(&ctx, x)) {
+    if (!tls_certfile_add_file(&ctx, x)) {
         log_f3("unable to add more than ", lognum(tls_CERTFILES), " certdirs+certfiles");
         die(100);
     }
