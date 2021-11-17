@@ -8,19 +8,15 @@
     echo "LDFLAGS+=-lbearssl"
     echo 
 
-    binaries=""
-    objects=""
     for file in `ls *.c`; do
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
-        binaries="${binaries} ${x}"
-      else
-        x=`echo "${file}" | sed 's/\.c$/.o/'`
-        objects="${objects} ${x}"
+        echo "BINARIES+=${x}"
       fi
     done
+    echo
 
-    echo "all: ${binaries}"
+    echo "all: \$(BINARIES)"
     echo 
 
     for file in `ls *.c`; do
@@ -28,25 +24,34 @@
         #gcc -I/usr/include/bearssl -MM "${file}"
         gcc -MM "${file}"
         echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c ${file}"
-        echo 
+        echo
       )
     done
 
     for file in `ls *.c`; do
+      if ! grep '^int main(' "${file}" >/dev/null; then
+        x=`echo "${file}" | sed 's/\.c$/.o/'`
+        echo "OBJECTS+=${x}"
+      fi
+    done
+    echo
+
+    for file in `ls *.c`; do
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
-        echo "${x}: ${x}.o ${objects}"
-        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o ${objects} \$(LDFLAGS)"
+        echo "${x}: ${x}.o \$(OBJECTS)"
+        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o \$(OBJECTS) \$(LDFLAGS)"
         echo 
       fi
     done
+    echo
 
-    echo "test: ${binaries}"
+    echo "test: \$(BINARIES)"
     echo "	./test.sh"
     echo
 
     echo "clean:"
-    echo "	rm -f *.o ${binaries}"
+    echo "	rm -f *.o \$(BINARIES)"
     echo 
 
   ) > Makefile
