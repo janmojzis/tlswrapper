@@ -20,8 +20,12 @@ fi
 
 if [ ! -d "${name}" ]; then
   tar vzxf "${tarball}"
+  cp nobearssl-*.diff "${name}/"
   (
     cd "${name}"
+    ls *.diff | while read name; do
+      patch -p1 < "${name}"
+    done
     make -j2
     rm build/*.so
   )
