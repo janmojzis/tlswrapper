@@ -1,0 +1,18 @@
+language: c
+
+os:
+  - linux
+
+arch:
+  - s390x
+  - amd64
+
+compiler:
+  - gcc
+
+script:
+  - sudo apt-get install build-essential
+  - cd "$TRAVIS_BUILD_DIR"
+  - make
+
+install: skip
