@@ -7,7 +7,7 @@ tarball="${name}.tar.gz"
 chsum='6705bba1714961b41a728dfc5debbe348d2966c117649392f8c8139efc83ff14'
 
 if [ ! -f "${tarball}" ]; then
-  curl "https://www.bearssl.org/${tarball}" > "${tarball}.tmp"
+  curl -k "https://www.bearssl.org/${tarball}" > "${tarball}.tmp"
   sum=`sha256sum "${tarball}.tmp" | cut -d ' ' -f1`
   if [ x"${sum}" != x"${chsum}" ]; then
     echo "bad ${tarball} checksum !!!" >&2
