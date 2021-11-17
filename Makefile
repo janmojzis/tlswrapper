@@ -33,35 +33,16 @@ log.o: log.c e.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
- randombytes.h alloc.h remoteip.h tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+ randombytes.h alloc.h remoteip.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
- alloc.h tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h \
- fsyncfile.h writeall.h
+ alloc.h tls.h fsyncfile.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_loadpem.c
 
 main_tlswrapper_tcpproxy.o: main_tlswrapper_tcpproxy.c randombytes.h \
- resolvehost.h portparse.h socket.h e.h log.h conn.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h jail.h randommod.h nanoseconds.h
+ resolvehost.h portparse.h socket.h e.h log.h conn.h tls.h jail.h \
+ randommod.h nanoseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcpproxy.c
 
 nanoseconds.o: nanoseconds.c nanoseconds.h
@@ -95,13 +76,7 @@ socket.o: socket.c blocking.h e.h socket.h
 testalloc.o: testalloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c testalloc.c
 
-testchacha20.o: testchacha20.c log.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+testchacha20.o: testchacha20.c log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c testchacha20.c
 
 testjail.o: testjail.c log.h jail.h
@@ -113,154 +88,53 @@ testrandombytes.o: testrandombytes.c log.h randombytes.h
 testresolvehost.o: testresolvehost.c resolvehost.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c testresolvehost.c
 
-tls_anchor.o: tls_anchor.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_anchor.o: tls_anchor.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_anchor.c
 
-tls_certfile.o: tls_certfile.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_certfile.o: tls_certfile.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_certfile.c
 
-tls_cipher.o: tls_cipher.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_cipher.o: tls_cipher.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_cipher.c
 
 tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h crypto_scalarmult_curve25519.h
+ crypto_scalarmult_curve25519.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_crypto_scalarmult.c
 
-tls_ecdhe.o: tls_ecdhe.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_ecdhe.o: tls_ecdhe.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdhe.c
 
-tls_ecdsa.o: tls_ecdsa.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_ecdsa.o: tls_ecdsa.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdsa.c
 
-tls_error.o: tls_error.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_error.o: tls_error.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_error.c
 
-tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h
+tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keyjail.c
 
-tls_keytype.o: tls_keytype.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_keytype.o: tls_keytype.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keytype.c
 
-tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h
+tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pem.c
 
-tls_pipe.o: tls_pipe.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h \
- pipe.h randombytes.h alloc.h log.h
+tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
-tls_profile.o: tls_profile.c log.h randombytes.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h
+tls_profile.o: tls_profile.c log.h randombytes.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
-tls_pubcrt.o: tls_pubcrt.c alloc.h log.h tls.h \
- /usr/include/bearssl/bearssl.h /usr/include/bearssl/bearssl_hash.h \
- /usr/include/bearssl/bearssl_hmac.h /usr/include/bearssl/bearssl_kdf.h \
- /usr/include/bearssl/bearssl_rand.h /usr/include/bearssl/bearssl_block.h \
- /usr/include/bearssl/bearssl_prf.h /usr/include/bearssl/bearssl_aead.h \
- /usr/include/bearssl/bearssl_rsa.h /usr/include/bearssl/bearssl_ec.h \
- /usr/include/bearssl/bearssl_ssl.h /usr/include/bearssl/bearssl_x509.h \
- /usr/include/bearssl/bearssl_pem.h
+tls_pubcrt.o: tls_pubcrt.c alloc.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pubcrt.c
 
-tls_seccrt.o: tls_seccrt.c log.h tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_seccrt.o: tls_seccrt.c log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_seccrt.c
 
-tls_timeout.o: tls_timeout.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_timeout.o: tls_timeout.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_timeout.c
 
-tls_version.o: tls_version.c tls.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h
+tls_version.o: tls_version.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_version.c
 
 tlswrapper.o: tlswrapper.c main.h

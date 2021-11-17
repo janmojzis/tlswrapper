@@ -4,6 +4,7 @@
   (
     echo "CC=gcc"
     echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall" -I/usr/include/bearssl
+    #echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall"
     echo "LDFLAGS+=-lbearssl"
     echo 
 
@@ -24,7 +25,8 @@
 
     for file in `ls *.c`; do
       (
-        gcc -I/usr/include/bearssl -MM "${file}"
+        #gcc -I/usr/include/bearssl -MM "${file}"
+        gcc -MM "${file}"
         echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c ${file}"
         echo 
       )
