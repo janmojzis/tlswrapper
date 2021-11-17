@@ -20,7 +20,7 @@ fi
 
 if [ ! -d "${name}" ]; then
   tar vzxf "${tarball}"
-  cp nobearssl-*.diff "${name}/"
+  cp staticbearssl-*.diff "${name}/"
   (
     cd "${name}"
     ls *.diff | while read name; do
@@ -31,7 +31,7 @@ if [ ! -d "${name}" ]; then
   )
 fi
 
-CFLAGS="-I`pwd`/${name}/inc/"
+CFLAGS="-I`pwd`/${name}/inc/ -DUSERFROMCN"
 export CFLAGS
 LDFLAGS="-L`pwd`/${name}/build/"
 export LDFLAGS

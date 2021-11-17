@@ -241,7 +241,7 @@ int main_tlswrapper(int argc, char **argv) {
             if (*x == 'P') { ctx.flags &= ~tls_flags_ENFORCE_SERVER_PREFERENCES; continue; }
 
             /* run child under user */
-#ifdef TODO_USERFROMCN
+#ifdef USERFROMCN
             if (*x == 'U') { userfromcn = 1; continue; }
 #endif
             if (*x == 'u') {
@@ -473,7 +473,7 @@ int main_tlswrapper(int argc, char **argv) {
         if ((st & BR_SSL_SENDAPP) && !handshakedone) {
             log_d1("handshake done");
 
-#ifdef TODO_USERFROMCN
+#ifdef USERFROMCN
             const char *account = (char *)ctx.xc.cn;
 #else
             const char *account = "";
