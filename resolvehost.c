@@ -10,6 +10,7 @@ Public domain.
 #include <sys/socket.h>
 #include <netdb.h>
 #include "e.h"
+#include "blocking.h"
 #include "log.h"
 #include "jail.h"
 #include "randommod.h"
@@ -121,25 +122,34 @@ int resolvehost_init(void) {
         unsigned char buf[257];
         unsigned char ip[128 + 1];
         long long r, iplen = 0;
+        struct pollfd p[1];
+        pid_t ppid = getppid();
 
         close(sockets[1]);
+        blocking_disable(sockets[0]);
 
         if (jail(0, 0, 0) == -1) _exit(111);
 
-        for (;;) {
-            r = recv(sockets[0], buf, sizeof buf, 0);
-            if (r == sizeof buf) _exit(111);
-            if (r == -1) _exit(111);
-            if (r == 0) break;
+        while (ppid == getppid()) {
+            p[0].fd = sockets[0];
+            p[0].events = POLLIN;
+            jail_poll(p, 1, 1000);
+            if (p[0].revents) {
+                r = recv(sockets[0], buf, sizeof buf, 0);
+                if (r == sizeof buf) _exit(111);
+                if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+                if (r == -1) _exit(111);
+                if (r == 0) break;
 
-            buf[255] = 0;
-            iplen = resolvehost(ip + 1, sizeof ip - 1, (char *)buf);
-            ip[0] = iplen;
-            if (iplen == -1) iplen = 0;
-            iplen += 1;
+                buf[255] = 0;
+                iplen = resolvehost(ip + 1, sizeof ip - 1, (char *)buf);
+                ip[0] = iplen;
+                if (iplen == -1) iplen = 0;
+                iplen += 1;
 
-            r = send(sockets[0], ip, iplen, 0);
-            if (r == -1) _exit(111);
+                r = send(sockets[0], ip, iplen, 0);
+                if (r == -1) _exit(111);
+            }
         }
         _exit(0);
     }

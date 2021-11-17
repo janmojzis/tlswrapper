@@ -10,7 +10,7 @@ alloc.o: alloc.c randombytes.h alloc.h log.h
 blocking.o: blocking.c blocking.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c blocking.c
 
-conn.o: conn.c socket.h nanoseconds.h e.h log.h conn.h
+conn.o: conn.c jail.h socket.h nanoseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
 crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
@@ -92,7 +92,8 @@ readall.o: readall.c e.h readall.h
 remoteip.o: remoteip.c remoteip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c remoteip.c
 
-resolvehost.o: resolvehost.c e.h log.h jail.h randommod.h resolvehost.h
+resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
+ resolvehost.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c resolvehost.c
 
 socket.o: socket.c blocking.h e.h socket.h
