@@ -65,7 +65,7 @@ int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_cont
 
             tt = st[u][1];
             if ((tt >> 12) == BR_SSLKEYX_ECDHE_ECDSA && ctx->key_type == BR_KEYTYPE_EC) {
-                log_d1("BR_SSLKEYX_ECDHE_ECDSA");
+                log_t1("BR_SSLKEYX_ECDHE_ECDSA");
 
                 choices->chain = ctx->chain;
                 choices->chain_len = ctx->chain_len;
@@ -79,7 +79,7 @@ int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_cont
                 goto ok;
             }
             if ((tt >> 12) == BR_SSLKEYX_ECDHE_RSA && ctx->key_type == BR_KEYTYPE_RSA) {
-                log_d1("BR_SSLKEYX_ECDHE_RSA");
+                log_t1("BR_SSLKEYX_ECDHE_RSA");
                 choices->chain = ctx->chain;
                 choices->chain_len = ctx->chain_len;
                 choices->cipher_suite = st[u][0];
