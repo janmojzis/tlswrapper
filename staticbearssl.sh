@@ -7,7 +7,7 @@ tarball="${name}.tar.gz"
 chsum='6705bba1714961b41a728dfc5debbe348d2966c117649392f8c8139efc83ff14'
 
 if [ ! -f "${tarball}" ]; then
-  curl -k "https://www.bearssl.org/${tarball}" > "${tarball}.tmp"
+  curl -sk "https://www.bearssl.org/${tarball}" > "${tarball}.tmp"
   sum=`sha256sum "${tarball}.tmp" | cut -d ' ' -f1`
   if [ x"${sum}" != x"${chsum}" ]; then
     echo "bad ${tarball} checksum !!!" >&2
@@ -19,7 +19,7 @@ if [ ! -f "${tarball}" ]; then
 fi
 
 if [ ! -d "${name}" ]; then
-  tar vzxf "${tarball}"
+  tar zxf "${tarball}"
   cp staticbearssl-*.diff "${name}/"
   (
     cd "${name}"
@@ -31,8 +31,8 @@ if [ ! -d "${name}" ]; then
   )
 fi
 
-CFLAGS="-I`pwd`/${name}/inc/ -DUSERFROMCN"
+CFLAGS="${CFLAGS} -I`pwd`/${name}/inc/ -DUSERFROMCN"
 export CFLAGS
-LDFLAGS="-L`pwd`/${name}/build/"
+LDFLAGS="${LDFLAGS} -L`pwd`/${name}/build/"
 export LDFLAGS
 make
