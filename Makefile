@@ -54,7 +54,7 @@ pipe.o: pipe.c e.h log.h readall.h writeall.h alloc.h pipe.h
 portparse.o: portparse.c portparse.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c portparse.c
 
-randombytes.o: randombytes.c randombytes.h
+randombytes.o: randombytes.c log.h randombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c randombytes.c
 
 randommod.o: randommod.c randombytes.h randommod.h

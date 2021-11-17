@@ -88,5 +88,11 @@ int main(void) {
     run(buf2, sizeof buf2);
     if (memcmp(buf1, buf2, 16) == 0) fail("randombytes() cryptographically dangerous across fork()");
 
+    if (chroot(".") == 0) {
+        run(buf1, sizeof buf1);
+        run(buf2, sizeof buf2);
+        if (memcmp(buf1, buf2, 16) == 0) fail("randombytes() doesn't work in chroot");
+    }
+
     _exit(0);
 }
