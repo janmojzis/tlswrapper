@@ -298,15 +298,15 @@ int main_tlswrapper(int argc, char **argv) {
             }
 
             /* privilege separation */
-            if (*x == 'D') {
+            if (*x == 'J') {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
                 if (argv[1]) { ctx.empty_dir = (*++argv); break; }
             }
-            if (*x == 'J') {
+            if (*x == 'S') {
                 if (x[1]) { ctx.account = (x + 1); break; }
                 if (argv[1]) { ctx.account = (*++argv); break; }
             }
-            if (*x == 'j') { ctx.account = 0; continue; }
+            if (*x == 's') { ctx.account = 0; continue; }
 
             usage();
         }
