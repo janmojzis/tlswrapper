@@ -14,6 +14,6 @@ script:
   - sudo apt-get install build-essential curl
   - cd "$TRAVIS_BUILD_DIR"
   - sh nobearssl.sh
-  - make test
+  - sudo make test
 
 install: skip
