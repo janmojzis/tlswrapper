@@ -39,7 +39,7 @@ int main() {
 
     chacha = br_chacha20_sse2_get();
     if (chacha) {
-        measure_symetric("chacha20_sse2", br_chacha20_sse2_run);
+        measure_symetric("chacha20_sse2", chacha);
     }
     measure_symetric("chacha20_ct", br_chacha20_ct_run);
 
