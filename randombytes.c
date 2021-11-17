@@ -9,37 +9,20 @@
 
 static int fd = -1;
 
-static void _urandombytes(void *xv, unsigned long long xlen) {
+static void _urandombytes(unsigned char *x, unsigned long long xlen) {
 
-    long long i;
-    unsigned char *x = xv;
-
-    if (fd == -1) {
-        for (;;) {
-#ifdef O_CLOEXEC
-            fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
-#else
-            fd = open("/dev/urandom", O_RDONLY);
-            fcntl(fd, F_SETFD, 1);
-#endif
-            if (fd != -1) break;
-            log_w1("_urandombytes unable to open /dev/urandom, sleeping one second");
-            sleep(1);
-        }
-    }
+    long long r;
 
     while (xlen > 0) {
-        if (xlen < 1048576) i = xlen; else i = 1048576;
-
-        i = read(fd, x, i);
-        if (i < 1) {
+        r = read(fd, x, xlen);
+        if (r < 1) {
             log_w1("_urandombytes unable to read from /dev/urandom, sleeping one second");
             sleep(1);
             continue;
         }
 
-        x += i;
-        xlen -= i;
+        x += r;
+        xlen -= r;
     }
 }
 
@@ -47,6 +30,18 @@ static br_chacha20_run chacha_run = 0;
 static int initialized = 0;
 
 static void _randombytes_init(void) {
+
+    for (;;) {
+#ifdef O_CLOEXEC
+        fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
+#else
+        fd = open("/dev/urandom", O_RDONLY);
+        fcntl(fd, F_SETFD, 1);
+#endif
+        if (fd != -1) break;
+        log_w1("_randombytes_init unable to open /dev/urandom, sleeping one second");
+        sleep(1);
+    }
 
     chacha_run = br_chacha20_sse2_get();
     if (chacha_run) {
