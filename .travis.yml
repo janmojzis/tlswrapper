@@ -13,6 +13,7 @@ compiler:
 script:
   - sudo apt-get install build-essential curl
   - cd "$TRAVIS_BUILD_DIR"
+  - $CC -dM -E - < /dev/null
   - sh nobearssl.sh
   - sudo make test
 
