@@ -25,10 +25,10 @@ echo "testalloc begin"
 echo "testalloc end"
 echo
 
-echo "testjail begin"
-./testjail
-echo "testjail end"
-echo
+#echo "testjail begin"
+#./testjail
+#echo "testjail end"
+#echo
 
 echo "testrandombytes begin"
 ./testrandombytes
