@@ -11,8 +11,9 @@ compiler:
   - gcc
 
 script:
-  - sudo apt-get install build-essential
+  - sudo apt-get install build-essential curl
   - cd "$TRAVIS_BUILD_DIR"
-  - make
+  - sh nobearssl.sh
+  - make test
 
 install: skip
