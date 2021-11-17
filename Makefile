@@ -73,14 +73,7 @@ pipe.o: pipe.c e.h log.h readall.h writeall.h alloc.h pipe.h
 portparse.o: portparse.c portparse.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c portparse.c
 
-randombytes.o: randombytes.c log.h /usr/include/bearssl/bearssl.h \
- /usr/include/bearssl/bearssl_hash.h /usr/include/bearssl/bearssl_hmac.h \
- /usr/include/bearssl/bearssl_kdf.h /usr/include/bearssl/bearssl_rand.h \
- /usr/include/bearssl/bearssl_block.h /usr/include/bearssl/bearssl_prf.h \
- /usr/include/bearssl/bearssl_aead.h /usr/include/bearssl/bearssl_rsa.h \
- /usr/include/bearssl/bearssl_ec.h /usr/include/bearssl/bearssl_ssl.h \
- /usr/include/bearssl/bearssl_x509.h /usr/include/bearssl/bearssl_pem.h \
- randombytes.h
+randombytes.o: randombytes.c randombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c randombytes.c
 
 randommod.o: randommod.c randombytes.h randommod.h

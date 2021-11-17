@@ -1,66 +1,38 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <time.h>
-#include <sys/random.h>
-#include "log.h"
-#include "bearssl.h"
 #include "randombytes.h"
 
-static br_chacha20_run chacha_run = 0;
-static int initialized = 0;
-
-static void _init(void) {
-
-    chacha_run = br_chacha20_sse2_get();
-    if (chacha_run) {
-        log_d1("randombytes - chacha20 SSE2");
-        return;
-    }
-
-    chacha_run = &br_chacha20_ct_run;
-    log_d1("randombytes - chacha20 CT");
-}
-
-static void _key(unsigned char k[32]) {
-
-    for (;;) {
-        if (getentropy(k, 32) == 0) break;
-        log_w1("getentropy failed, waiting one second");
-        sleep(1);
-    }
-}
-
-static void _nonce(unsigned char n[12]) {
-
-    struct timespec t;
-    long long i;
-
-    clock_gettime(CLOCK_REALTIME, &t);
-    for (i = 0; i < 6; ++i) { n[i + 0] = t.tv_sec;  t.tv_sec >>= 8;  }
-    for (i = 0; i < 6; ++i) { n[i + 6] = t.tv_nsec; t.tv_nsec >>= 8; }
-}
+static int fd = -1;
 
 void randombytes(void *xv, unsigned long long xlen) {
 
-    unsigned char *x = (unsigned char *)xv;
-    unsigned long long i;
-    unsigned char k[32], n[12];
+    long long i;
+    unsigned char *x = xv;
 
-    if (!initialized) {
-        _init();
-        initialized = 1;
+    if (fd == -1) {
+        for (;;) {
+#ifdef O_CLOEXEC
+            fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
+#else
+            fd = open("/dev/urandom", O_RDONLY);
+            fcntl(fd, F_SETFD, 1);
+#endif
+            if (fd != -1) break;
+            sleep(1);
+        }
     }
 
     while (xlen > 0) {
-        if (xlen < 1073741824)
-            i = xlen;
-        else
-            i = 1073741824;
+        if (xlen < 1048576) i = xlen; else i = 1048576;
 
-        _key(k);
-        _nonce(n);
-        memset(x, 0, i);
-        (void) chacha_run(k, n, 0, x, i);
+        i = read(fd, x, i);
+        if (i < 1) {
+            sleep(1);
+            continue;
+        }
+
         x += i;
         xlen -= i;
     }
