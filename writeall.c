@@ -1,6 +1,7 @@
 #include <poll.h>
 #include <unistd.h>
-#include <errno.h>
+#include "e.h"
+#include "jail.h"
 #include "writeall.h"
 
 int writeall(int fd, const void *xv, long long xlen) {
@@ -16,7 +17,7 @@ int writeall(int fd, const void *xv, long long xlen) {
                 struct pollfd p;
                 p.fd = fd;
                 p.events = POLLOUT | POLLERR;
-                poll(&p, 1, -1);
+                jail_poll(&p, 1, -1);
                 continue;
             }
             return -1;
