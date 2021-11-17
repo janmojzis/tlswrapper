@@ -46,5 +46,6 @@ trap "cleanup" EXIT TERM INT
 ../tlswrapper -d notexist true </dev/null 1>/dev/null 2>/dev/null && { echo "tlswrapper -d accepts non-existent directory" >&2; exit 1; }
 ../tlswrapper -d fifocert.pem true </dev/null 1>/dev/null 2>/dev/null && { echo "tlswrapper -d accepts FIFO instead of certdir" >&2; exit 1; }
 ../tlswrapper -d filecert.pem true </dev/null 1>/dev/null 2>/dev/null && { echo "tlswrapper -d accepts certfile instead of certdir" >&2; exit 1; }
-../tlswrapper -d dircert true </dev/null 1>/dev/null 2>/dev/null || { echo "tlswrapper -d doesn't accept certdir" >&2; exit 1; }
-../tlswrapper -d linkcert true </dev/null 1>/dev/null 2>/dev/null || { echo "tlswrapper -d doesn't accept symlink to certdir" >&2; exit 1; }
+../tlswrapper -d dircert true </dev/null 1>/dev/null 2>/dev/null && { echo "tlswrapper -d accepts relative certdir path" >&2; exit 1; }
+../tlswrapper -d `pwd`/dircert true </dev/null 1>/dev/null 2>/dev/null || { echo "tlswrapper -d doesn't accept certdir" >&2; exit 1; }
+../tlswrapper -d `pwd`/linkcert true </dev/null 1>/dev/null 2>/dev/null || { echo "tlswrapper -d doesn't accept symlink to certdir" >&2; exit 1; }
