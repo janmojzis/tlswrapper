@@ -209,7 +209,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
             if (r <= 0) { log_d5("write to ", hoststr, ":", portstr, " failed" ); break; }
             memmove(inbuf, inbuf + r, inbuflen - r);
             inbuflen -= r;
-            alarm(timeout); /* refresh timeout */
             continue;
         }
 
@@ -219,7 +218,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
             if (r <= 0) { log_d1("write to standard output failed"); break; }
             memmove(outbuf, outbuf + r, outbuflen - r);
             outbuflen -= r;
-            alarm(timeout); /* refresh timeout */
             continue;
         }
 

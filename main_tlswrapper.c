@@ -548,6 +548,7 @@ int main_tlswrapper(int argc, char **argv) {
             }
             br_ssl_engine_sendapp_ack(&ctx.cc.eng, r);
             br_ssl_engine_flush(&ctx.cc.eng, 0);
+            alarm(timeout); /* refresh timeout */
             continue;
         }
 
