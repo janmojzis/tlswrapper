@@ -78,7 +78,7 @@ static int selfpipe[2] = {-1, -1};
 
 static void signalhandler(int signum) {
     (void) signum;
-    (void) write(selfpipe[1], "", 1);
+    write(selfpipe[1], "", 1);
 }
 
 int main_tlswrapper_tcpproxy(int argc, char **argv) {

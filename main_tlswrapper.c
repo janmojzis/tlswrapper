@@ -67,7 +67,7 @@ static int selfpipe[2] = {-1, -1};
 
 static void signalhandler(int signum) {
     if (signum == SIGCHLD) alarm(1);
-    else (void) write(selfpipe[1], "", 1);
+    else write(selfpipe[1], "", 1);
 }
 
 static void cleanup(void) {
