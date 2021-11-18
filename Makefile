@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall -I/usr/include/bearssl
-LDFLAGS+=-lbearssl
+CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall -I./bearssl/inc -I/usr/include/bearssl
+LDFLAGS+=-L./bearssl/build -lbearssl
 
 BINARIES+=testalloc
 BINARIES+=testchacha20

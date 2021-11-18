@@ -6,6 +6,8 @@ name="bearssl-${version}"
 tarball="${name}.tar.gz"
 chsum='6705bba1714961b41a728dfc5debbe348d2966c117649392f8c8139efc83ff14'
 
+rm -rf bearssl
+
 if [ ! -f "${tarball}" ]; then
   curl -sk "https://www.bearssl.org/${tarball}" > "${tarball}.tmp"
   sum=`sha256sum "${tarball}.tmp" | cut -d ' ' -f1`
@@ -26,10 +28,11 @@ if [ ! -d "${name}" ]; then
     ls *.diff | while read name; do
       patch -p1 < "${name}"
     done
-    ${MAKE:-make}
-    rm build/*.so
   )
 fi
+
+mv "${name}" bearssl
+return
 
 CFLAGS="${CFLAGS} -I`pwd`/${name}/inc/ -DUSERFROMCN"
 export CFLAGS
