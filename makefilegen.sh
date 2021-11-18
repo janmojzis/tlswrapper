@@ -8,10 +8,16 @@
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"
     echo 
 
+    i=0
     for file in `ls *.c`; do
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
-        echo "BINARIES+=${x}"
+        if [ $i -eq 0 ]; then
+          echo "BINARIES=${x}"
+        else
+          echo "BINARIES+=${x}"
+        fi
+        i=`expr $i + 1`
       fi
     done
     echo
@@ -28,10 +34,16 @@
       )
     done
 
+    i=0
     for file in `ls *.c`; do
       if ! grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$/.o/'`
-        echo "OBJECTS+=${x}"
+        if [ $i -eq 0 ]; then
+          echo "OBJECTS=${x}"
+        else
+          echo "OBJECTS+=${x}"
+        fi
+        i=`expr $i + 1`
       fi
     done
     echo

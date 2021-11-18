@@ -2,7 +2,7 @@ CC?=cc
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall -I./bearssl/inc -I/usr/include/bearssl
 LDFLAGS+=-L./bearssl/build -lbearssl
 
-BINARIES+=testalloc
+BINARIES=testalloc
 BINARIES+=testchacha20
 BINARIES+=testjail
 BINARIES+=testrandombytes
@@ -146,7 +146,7 @@ tlswrapper.o: tlswrapper.c main.h
 writeall.o: writeall.c e.h jail.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c writeall.c
 
-OBJECTS+=alloc.o
+OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=conn.o
 OBJECTS+=crypto_scalarmult_curve25519.o
