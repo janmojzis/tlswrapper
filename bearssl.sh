@@ -21,8 +21,8 @@ if [ ! -f "${tarball}" ]; then
 fi
 
 if [ ! -d "${name}" ]; then
-  tar zxf "${tarball}"
-  cp staticbearssl-*.diff "${name}/"
+  tar -ozxf "${tarball}"
+  cp bearssl-*.diff "${name}/"
   (
     cd "${name}"
     ls *.diff | while read name; do
