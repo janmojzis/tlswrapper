@@ -1,0 +1,62 @@
+.TH tlswrapper-tcp 8
+.SH NAME
+tlswrapper-tcp \- TLS encryption wrapper - tcp client
+.SH SYNOPSIS
+.B tlswrapper-tcp [ options ] \fIhost\fR \fIport\fR
+.SH DESCRIPTION
+.PP
+The \fBtlswrapper-tcp\fR is designed to work to together with \fBtlswrapper\fR.
+It allows to protect non-TLS TCP service running on dedicated \fIhost\fR:\fIport\fR using TLS similary to stunnel(8).
+Is executed from tlswrapper as follows:
+.PP
+Internet \-\-> systemd.socket/inetd/tcpserver/... \-\-> \fBtlswrapper\fR \-\-> \fBtlswrapper-tcp\fR -> \fIhost\fR:\fIport\fR
+.PP
+.SH OPTIONS
+.B \-v
+Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3.
+.TP
+.B \-t \fIseconds\fR
+Set the network timeout to seconds \fIseconds\fR. (default 3600).
+.TP
+.B \-T \fIseconds\fR
+Set the connect timeout to seconds \fIseconds\fR. (default 10).
+.TP
+.B \-J \fIdir\fR
+Chroot network-process into a specified \fIdir\fR (default: /var/lib/tlswraper/empty).
+.TP
+.B \-S \fIuser\fR
+Run network-process and dnsresolver-process under a specified \fIuser\fR's uid and gid.
+.TP
+.B \-s
+Run network-process and dnsresolver-process under random uid and gid (default).
+.TP
+.I host
+host or IP
+.TP
+.I port
+TCP port
+.SH SECURITY
+.B Separate process for network connection and separate process for DNS resolving
+.PP
+To protect against secret-information leaks to the network connection (such Heartbleed) \fBtlswrapper-tcp\fR runs two independent processes.
+One process resolves the hostname and second creates connection to \fIhost\fR:\fIport\fR.
+.PP
+.B JAIL - Privilege separation, filesystem isolation, limits
+.PP
+The \fBtlswrapper-tcp\fR similary to \fBtlswrapper\fR processes runs under dedicated non-zero uid to prohibit kill, ptrace, etc.
+Is chrooted into an empty, unwritable directory to prohibit filesystem access.
+Sets ulimits to prohibit new files, sockets, etc. Sets ulimits to prohibit forks.
+.PP
+.SH EXAMPLES
+.PP
+Run tlswrapper using tcpserver/busybox/inetd on port 443 and connect to non-TLS service ip 127.0.0.1 and port 80
+.RS 4
+.nf
+tcpserver -HRDl0 0 443 tlswrapper [ options ] tlswrapper-tcp 127.0.0.1 80
+busybox tcpsvd 0 443 tlswrapper [ options ] tlswrapper-tcp 127.0.0.1 80
+inetd.conf line: https stream tcp nowait root /usr/bin/tlswrapper tlswrapper [ options ] /usr/bin/tlswrapper-tcp 127.0.0.1 80
+.fi
+.RE
+.PP
+.SH SEE ALSO
+.BR tlswrapper (8)

@@ -56,13 +56,13 @@ Enforce TLS server preferences. (default).
 Don't enforce TLS server preferences.
 .TP
 .B \-J \fIdir\fR
-Chroot privilege-separation network-process and key-process into a specified \fIdir\fR (default: /var/lib/tlswraper/empty).
+Chroot network-process and key-process into a specified \fIdir\fR (default: /var/lib/tlswraper/empty).
 .TP
 .B \-S \fIuser\fR
-Run privilege-separation network-process and key-process under a specified \fIuser\fR's uid and gid.
+Run network-process and key-process under a specified \fIuser\fR's uid and gid.
 .TP
 .B \-s
-Run privilege-separation network-process and key-process under random uid and gid (default).
+Run network-process and key-process under random uid and gid (default).
 .TP
 .I prog
 program
@@ -242,6 +242,7 @@ Enable client certificate authentication:
 .fi
 .RE
 .SH SEE ALSO
+.BR tlswrapper-tcp (8),
 .BR systemd.socket (5),
 .BR inetd (8),
 .BR tcpserver (1)
