@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
     x = basename(argv[0]);
     if (!x) _exit(100);
 
-    if (!strcmp(x, "tlswrapper-tcpproxy")){
-        return main_tlswrapper_tcpproxy(argc, argv);
+    if (!strcmp(x, "tlswrapper-tcp")){
+        return main_tlswrapper_tcp(argc, argv);
     }
     if (!strcmp(x, "tlswrapper-loadpem")){
         return main_tlswrapper_loadpem(argc, argv);

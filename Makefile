@@ -46,10 +46,10 @@ main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
  alloc.h tls.h fsyncfile.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_loadpem.c
 
-main_tlswrapper_tcpproxy.o: main_tlswrapper_tcpproxy.c randombytes.h \
- resolvehost.h portparse.h socket.h e.h log.h conn.h tls.h jail.h \
- randommod.h nanoseconds.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcpproxy.c
+main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
+ portparse.h socket.h e.h log.h conn.h tls.h jail.h randommod.h \
+ nanoseconds.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 nanoseconds.o: nanoseconds.c nanoseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c nanoseconds.c
@@ -157,7 +157,7 @@ OBJECTS+=jail_poll.o
 OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_loadpem.o
-OBJECTS+=main_tlswrapper_tcpproxy.o
+OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=nanoseconds.o
 OBJECTS+=pipe.o
 OBJECTS+=portparse.o

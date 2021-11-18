@@ -37,7 +37,7 @@ static void cleanup(void) {
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
 
 static void usage(void) {
-    log_u1("tlswrapper-tcpproxy [options] host port");
+    log_u1("tlswrapper-tcp [options] host port");
     die(100);
 }
 
@@ -81,11 +81,11 @@ static void signalhandler(int signum) {
     write(selfpipe[1], "", 1);
 }
 
-int main_tlswrapper_tcpproxy(int argc, char **argv) {
+int main_tlswrapper_tcp(int argc, char **argv) {
 
     char *x;
 
-    log_name("tlswrapper-tcpproxy");
+    log_name("tlswrapper-tcp");
 
     (void) argc;
     if (!argv[0]) usage();
