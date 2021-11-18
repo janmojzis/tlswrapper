@@ -2,7 +2,7 @@
 
 (
   (
-    echo "CC=gcc"
+    echo "CC?=cc"
     echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall" -I./bearssl/inc -I/usr/include/bearssl
     #echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall"
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"

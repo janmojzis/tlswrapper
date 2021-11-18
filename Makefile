@@ -1,4 +1,4 @@
-CC=gcc
+CC?=cc
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall -I./bearssl/inc -I/usr/include/bearssl
 LDFLAGS+=-L./bearssl/build -lbearssl
 
