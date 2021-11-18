@@ -32,10 +32,4 @@ if [ ! -d "${name}" ]; then
 fi
 
 mv "${name}" bearssl
-return
-
-CFLAGS="${CFLAGS} -I`pwd`/${name}/inc/ -DUSERFROMCN"
-export CFLAGS
-LDFLAGS="${LDFLAGS} -L`pwd`/${name}/build/"
-export LDFLAGS
-${MAKE:-make}
+exit 0
