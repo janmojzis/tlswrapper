@@ -108,6 +108,16 @@ int main_tlswrapper_tcp(int argc, char **argv) {
                 if (x[1]) { timeoutstr =  x + 1; break; }
                 if (argv[1]) { timeoutstr = *++argv; break; }
             }
+            /* privilege separation */
+            if (*x == 'J') {
+                if (x[1]) { ctx.empty_dir = (x + 1); break; }
+                if (argv[1]) { ctx.empty_dir = (*++argv); break; }
+            }
+            if (*x == 'S') {
+                if (x[1]) { ctx.account = (x + 1); break; }
+                if (argv[1]) { ctx.account = (*++argv); break; }
+            }
+            if (*x == 's') { ctx.account = 0; continue; }
             usage();
         }
     }
