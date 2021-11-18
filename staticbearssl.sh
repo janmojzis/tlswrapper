@@ -26,7 +26,7 @@ if [ ! -d "${name}" ]; then
     ls *.diff | while read name; do
       patch -p1 < "${name}"
     done
-    make -j2
+    ${MAKE:-make}
     rm build/*.so
   )
 fi
@@ -35,4 +35,4 @@ CFLAGS="${CFLAGS} -I`pwd`/${name}/inc/ -DUSERFROMCN"
 export CFLAGS
 LDFLAGS="${LDFLAGS} -L`pwd`/${name}/build/"
 export LDFLAGS
-make
+${MAKE:-make}
