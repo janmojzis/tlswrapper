@@ -67,6 +67,20 @@ static long long timeout_parse(const char *x) {
     return ret;
 }
 
+/* proxy-protocol */
+static const char *ppstr = 0;
+static void pp_add(const char *x) {
+
+    if (strcmp("1", x) && strcmp("2", x)) {
+        log_f3("unable to parse proxy-protocol version from the string '", x, "'");
+        log_f1("available: 1");
+        log_f1("available: 2");
+        die(100);
+    }
+    log_w3("proxy-protocol version ", ppstr, " not implemented yet");
+    ppstr = x;
+}
+
 static unsigned char inbuf[4096];
 static long long inbuflen = 0;
 static int infinished = 0;
@@ -108,6 +122,12 @@ int main_tlswrapper_tcp(int argc, char **argv) {
                 if (x[1]) { timeoutstr =  x + 1; break; }
                 if (argv[1]) { timeoutstr = *++argv; break; }
             }
+            /* proxy-protocol */
+            if (*x == 'p') {
+                if (x[1]) { pp_add(x + 1); break; }
+                if (argv[1]) { pp_add(*++argv); break; }
+            }
+            if (*x == 'P') { ppstr = 0; continue; }
             /* privilege separation */
             if (*x == 'J') {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
