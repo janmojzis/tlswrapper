@@ -11,7 +11,7 @@
 #include "jail.h"
 #include "randombytes.h"
 #include "alloc.h"
-#include "remoteip.h"
+#include "connectioninfo.h"
 #include "tls.h"
 
 /* clang-format off */
@@ -317,7 +317,7 @@ int main_tlswrapper(int argc, char **argv) {
     hstimeout = timeout_parse(hstimeoutstr);
 
     /* start */
-    log_id(remoteip());
+    log_id(connectioninfo());
     log_time(1);
 
     /* non-blockning stdin/stdout */

@@ -19,6 +19,9 @@ blocking.o: blocking.c blocking.h
 conn.o: conn.c jail.h socket.h nanoseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
+connectioninfo.o: connectioninfo.c porttostr.h log.h connectioninfo.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
+
 crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
  crypto_scalarmult_curve25519.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c crypto_scalarmult_curve25519.c
@@ -39,7 +42,7 @@ log.o: log.c e.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
- randombytes.h alloc.h remoteip.h tls.h
+ randombytes.h alloc.h connectioninfo.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
@@ -60,6 +63,9 @@ pipe.o: pipe.c e.h log.h readall.h writeall.h alloc.h pipe.h
 portparse.o: portparse.c portparse.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c portparse.c
 
+porttostr.o: porttostr.c porttostr.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
+
 randombytes.o: randombytes.c log.h randombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c randombytes.c
 
@@ -69,15 +75,15 @@ randommod.o: randommod.c randombytes.h randommod.h
 readall.o: readall.c e.h readall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c readall.c
 
-remoteip.o: remoteip.c remoteip.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c remoteip.c
-
 resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
  resolvehost.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c resolvehost.c
 
 socket.o: socket.c blocking.h e.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
+
+stradd.o: stradd.c stradd.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c stradd.c
 
 testalloc.o: testalloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c testalloc.c
@@ -149,6 +155,7 @@ writeall.o: writeall.c e.h jail.h writeall.h
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=conn.o
+OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
 OBJECTS+=e.o
 OBJECTS+=fsyncfile.o
@@ -161,12 +168,13 @@ OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=nanoseconds.o
 OBJECTS+=pipe.o
 OBJECTS+=portparse.o
+OBJECTS+=porttostr.o
 OBJECTS+=randombytes.o
 OBJECTS+=randommod.o
 OBJECTS+=readall.o
-OBJECTS+=remoteip.o
 OBJECTS+=resolvehost.o
 OBJECTS+=socket.o
+OBJECTS+=stradd.o
 OBJECTS+=tls_anchor.o
 OBJECTS+=tls_certfile.o
 OBJECTS+=tls_cipher.o

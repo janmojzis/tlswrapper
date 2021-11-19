@@ -2,6 +2,7 @@
 #include <string.h>
 #include <signal.h>
 #include <poll.h>
+#include <stdlib.h>
 #include "randombytes.h"
 #include "resolvehost.h"
 #include "portparse.h"
@@ -11,6 +12,7 @@
 #include "conn.h"
 #include "tls.h"
 #include "jail.h"
+#include "stradd.h"
 #include "randommod.h"
 #include "nanoseconds.h"
 
@@ -67,26 +69,61 @@ static long long timeout_parse(const char *x) {
     return ret;
 }
 
-/* proxy-protocol */
-static const char *ppstr = 0;
-static void pp_add(const char *x) {
-
-    if (strcmp("1", x) && strcmp("2", x)) {
-        log_f3("unable to parse proxy-protocol version from the string '", x, "'");
-        log_f1("available: 1");
-        log_f1("available: 2");
-        die(100);
-    }
-    log_w3("proxy-protocol version ", ppstr, " not implemented yet");
-    ppstr = x;
-}
-
 static unsigned char inbuf[4096];
 static long long inbuflen = 0;
 static int infinished = 0;
 static unsigned char outbuf[4096];
 static long long outbuflen = 0;
 static int outfinished = 0;
+
+/* proxy-protocol */
+static int ppversion = 0;
+static void pp_add(const char *ver) {
+
+    size_t pos = 0;
+
+    if (strcmp("1", ver)) {
+        log_f3("unable to parse proxy-protocol version from the string '", ver, "'");
+        log_f1("available: 1");
+        die(100);
+    }
+
+    ppversion = 1;
+
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, "PROXY ");
+    if (!pos) goto fail;
+
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_PROTO"));
+    if (!pos) goto fail;
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
+    if (!pos) goto fail;
+
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_REMOTEIP"));
+    if (!pos) goto fail;
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
+    if (!pos) goto fail;
+
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_LOCALIP"));
+    if (!pos) goto fail;
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
+    if (!pos) goto fail;
+
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_REMOTEPORT"));
+    if (!pos) goto fail;
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
+    if (!pos) goto fail;
+
+    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_LOCALPORT"));
+    if (!pos) goto fail;
+
+    inbuflen = strlen((char *)inbuf);
+    return;
+
+fail:
+    pos = stradd((char *)inbuf, sizeof inbuf, 0, "PROXY UNKNOWN");
+    inbuflen = strlen((char *)inbuf);
+}
+
 
 static int selfpipe[2] = {-1, -1};
 
@@ -127,7 +164,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
                 if (x[1]) { pp_add(x + 1); break; }
                 if (argv[1]) { pp_add(*++argv); break; }
             }
-            if (*x == 'P') { ppstr = 0; continue; }
+            if (*x == 'P') { ppversion = 0; continue; }
             /* privilege separation */
             if (*x == 'J') {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
@@ -153,6 +190,9 @@ int main_tlswrapper_tcp(int argc, char **argv) {
 
     /* start */
     log_time(1);
+
+    /* proxy-protocol */
+    if (ppversion > 0) log_d2("proxy-protocol string: ", (char *)inbuf);
 
     /* initialize randombytes */
     {
