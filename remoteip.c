@@ -11,7 +11,7 @@ Public domain.
 #include <stdlib.h>
 #include "remoteip.h"
 
-static char buf[INET_ADDRSTRLEN] = {0};
+static char buf[INET6_ADDRSTRLEN + INET_ADDRSTRLEN] = {0};
 
 /*
 The 'remoteip' returns IP address of the remote peer.
