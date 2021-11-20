@@ -25,19 +25,10 @@ Set the network timeout to seconds \fIseconds\fR. (default 3600).
 Set the connect timeout to seconds \fIseconds\fR. (default 10).
 .TP
 .B \-J \fIdir\fR
-Chroot network-process into a specified \fIdir\fR (default: /var/lib/tlswraper/empty).
+Chroot network-process and key-process into a specified "jail" \fIdir\fR (default: /var/lib/tlswraper/empty).
 .TP
-.B \-S \fIuser\fR
-Run network-process and dnsresolver-process under a specified \fIuser\fR's uid and gid.
-.TP
-.B \-s
-Run network-process and dnsresolver-process under random uid and gid (default).
-.TP
-.B \-p \fIversion\fR
-Enable proxy-protocol version \fIversion\fR. Currently only version 1 supported.
-.TP
-.B \-P
-Disable proxy-protocol (defaut).
+.B \-j \fIuser\fR
+Run network-process and key-process under a specified "jail" \fIuser\fR's uid and gid. If unset run network-process and key-process under random uid and gid.
 .TP
 .I host
 host or IP

@@ -49,20 +49,20 @@ Set the TLS handshake timeout to seconds \fIseconds\fR. (default 10).
 .B \-u \fIuser\fR
 Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
 .TP
-.B \-p
+.B \-p \fIversion\fR
+Send to the child proxy-protocol version \fIversion\fR string.
+.TP
+.B \-s
 Enforce TLS server preferences. (default).
 .TP
-.B \-P
+.B \-S
 Don't enforce TLS server preferences.
 .TP
 .B \-J \fIdir\fR
-Chroot network-process and key-process into a specified \fIdir\fR (default: /var/lib/tlswraper/empty).
+Chroot network-process and key-process into a specified "jail" \fIdir\fR (default: /var/lib/tlswraper/empty).
 .TP
-.B \-S \fIuser\fR
-Run network-process and key-process under a specified \fIuser\fR's uid and gid.
-.TP
-.B \-s
-Run network-process and key-process under random uid and gid (default).
+.B \-j \fIuser\fR
+Run network-process and key-process under a specified "jail" \fIuser\fR's uid and gid. If unset run network-process and key-process under random uid and gid.
 .TP
 .I prog
 program

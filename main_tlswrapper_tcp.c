@@ -2,7 +2,6 @@
 #include <string.h>
 #include <signal.h>
 #include <poll.h>
-#include <stdlib.h>
 #include "randombytes.h"
 #include "resolvehost.h"
 #include "portparse.h"
@@ -12,7 +11,6 @@
 #include "conn.h"
 #include "tls.h"
 #include "jail.h"
-#include "stradd.h"
 #include "randommod.h"
 #include "nanoseconds.h"
 
@@ -76,55 +74,6 @@ static unsigned char outbuf[4096];
 static long long outbuflen = 0;
 static int outfinished = 0;
 
-/* proxy-protocol */
-static int ppversion = 0;
-static void pp_add(const char *ver) {
-
-    size_t pos = 0;
-
-    if (strcmp("1", ver)) {
-        log_f3("unable to parse proxy-protocol version from the string '", ver, "'");
-        log_f1("available: 1");
-        die(100);
-    }
-
-    ppversion = 1;
-
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, "PROXY ");
-    if (!pos) goto fail;
-
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_PROTO"));
-    if (!pos) goto fail;
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
-    if (!pos) goto fail;
-
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_REMOTEIP"));
-    if (!pos) goto fail;
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
-    if (!pos) goto fail;
-
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_LOCALIP"));
-    if (!pos) goto fail;
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
-    if (!pos) goto fail;
-
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_REMOTEPORT"));
-    if (!pos) goto fail;
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, " ");
-    if (!pos) goto fail;
-
-    pos = stradd((char *)inbuf, sizeof inbuf, pos, getenv("TLSWRAPPER_LOCALPORT"));
-    if (!pos) goto fail;
-
-    inbuflen = strlen((char *)inbuf);
-    return;
-
-fail:
-    pos = stradd((char *)inbuf, sizeof inbuf, 0, "PROXY UNKNOWN");
-    inbuflen = strlen((char *)inbuf);
-}
-
-
 static int selfpipe[2] = {-1, -1};
 
 static void signalhandler(int signum) {
@@ -159,22 +108,15 @@ int main_tlswrapper_tcp(int argc, char **argv) {
                 if (x[1]) { timeoutstr =  x + 1; break; }
                 if (argv[1]) { timeoutstr = *++argv; break; }
             }
-            /* proxy-protocol */
-            if (*x == 'p') {
-                if (x[1]) { pp_add(x + 1); break; }
-                if (argv[1]) { pp_add(*++argv); break; }
-            }
-            if (*x == 'P') { ppversion = 0; continue; }
-            /* privilege separation */
+            /* jail */
             if (*x == 'J') {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
                 if (argv[1]) { ctx.empty_dir = (*++argv); break; }
             }
-            if (*x == 'S') {
+            if (*x == 'j') {
                 if (x[1]) { ctx.account = (x + 1); break; }
                 if (argv[1]) { ctx.account = (*++argv); break; }
             }
-            if (*x == 's') { ctx.account = 0; continue; }
             usage();
         }
     }
@@ -190,9 +132,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
 
     /* start */
     log_time(1);
-
-    /* proxy-protocol */
-    if (ppversion > 0) log_d2("proxy-protocol string: ", (char *)inbuf);
 
     /* initialize randombytes */
     {

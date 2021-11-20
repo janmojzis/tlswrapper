@@ -12,6 +12,9 @@
 #include "randombytes.h"
 #include "alloc.h"
 #include "connectioninfo.h"
+#include "proxyprotocol.h"
+#include "iptostr.h"
+#include "writeall.h"
 #include "tls.h"
 
 /* clang-format off */
@@ -65,6 +68,12 @@ static pid_t secchild = -1;
 
 static int selfpipe[2] = {-1, -1};
 
+static unsigned char localip[16] = {0};
+static unsigned char localport[2] = {0};
+static unsigned char remoteip[16] = {0};
+static unsigned char remoteport[2] = {0};
+static char remoteipstr[IPTOSTR_LEN] = {0};
+
 static void signalhandler(int signum) {
     if (signum == SIGCHLD) alarm(1);
     else write(selfpipe[1], "", 1);
@@ -88,6 +97,36 @@ static void cleanup(void) {
 #define die_jail() { log_f1("unable to create jail"); die(111); }
 #define die_readanchorpem(x) { log_f2("unable to read anchor PEM file ", (x)); die(111); }
 #define die_parseanchorpem(x) { log_f2("unable to parse anchor PEM file ", (x)); die(111); }
+
+/* proxy-protocol */
+static char pp_buf[128];
+static long long pp_buflen = 0;
+static void pp_add(const char *ver) {
+
+    size_t pos = 0;
+
+    if (!strcmp("0", ver)) {
+        /* disable proxy protocol*/
+        return;
+    }
+    else if (!strcmp("1", ver)) {
+        pos = proxyprotocol_v1(pp_buf, sizeof pp_buf);
+    }
+    else if (!strcmp("2", ver)) {
+        pos = proxyprotocol_v2(pp_buf, sizeof pp_buf);
+    }
+    else {
+        log_f3("unable to parse proxy-protocol version from the string '", ver, "'");
+        log_f1("available: 1");
+        log_f1("available: 2");
+        die(100);
+    }
+    if (!pos) {
+        log_f3("unable to create proxy-protocol v", ver, " string");
+        die(111);
+    }
+    pp_buflen = pos;
+}
 
 static void version_setmax(const char *x) {
 
@@ -237,8 +276,14 @@ int main_tlswrapper(int argc, char **argv) {
             if (*x == 'v') { log_level(++flagverbose); continue; }
 
             /* server preferences */
-            if (*x == 'p') { ctx.flags |= tls_flags_ENFORCE_SERVER_PREFERENCES; continue; }
-            if (*x == 'P') { ctx.flags &= ~tls_flags_ENFORCE_SERVER_PREFERENCES; continue; }
+            if (*x == 's') { ctx.flags |= tls_flags_ENFORCE_SERVER_PREFERENCES; continue; }
+            if (*x == 'S') { ctx.flags &= ~tls_flags_ENFORCE_SERVER_PREFERENCES; continue; }
+
+            /* proxy-protocol */
+            if (*x == 'p') {
+                if (x[1]) { pp_add(x + 1); break; }
+                if (argv[1]) { pp_add(*++argv); break; }
+            }
 
             /* run child under user */
 #ifdef USERFROMCN
@@ -297,16 +342,15 @@ int main_tlswrapper(int argc, char **argv) {
                 if (argv[1]) { cipher_add(*++argv); break; }
             }
 
-            /* privilege separation */
+            /* jail */
             if (*x == 'J') {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
                 if (argv[1]) { ctx.empty_dir = (*++argv); break; }
             }
-            if (*x == 'S') {
+            if (*x == 'j') {
                 if (x[1]) { ctx.account = (x + 1); break; }
                 if (argv[1]) { ctx.account = (*++argv); break; }
             }
-            if (*x == 's') { ctx.account = 0; continue; }
 
             usage();
         }
@@ -317,8 +361,11 @@ int main_tlswrapper(int argc, char **argv) {
     hstimeout = timeout_parse(hstimeoutstr);
 
     /* start */
-    log_id(connectioninfo());
     log_time(1);
+
+    if (connectioninfo(localip, localport, remoteip, remoteport)) {
+        log_id(iptostr(remoteipstr, remoteip));
+    }
 
     /* non-blockning stdin/stdout */
     blocking_disable(0);
@@ -478,7 +525,12 @@ int main_tlswrapper(int argc, char **argv) {
 #else
             const char *account = "";
 #endif
-            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) break;
+            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) _exit(111); /* XXX */
+
+            /* write proxy-protocol string */
+            if (pp_buflen) {
+                if (writeall(tochild[1], pp_buf, pp_buflen) == -1) _exit(111); /* XXX */
+            }
 
             alarm(timeout);
             handshakedone = 1;
