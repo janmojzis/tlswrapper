@@ -10,7 +10,7 @@ rm -rf bearssl
 
 if [ ! -f "${tarball}" ]; then
   curl -sk "https://www.bearssl.org/${tarball}" > "${tarball}.tmp"
-  sum=`sha256sum "${tarball}.tmp" | cut -d ' ' -f1`
+  sum=`cat "${tarball}.tmp" | (shasum256 2>/dev/null || shasum -a 256) | cut -d ' ' -f1`
   if [ x"${sum}" != x"${chsum}" ]; then
     echo "bad ${tarball} checksum !!!" >&2
     echo "expected: ${chsum}" >&2

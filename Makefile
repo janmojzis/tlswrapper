@@ -19,7 +19,7 @@ blocking.o: blocking.c blocking.h
 conn.o: conn.c jail.h socket.h nanoseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
-connectioninfo.o: connectioninfo.c strtoip.h portparse.h connectioninfo.h
+connectioninfo.o: connectioninfo.c strtoip.h strtoport.h connectioninfo.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
 
 crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
@@ -45,7 +45,8 @@ log.o: log.c e.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
- randombytes.h alloc.h connectioninfo.h iptostr.h tls.h
+ randombytes.h alloc.h connectioninfo.h proxyprotocol.h iptostr.h \
+ writeall.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
@@ -53,8 +54,8 @@ main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_loadpem.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
- portparse.h socket.h e.h log.h conn.h tls.h jail.h proxyprotocol.h \
- randommod.h nanoseconds.h
+ strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h \
+ nanoseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 nanoseconds.o: nanoseconds.c nanoseconds.h
@@ -63,14 +64,11 @@ nanoseconds.o: nanoseconds.c nanoseconds.h
 pipe.o: pipe.c e.h log.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
 
-portparse.o: portparse.c portparse.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c portparse.c
-
 porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
-proxyprotocol.o: proxyprotocol.c strtoip.h portparse.h connectioninfo.h \
- proxyprotocol.h
+proxyprotocol.o: proxyprotocol.c strtoip.h iptostr.h porttostr.h \
+ strtoport.h connectioninfo.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c log.h randombytes.h
@@ -91,6 +89,9 @@ socket.o: socket.c blocking.h e.h socket.h
 
 strtoip.o: strtoip.c strtoip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
+
+strtoport.o: strtoport.c strtoport.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoport.c
 
 testalloc.o: testalloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c testalloc.c
@@ -175,7 +176,6 @@ OBJECTS+=main_tlswrapper_loadpem.o
 OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=nanoseconds.o
 OBJECTS+=pipe.o
-OBJECTS+=portparse.o
 OBJECTS+=porttostr.o
 OBJECTS+=proxyprotocol.o
 OBJECTS+=randombytes.o
@@ -184,6 +184,7 @@ OBJECTS+=readall.o
 OBJECTS+=resolvehost.o
 OBJECTS+=socket.o
 OBJECTS+=strtoip.o
+OBJECTS+=strtoport.o
 OBJECTS+=tls_anchor.o
 OBJECTS+=tls_certfile.o
 OBJECTS+=tls_cipher.o

@@ -6,9 +6,9 @@ tlswrapper \- TLS encryption wrapper
 .SH DESCRIPTION
 .PP
 The \fBtlswrapper\fR is an TLS encryption wrapper between remote client and local program \fIprog\fR.
-Is executed from systemd.socket/inetd/tcpserver/... as follows:
+Systemd.socket/inetd/tcpserver/... creates the server connection, \fBtlswrapper\fR encrypts/decrypts data stream and reads/writes data from/to the program \fIprog\fR as follows:
 .PP
-Internet \-\-> systemd.socket/inetd/tcpserver/... \-\-> \fBtlswrapper\fR \-\-> \fIprog\fR
+Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-> \fIprog\fR
 .PP
 .SH OPTIONS
 .B \-v
@@ -149,38 +149,38 @@ inetd.conf line: https stream tcp nowait root /usr/bin/tlswrapper tlswrapper [ o
 .fi
 .RE
 .PP
-Simple usage, one RSA certificate:
+Simple usage, use one '/etc/.../rsa.pem' certificate:
 .RS 4
 .nf
- ... tlswrapper \-f rsa.pem ...
+ ... tlswrapper \-f '/etc/.../rsa.pem' ...
 .fi
 .RE
 .PP
-Use ECDSA certificate and fall-back to RSA certificate, if client doesn't support ECDSA:
+Use '/etc/.../ecdsa.pem' certificate and fall-back to '/etc/.../rsa.pem' certificate, if the client doesn't support previous one.
 .RS 4
 .nf
- ... tlswrapper \-f ecdsa.pem -f rsa.pem ...
+ ... tlswrapper \-f '/etc/.../ecdsa.pem' -f '/etc/.../rsa.pem' ...
 .fi
 .RE
 .PP
-Enable SNI extension and use RSA certdir (one certificate for one hostname):
+Use certificate '/etc/.../rsa.d/{hostname}' where {hostname} is extracted from the SNI extension:
 .RS 4
 .nf
- ... tlswrapper \-d rsa.d/ ...
+ ... tlswrapper \-d '/etc/.../rsa.d/' ...
 .fi
 .RE
 .PP
-Enable SNI extension and use ECDSA certdir backuped by RSA certdir:
+Use certificate '/etc/.../ecdsa.d/{hostname}' where {hostname} is extracted from the SNI extension, and fall-back to '/etc/.../rsa.d/{hostname}', if the client doesn't support previous one.
 .RS 4
 .nf
- ... tlswrapper \-d ecdsa.d/ \-d rsa.d/ ...
+ ... tlswrapper \-d '/etc/.../ecdsa.d/' \-d '/etc/.../rsa.d/' ...
 .fi
 .RE
 .PP
-Enable SNI extension and use ECDSA certdir backuped by RSA certfile:
+Use certificate '/etc/.../ecdsa.d/{hostname}' where {hostname} is extracted from the SNI extension, and fall-back to '/etc/.../rsa.pem', if the client doesn't support previous one.
 .RS 4
 .nf
- ... tlswrapper \-d ecdsa.d/ \-f rsa.pem ...
+ ... tlswrapper \-d '/etc/.../ecdsa.d/' \-f '/etc/.../rsa.pem' ...
 .fi
 .RE
 .PP

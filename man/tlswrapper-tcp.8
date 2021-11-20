@@ -12,7 +12,7 @@ Allows you to protect non-TLS TCP service using TLS similary to stunnel(8).
 Systemd.socket/inetd/tcpserver/... creates the server connection, tlswraper encrypts/decrypts data stream and
 \fBtlswrapper-tcp\fR creates the client connection and sends unencrypted data to the \fIhost\fR:\fIport\fR as follows:
 .PP
-Internet \-\-> systemd.socket/inetd/tcpserver/... \-\-> \fBtlswrapper\fR \-\-> \fBtlswrapper-tcp\fR -> \fIhost\fR:\fIport\fR
+Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-> \fBtlswrapper-tcp\fR <-> \fIhost\fR:\fIport\fR
 .PP
 .SH OPTIONS
 .B \-v

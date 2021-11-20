@@ -1,7 +1,9 @@
 # Description
-The tlswrapper is an TLS encryption wrapper between remote client and local program prog. Is executed from systemd.socket/inetd/tcpserver/... as follows:
 
-Internet --> systemd.socket/inetd/tcpserver/... --> tlswrapper --> prog
+The tlswrapper is an TLS encryption wrapper between remote client and local program prog. Systemd.socket/inetd/tcpserver/... creates the server connection, tlswrapper encrypts/decrypts data
+stream and reads/writes data from/to the program prog as follows:
+
+Internet <--> systemd.socket/inetd/tcpserver/... <--> tlswrapper <--> prog
 
 # Security
  

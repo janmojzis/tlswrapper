@@ -4,7 +4,7 @@
 #include <poll.h>
 #include "randombytes.h"
 #include "resolvehost.h"
-#include "portparse.h"
+#include "strtoport.h"
 #include "socket.h"
 #include "e.h"
 #include "log.h"
@@ -22,9 +22,18 @@ static struct context {
     .empty_dir = "/var/lib/tlswraper/empty",
 };
 
+static unsigned char inbuf[4096];
+static long long inbuflen = 0;
+static int infinished = 0;
+static unsigned char outbuf[4096];
+static long long outbuflen = 0;
+static int outfinished = 0;
+
 static int flagverbose = 1;
 
 static void cleanup(void) {
+    randombytes(inbuf, sizeof inbuf);
+    randombytes(outbuf, sizeof outbuf);
     randombytes(&ctx, sizeof ctx);
     {
         unsigned char stack[4096];
@@ -67,12 +76,6 @@ static long long timeout_parse(const char *x) {
     return ret;
 }
 
-static unsigned char inbuf[4096];
-static long long inbuflen = 0;
-static int infinished = 0;
-static unsigned char outbuf[4096];
-static long long outbuflen = 0;
-static int outfinished = 0;
 
 static int selfpipe[2] = {-1, -1};
 
@@ -123,7 +126,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     hoststr = *++argv;
     if (!hoststr) usage();
     portstr = *++argv;
-    if (!portparse(port, portstr)) {
+    if (!strtoport(port, portstr)) {
         log_f3("unable to parse TCP port (a number 0 - 65535) from the string '", portstr, "'");
         die(100);
     }

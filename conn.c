@@ -75,7 +75,7 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
 
     deadline = nanoseconds() + 1000000000 * timeout;
 
-	if (iplen > MAXIP * 16) iplen = MAXIP * 16;
+    if (iplen > MAXIP * 16) iplen = MAXIP * 16;
     if (timeout < 1 || !ip || !port || iplen < 16) {
         errno = EINVAL;
         return -1;

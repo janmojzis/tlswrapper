@@ -11,13 +11,13 @@ Public domain.
 #include <stdlib.h>
 #include <string.h>
 #include "strtoip.h"
-#include "portparse.h"
+#include "strtoport.h"
 #include "connectioninfo.h"
 
 
 /*
 The connectioninfo_fromfd function gets
-informations about TCP connection from
+informations about TCP connection from the
 getsockname(), getpeername() libc functions.
 */
 static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
@@ -61,14 +61,14 @@ static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localpor
 
 /*
 The connectioninfo_fromenv function gets
-informations about TCP connection from environment.
+informations about TCP connection from the environment.
 */
 static int connectioninfo_fromenv(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
     if (!strtoip(localip, "TCPLOCALIP")) return 0;
-    if (!portparse(localport, "TCPLOCALPORT")) return 0;
+    if (!strtoport(localport, "TCPLOCALPORT")) return 0;
     if (!strtoip(remoteip, "TCPREMOTEIP")) return 0;
-    if (!portparse(remoteport, "TCPREMOTEPORT")) return 0;
+    if (!strtoport(remoteport, "TCPREMOTEPORT")) return 0;
     return 1;
 }
 

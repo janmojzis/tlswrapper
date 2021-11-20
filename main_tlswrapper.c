@@ -518,22 +518,21 @@ int main_tlswrapper(int argc, char **argv) {
         }
 
         if ((st & BR_SSL_SENDAPP) && !handshakedone) {
-            log_d1("handshake done");
-
 #ifdef USERFROMCN
             const char *account = (char *)ctx.xc.cn;
 #else
             const char *account = "";
 #endif
-            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) _exit(111); /* XXX */
+            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) die_writetopipe();
 
             /* write proxy-protocol string */
             if (pp_buflen) {
-                if (writeall(tochild[1], pp_buf, pp_buflen) == -1) _exit(111); /* XXX */
+                if (writeall(tochild[1], pp_buf, pp_buflen) == -1) die_writetopipe();
             }
 
             alarm(timeout);
             handshakedone = 1;
+            log_d1("handshake done");
         }
 
         watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = 0;
