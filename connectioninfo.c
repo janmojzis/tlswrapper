@@ -65,10 +65,10 @@ informations about TCP connection from the environment.
 */
 static int connectioninfo_fromenv(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
-    if (!strtoip(localip, "TCPLOCALIP")) return 0;
-    if (!strtoport(localport, "TCPLOCALPORT")) return 0;
-    if (!strtoip(remoteip, "TCPREMOTEIP")) return 0;
-    if (!strtoport(remoteport, "TCPREMOTEPORT")) return 0;
+    if (!strtoip(localip, getenv("TCPLOCALIP"))) return 0;
+    if (!strtoport(localport, getenv("TCPLOCALPORT"))) return 0;
+    if (!strtoip(remoteip, getenv("TCPREMOTEIP"))) return 0;
+    if (!strtoport(remoteport, getenv("TCPREMOTEPORT"))) return 0;
     return 1;
 }
 
