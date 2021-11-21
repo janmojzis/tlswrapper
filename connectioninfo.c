@@ -12,6 +12,7 @@ Public domain.
 #include <string.h>
 #include "strtoip.h"
 #include "strtoport.h"
+#include "log.h"
 #include "connectioninfo.h"
 
 
@@ -55,7 +56,7 @@ static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localpor
         memcpy(remoteip, &sin6->sin6_addr, 16);
         memcpy(remoteport, &sin6->sin6_port, 2);
     }
-
+    log_t8("connectioninfo_fromfd(): localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
     return 1;
 }
 
@@ -69,11 +70,13 @@ static int connectioninfo_fromenv(unsigned char *localip, unsigned char *localpo
     if (!strtoport(localport, getenv("TCPLOCALPORT"))) return 0;
     if (!strtoip(remoteip, getenv("TCPREMOTEIP"))) return 0;
     if (!strtoport(remoteport, getenv("TCPREMOTEPORT"))) return 0;
+    log_t8("connectioninfo_fromenv(): localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
     return 1;
 }
 
 int connectioninfo(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
     if (connectioninfo_fromenv(localip, localport, remoteip, remoteport)) return 1;
     if (connectioninfo_fromfd(localip, localport, remoteip, remoteport)) return 1;
+    log_w1("connectioninfo() failed");
     return 0;
 }
