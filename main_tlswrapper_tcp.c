@@ -12,7 +12,6 @@
 #include "tls.h"
 #include "jail.h"
 #include "randommod.h"
-#include "nanoseconds.h"
 
 static struct context {
     const char *account;
@@ -29,9 +28,23 @@ static unsigned char outbuf[4096];
 static long long outbuflen = 0;
 static int outfinished = 0;
 
+#define NUMIP 8
+static const char *timeoutstr = "3600";
+static const char *connecttimeoutstr = "10";
+static const char *hoststr = 0;
+static const char *portstr = 0;
+
+static long long timeout;
+static long long connecttimeout;
+static unsigned char ip[16 * NUMIP];
+static long long iplen;
+static unsigned char port[2];
+static int fd = -1;
+
 static int flagverbose = 1;
 
 static void cleanup(void) {
+    randombytes(ip, sizeof ip);
     randombytes(inbuf, sizeof inbuf);
     randombytes(outbuf, sizeof outbuf);
     randombytes(&ctx, sizeof ctx);
@@ -50,18 +63,6 @@ static void usage(void) {
     die(100);
 }
 
-#define NUMIP 8
-static const char *timeoutstr = "3600";
-static const char *connecttimeoutstr = "10";
-static const char *hoststr = 0;
-static const char *portstr = 0;
-
-static long long timeout;
-static long long connecttimeout;
-static unsigned char ip[16 * NUMIP];
-static long long iplen;
-static unsigned char port[2];
-static int fd = -1;
 
 static long long timeout_parse(const char *x) {
     long long ret;

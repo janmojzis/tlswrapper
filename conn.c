@@ -3,7 +3,7 @@
 #include <poll.h>
 #include "jail.h"
 #include "socket.h"
-#include "nanoseconds.h"
+#include "milliseconds.h"
 #include "e.h"
 #include "log.h"
 #include "conn.h"
@@ -73,7 +73,7 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
     struct pollfd p[MAXIP];
     long long tm, deadline, plen;
 
-    deadline = nanoseconds() + 1000000000 * timeout;
+    deadline = milliseconds() + 1000 * timeout;
 
     if (iplen > MAXIP * 16) iplen = MAXIP * 16;
     if (timeout < 1 || !ip || !port || iplen < 16) {
@@ -107,7 +107,7 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
 
         if (plen == 0) return -1;
 
-        tm = deadline - nanoseconds();
+        tm = deadline - milliseconds();
         if (tm <= 0) {
             errno = ETIMEDOUT;
             for (i = 0; i < plen; ++i) {
@@ -115,7 +115,7 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
             }
             return -1;
         }
-        jail_poll(p, plen, tm / 1000000);
+        jail_poll(p, plen, tm);
 
         for (i = 0; i < plen; ++i) {
             if (p[i].revents) {

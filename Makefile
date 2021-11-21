@@ -16,7 +16,7 @@ alloc.o: alloc.c randombytes.h alloc.h log.h
 blocking.o: blocking.c blocking.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c blocking.c
 
-conn.o: conn.c jail.h socket.h nanoseconds.h e.h log.h conn.h
+conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
 connectioninfo.o: connectioninfo.c strtoip.h strtoport.h connectioninfo.h
@@ -54,12 +54,11 @@ main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_loadpem.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
- strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h \
- nanoseconds.h
+ strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
-nanoseconds.o: nanoseconds.c nanoseconds.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c nanoseconds.c
+milliseconds.o: milliseconds.c milliseconds.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c milliseconds.c
 
 pipe.o: pipe.c e.h log.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
@@ -174,7 +173,7 @@ OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_loadpem.o
 OBJECTS+=main_tlswrapper_tcp.o
-OBJECTS+=nanoseconds.o
+OBJECTS+=milliseconds.o
 OBJECTS+=pipe.o
 OBJECTS+=porttostr.o
 OBJECTS+=proxyprotocol.o
