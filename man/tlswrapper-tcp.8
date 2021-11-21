@@ -24,11 +24,11 @@ Set the network timeout to seconds \fIseconds\fR. (default 3600).
 .B \-T \fIseconds\fR
 Set the connect timeout to seconds \fIseconds\fR. (default 10).
 .TP
-.B \-J \fIdir\fR
-Chroot network-process into a specified "jail" \fIdir\fR (default: /var/lib/tlswraper/empty).
+.B \-J \fIjaildir\fR
+Chroot network-process into a specified \fIjaildir\fR (default: /var/lib/tlswraper/empty).
 .TP
-.B \-j \fIuser\fR
-Run network-process and dnsresolver-process under a specified "jail" \fIuser\fR's uid and gid. If unset run network-process and dnsresolver-process under random uid and gid.
+.B \-j \fIjailuser\fR
+Run network-process and dnsresolver-process under a specified \fIjailuser\fR's uid and gid. If unset run network-process and dnsresolver-process under random uid and gid.
 .TP
 .I host
 host or IP
