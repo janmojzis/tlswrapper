@@ -6,7 +6,7 @@ int strtoip4(unsigned char *ip, const char *x) {
 
     if (!x) return 0;
     if (inet_pton(AF_INET, x, ip + 12) != 1) return 0;
-         memcpy(ip, "\0\0\0\0\0\0\0\0\0\0\377\377", 12);
+    memcpy(ip, "\0\0\0\0\0\0\0\0\0\0\377\377", 12);
     return 1;
 }
 
