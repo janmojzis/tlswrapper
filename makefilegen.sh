@@ -3,8 +3,7 @@
 (
   (
     echo "CC?=cc"
-    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall" -I./bearssl/inc -I/usr/include/bearssl
-    #echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall"
+    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv" -I./bearssl/inc
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"
     echo 
 
@@ -22,7 +21,7 @@
     done
     echo
 
-    echo "all: \$(BINARIES)"
+    echo "all: bearssl \$(BINARIES)"
     echo 
 
     for file in `ls *.c`; do
@@ -58,7 +57,13 @@
     done
     echo
 
-    echo "test: \$(BINARIES)"
+    echo "bearssl:"
+    echo "	echo 'int main(){}' > try.c"
+    echo "	\$(CC) -o try.o -lbearssl try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
+    echo "	rm -f try.o try.c"
+    echo
+
+    echo "test: bearssl \$(BINARIES)"
     echo "	./test.sh"
     echo
 

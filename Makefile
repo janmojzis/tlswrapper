@@ -1,5 +1,5 @@
 CC?=cc
-CFLAGS+=-W -Wall -Os -fPIC -fwrapv -Wall -I./bearssl/inc -I/usr/include/bearssl
+CFLAGS+=-W -Wall -Os -fPIC -fwrapv -I./bearssl/inc
 LDFLAGS+=-L./bearssl/build -lbearssl
 
 BINARIES=testalloc
@@ -8,7 +8,7 @@ BINARIES+=testjail
 BINARIES+=testrandombytes
 BINARIES+=tlswrapper
 
-all: $(BINARIES)
+all: bearssl $(BINARIES)
 
 alloc.o: alloc.c randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
@@ -19,7 +19,8 @@ blocking.o: blocking.c blocking.h
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
-connectioninfo.o: connectioninfo.c strtoip.h strtoport.h connectioninfo.h
+connectioninfo.o: connectioninfo.c strtoip.h strtoport.h log.h \
+ connectioninfo.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
 
 crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
@@ -218,7 +219,12 @@ tlswrapper: tlswrapper.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
 
 
-test: $(BINARIES)
+bearssl:
+	echo 'int main(){}' > try.c
+	$(CC) -o try.o -lbearssl try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
+	rm -f try.o try.c
+
+test: bearssl $(BINARIES)
 	./test.sh
 
 clean:
