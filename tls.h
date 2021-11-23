@@ -145,7 +145,7 @@ extern int tls_pipe_fromchild;
 extern int tls_pipe_tochild;
 extern br_ssl_engine_context *tls_pipe_eng;
 extern int tls_pipe_getcert(br_x509_certificate *, size_t *, char *, const char *, const char *);
-extern size_t tls_pipe_dosign(const br_ssl_server_policy_class **, unsigned int, unsigned char *, size_t, size_t);;
+extern size_t tls_pipe_dosign(const br_ssl_server_policy_class **, unsigned int, unsigned char *, size_t, size_t);
 extern size_t tls_pipe_mulgen(unsigned char *, const unsigned char *, size_t, int);
 extern uint32_t tls_pipe_mul(unsigned char *, size_t, const unsigned char *, size_t, int);
 extern void tls_pipe_prf(void *, size_t, const void *, size_t, const char *, size_t, const br_tls_prf_seed_chunk *);
