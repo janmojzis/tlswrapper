@@ -8,7 +8,7 @@ tlswrapper-tcp \- TLS encryption wrapper - tcp client
 The \fBtlswrapper-tcp\fR is TCP client which connects to \fIhost\fR:\fIport\fR and
 transfers data from standard input to the host and from the host to the standard output.
 It's designed to work to together with \fBtlswrapper\fR and is the \fBtlswrapper\fR executed.
-Allows you to protect non-TLS TCP service using TLS similary to stunnel(8).
+Allows you to protect non-TLS TCP service using TLS similarly to stunnel(8).
 Systemd.socket/inetd/tcpserver/... creates the server connection, tlswraper encrypts/decrypts data stream and
 \fBtlswrapper-tcp\fR creates the client connection and sends/receives unencrypted data to/from the \fIhost\fR:\fIport\fR as follows:
 .PP
@@ -43,7 +43,7 @@ One process resolves the hostname and second creates a connection to \fIhost\fR:
 .PP
 .B JAIL - Privilege separation, filesystem isolation, limits
 .PP
-The \fBtlswrapper-tcp\fR similary to \fBtlswrapper\fR processes runs under dedicated non-zero uid to prohibit kill, ptrace, etc.
+The \fBtlswrapper-tcp\fR similarly to \fBtlswrapper\fR processes runs under dedicated non-zero uid to prohibit kill, ptrace, etc.
 Is chrooted into an empty, unwritable directory to prohibit filesystem access.
 Sets ulimits to prohibit new files, sockets, etc. Sets ulimits to prohibit forks.
 .PP
