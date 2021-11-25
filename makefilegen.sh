@@ -59,7 +59,7 @@
 
     echo "bearssl:"
     echo "	echo 'int main(){}' > try.c"
-    echo "	\$(CC) -o try.o -lbearssl try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
+    echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o try.o \$(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
     echo "	rm -f try.o try.c"
     echo
 

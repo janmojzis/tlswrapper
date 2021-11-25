@@ -221,7 +221,7 @@ tlswrapper: tlswrapper.o $(OBJECTS)
 
 bearssl:
 	echo 'int main(){}' > try.c
-	$(CC) -o try.o -lbearssl try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o try.o $(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
 	rm -f try.o try.c
 
 test: bearssl $(BINARIES)
