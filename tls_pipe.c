@@ -184,8 +184,9 @@ in_cbc_init(br_sslrec_in_cbc_context *cc,
     }
 }
 
-static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type, unsigned version, void *data, size_t *data_len) {
+static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type, unsigned version, void *datav, size_t *data_len) {
     unsigned char ch = tls_pipe_DECRYPT;
+    unsigned char *data = datav;
     char offset = 0;
     (void) cc;
     log_t1("decrypt begin");
@@ -245,19 +246,20 @@ const br_sslrec_in_cbc_class tls_pipe_cbc_in_vtable = {
 };
 
 static void chapol_max_plaintext(const br_sslrec_out_class *const *cc, size_t *start, size_t *end) {
-    return br_sslrec_out_chapol_vtable.inner.max_plaintext(cc, start, end);
+    br_sslrec_out_chapol_vtable.inner.max_plaintext(cc, start, end);
 }
 
 static void gcm_max_plaintext(const br_sslrec_out_class *const *cc, size_t *start, size_t *end) {
-    return br_sslrec_out_gcm_vtable.inner.max_plaintext(cc, start, end);
+    br_sslrec_out_gcm_vtable.inner.max_plaintext(cc, start, end);
 }
 
 static void cbc_max_plaintext(const br_sslrec_out_class *const *cc, size_t *start, size_t *end) {
-    return br_sslrec_out_cbc_vtable.inner.max_plaintext(cc, start, end);
+    br_sslrec_out_cbc_vtable.inner.max_plaintext(cc, start, end);
 }
 
-static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type, unsigned version, void *data, size_t *data_len) {
+static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type, unsigned version, void *datav, size_t *data_len) {
     unsigned char ch = tls_pipe_ENCRYPT;
+    unsigned char *data = datav;
     char offset;
     (void) cc;
     if (pipe_write(tls_pipe_tochild, &ch, sizeof ch) == -1) goto cleanup;

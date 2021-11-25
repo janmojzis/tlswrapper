@@ -9,7 +9,7 @@ unsigned char n[12];
 unsigned char buf[1024];
 static br_chacha20_run chacha = 0;
 
-void measure_symetric(const char *name, uint32_t (*symetric)(const void *kv, const void *nv, uint32_t u, void *mv, size_t l)) {
+static void measure_symetric(const char *name, uint32_t (*symetric)(const void *kv, const void *nv, uint32_t u, void *mv, size_t l)) {
 
     long long i, num = 10;
     clock_t begin, end;
@@ -32,7 +32,9 @@ void measure_symetric(const char *name, uint32_t (*symetric)(const void *kv, con
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
+    (void) argc;
+    (void) argv;
 
     log_level(4);
     log_name("testchacha20");

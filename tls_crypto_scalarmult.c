@@ -41,9 +41,9 @@ int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen, unsign
 
 int tls_crypto_scalarmult(int curve, unsigned char *p, size_t *plen, unsigned char *sk) {
 
+    unsigned long long i;
     int ret = -1;
     *plen = 0;
-    unsigned long long i;
 
     switch (curve) {
 #ifdef X448

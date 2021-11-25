@@ -19,19 +19,19 @@ static int run(void (*op)(void)) {
     return WEXITSTATUS(status);
 }
 
-void alloc0(void) {
+static void alloc0(void) {
     unsigned char *x = alloc(0);
     if (!x) _exit(222);
     _exit(0);
 }
 
-void alloc1(void) {
+static void alloc1(void) {
     unsigned char *x = alloc(1);
     if (!x) _exit(222);
     _exit(0);
 }
 
-void allocmalloc(void) {
+static void allocmalloc(void) {
     unsigned char *x;
     x = alloc(alloc_STATICSPACE);
     if (!x) _exit(222);
@@ -39,13 +39,13 @@ void allocmalloc(void) {
     _exit(0);
 }
 
-void alloclimit(void) {
+static void alloclimit(void) {
     unsigned char *x = alloc((unsigned long long) alloc_LIMIT + 1ULL);
     if (!x) _exit(111);
     _exit(0);
 }
 
-void alloc32bit(void) {
+static void alloc32bit(void) {
     unsigned char *x;
 
     if (sizeof(size_t) != 4) _exit(111);
@@ -54,13 +54,13 @@ void alloc32bit(void) {
     _exit(0);
 }
 
-void alloclonglongoverflow(void) {
+static void alloclonglongoverflow(void) {
     unsigned char *x = alloc((unsigned long long)-1LL);
     if (!x) _exit(111);
     _exit(0);
 }
 
-void allocfree(void) {
+static void allocfree(void) {
     unsigned char *x;
 
     alloc_free(0);
@@ -82,7 +82,7 @@ void allocfree(void) {
     _exit(0);
 }
 
-void allocfreeall(void) {
+static void allocfreeall(void) {
     unsigned char *x;
 
     x = alloc(1);
@@ -100,7 +100,9 @@ void allocfreeall(void) {
 }
 
 
-int main() {
+int main(int argc, char **argv) {
+    (void) argc;
+    (void) argv;
 
     log_level(4);
     log_name("testalloc");

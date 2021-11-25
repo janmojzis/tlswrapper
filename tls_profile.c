@@ -19,7 +19,7 @@ static int hash_choose(unsigned int bf) {
     return 0;
 }
 
-int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_context *cc, br_ssl_server_choices *choices) {
+static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_context *cc, br_ssl_server_choices *choices) {
     const br_suite_translated *st;
     size_t i, u, st_num;
     unsigned int chashes;

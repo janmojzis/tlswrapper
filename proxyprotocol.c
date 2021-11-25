@@ -14,7 +14,7 @@ Public domain.
 #include "proxyprotocol.h"
 
 
-static size_t add(char *buf, size_t buflen, size_t pos, unsigned char *x, size_t len) {
+static size_t add(char *buf, size_t buflen, size_t pos, const unsigned char *x, size_t len) {
 
     if (!x) return 0;
     if (pos + len >= buflen) return 0;
@@ -23,7 +23,7 @@ static size_t add(char *buf, size_t buflen, size_t pos, unsigned char *x, size_t
     return pos + len;
 }
 
-static size_t add_str(char *buf, size_t buflen, size_t pos, char *x) {
+static size_t add_str(char *buf, size_t buflen, size_t pos, const char *x) {
     return add(buf, buflen, pos, (unsigned char *)x, strlen(x));
 }
 

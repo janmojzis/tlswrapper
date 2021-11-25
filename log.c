@@ -211,11 +211,11 @@ void log_9_(
 
     /* 'time:' */
     do {
-        if (!level) break;           /* don't print in usage level */
-        if (!logtime) break;         /* don't print when logtime = 0 */
         struct tm *t;
         int saved_errno = errno;
         time_t secs = time(0);
+        if (!level) break;           /* don't print in usage level */
+        if (!logtime) break;         /* don't print when logtime = 0 */
 
         t = localtime(&secs);
         outnum(t->tm_year + 1900, 4); outs("-");

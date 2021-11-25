@@ -16,6 +16,7 @@
 #include "iptostr.h"
 #include "writeall.h"
 #include "tls.h"
+#include "main.h"
 
 /* clang-format off */
 

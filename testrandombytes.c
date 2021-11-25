@@ -38,7 +38,7 @@ static int writeall(int fd, unsigned char *x, long long xlen) {
     return 0;
 }
 
-static void fail(char *x) {
+static void fail(const char *x) {
     log_f1(x);
     _exit(1);
 }

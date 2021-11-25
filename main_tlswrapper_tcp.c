@@ -12,6 +12,7 @@
 #include "tls.h"
 #include "jail.h"
 #include "randommod.h"
+#include "main.h"
 
 static struct context {
     const char *account;

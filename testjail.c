@@ -20,7 +20,7 @@ static int run(void (*op)(void)) {
     return WEXITSTATUS(status);
 }
 
-void detectshortgroup(void) {
+static void detectshortgroup(void) {
     short x[4];
 
     x[0] = x[1] = 1;
@@ -34,7 +34,7 @@ void detectshortgroup(void) {
     _exit(0);
 }
 
-void testjail1(void) {
+static void testjail1(void) {
 
     if (geteuid() == 0) {
         if (jail(0, ".", 1) != 0) _exit(111);
@@ -42,7 +42,7 @@ void testjail1(void) {
     _exit(0);
 }
 
-void testjail2(void) {
+static void testjail2(void) {
 
     if (geteuid() == 0) {
         if (jail("nobody", ".", 1) != 0) _exit(111);
@@ -51,7 +51,9 @@ void testjail2(void) {
 }
 
 
-int main() {
+int main(int argc, char **argv) {
+    (void) argc;
+    (void) argv;
 
     log_level(4);
     log_name("testjail");

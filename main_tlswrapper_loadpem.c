@@ -9,6 +9,7 @@
 #include "tls.h"
 #include "fsyncfile.h"
 #include "writeall.h"
+#include "main.h"
 
 static struct tls_pem pem = {0};
 static struct tls_pubcrt crt = {0};
@@ -19,8 +20,8 @@ static int flagverbose = 1;
 static int flagpublic = 0;
 static int flagsecret = 0;
 
-static char *fnin = 0;
-static char *fnout = 0;
+static const char *fnin = 0;
+static const char *fnout = 0;
 static int fdout = 1;
 
 static int die(int x) {
