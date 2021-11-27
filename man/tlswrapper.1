@@ -1,4 +1,4 @@
-.TH tlswrapper 8
+.TH tlswrapper 1
 .SH NAME
 tlswrapper \- TLS encryption wrapper
 .SH SYNOPSIS
@@ -15,12 +15,13 @@ Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-
 Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3.
 .TP
 .B \-f \fIcertfile\fR
-Add file containing key+certificate(s) in PEM format.
+Add a file containing key+certificate(s) in PEM format.
 .TP
 .B \-d \fIcertdir\fR
-Add directory containing multiple key+certificate(s) files in PEM format.
+Add a directory containing multiple key+certificate(s) files in PEM format.
 The file in the directory is selected by hostname extracted from SNI extension.
-Warning: For security \fIcertdir\fR directory path must be absolute.
+Warning: For security reasons \fIcertdir\fR directory path must be absolute, and
+\fBtlswrapper\fR does not allow dots immediately after slashes in certdir name. It changes these dots to colons before attempting to open the PEM file.
 .TP
 .B \-a \fIanchorfile\fR
 Enable client certificate authentication. Use CA trust anchor \fIanchorfile\fR. Only one \-a option supported.
@@ -94,7 +95,7 @@ Secret-key-process loads the PEM file and immediately is jailed and drops it's p
 Since here both processes runs jailed (see JAIL above).
 Note that PEM files are loaded under root privileges, but parsed in jailed unpriviledged process.
 It ensures that a vulnerability in the parsing code can't be used to gain root privileges/informations.
-Warning: For security \fBtlswrapper\fR replaces any slash-dots in PEM filename with slash-colons before opening.
+Warning: For security reasons \fBtlswrapper\fR does not allow dots immediately after slashes in file names. It changes these dots to colons before attempting to open the PEM file.
 .PP
 .B TLS library
 .PP
@@ -242,7 +243,7 @@ Enable client certificate authentication:
 .fi
 .RE
 .SH SEE ALSO
-.BR tlswrapper-tcp (8),
+.BR tlswrapper-tcp (1),
 .BR systemd.socket (5),
 .BR inetd (8),
 .BR tcpserver (1)
