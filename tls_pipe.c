@@ -266,10 +266,8 @@ static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type, u
     if (pipe_write(tls_pipe_tochild, &record_type, sizeof record_type) == -1) goto cleanup;
     if (pipe_write(tls_pipe_tochild, &version, sizeof version) == -1) goto cleanup;
     if (pipe_write(tls_pipe_tochild, data, *data_len) == -1) goto cleanup;
-    /* max overhead for gcm 29 */
-    *data_len += 29;
-    /* XXX */
-    *data_len += 100;
+    /* max overhead for TLS-1.1+, CBC AES256+SHA-384 is 85 */
+    *data_len += 85;
     if (pipe_readall(tls_pipe_fromchild, &offset, sizeof offset) == -1) goto cleanup;
     if (pipe_readmax(tls_pipe_fromchild, data + offset, data_len) == -1) goto cleanup;
     return data + offset;
