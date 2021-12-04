@@ -134,7 +134,8 @@ static void certuser_add(const char *x) {
 
     if (!strcmp("CN", x)) {
         userfromcert = x;
-        ctx.clientcrt.oid = (unsigned char *)"\003\055\004\003";
+        /* OID 2.5.4.3 */
+        ctx.clientcrt.oid = (unsigned char *)"\003\125\004\003";
     }
     else {
         log_f3("unable to parse ASN.1 object from the string '", x, "'");
