@@ -29,8 +29,6 @@ int socket_tcp(void) {
 #endif
 #endif
     blocking_disable(s);
-#if 0
-#endif
     return s;
 }
 
