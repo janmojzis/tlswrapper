@@ -30,7 +30,7 @@ static size_t lineparser(const char *buf, size_t len, size_t pos, char *out, siz
         if (buf[i] == '\r') return i + 1;
         if (buf[i] == '\n') return i + 1;
         if (*outlen >= outmax) {
-            /* XXX skip the rest */
+            /* skip the rest */
             *outlen = 0;
             return len;
         }
