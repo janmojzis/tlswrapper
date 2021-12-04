@@ -22,8 +22,8 @@
 
 static struct tls_context ctx = {
     .flags = (tls_flags_ENFORCE_SERVER_PREFERENCES | tls_flags_NO_RENEGOTIATION),
-    .account = 0,
-    .empty_dir = "/var/lib/tlswraper/empty",
+    .jailaccount = 0,
+    .jaildir = "/var/lib/tlswraper/empty",
     .version_min = tls_version_TLS12,
     .version_max = tls_version_TLS12,
     .ecdhe_enabled = ((uint32_t) 1 << tls_ecdhe_X25519) | ((uint32_t) 1 << tls_ecdhe_SECP256R1),
@@ -360,12 +360,12 @@ int main_tlswrapper(int argc, char **argv) {
 
             /* jail */
             if (*x == 'J') {
-                if (x[1]) { ctx.empty_dir = (x + 1); break; }
-                if (argv[1]) { ctx.empty_dir = (*++argv); break; }
+                if (x[1]) { ctx.jaildir = (x + 1); break; }
+                if (argv[1]) { ctx.jaildir = (*++argv); break; }
             }
             if (*x == 'j') {
-                if (x[1]) { ctx.account = (x + 1); break; }
-                if (argv[1]) { ctx.account = (*++argv); break; }
+                if (x[1]) { ctx.jailaccount = (x + 1); break; }
+                if (argv[1]) { ctx.jailaccount = (*++argv); break; }
             }
 
             usage();
@@ -481,7 +481,7 @@ int main_tlswrapper(int argc, char **argv) {
     log_d1("start");
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
-    if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_jail();
+    if (jail(ctx.jailaccount, ctx.jaildir, 1) == -1) die_jail();
 
     if (ctx.anchorfn) {
         char *pubpem;

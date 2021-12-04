@@ -58,9 +58,9 @@ struct tls_context {
 
     struct tls_pubcrt crt;
 
-    const char *account;
+    const char *jailaccount;
 
-    const char *empty_dir;
+    const char *jaildir;
 
     unsigned int version_min;
     unsigned int version_max;
