@@ -50,7 +50,7 @@ int jail(const char *account, const char *dir, int limits) {
     else {
         pw = getpwnam(account);
         if (!pw) {
-            log_e3("getpwnam for account ", account, " failed");
+            log_e3("getpwnam for account '", account, "' failed");
             goto cleanup;
         }
         gid = pw->pw_gid;

@@ -30,6 +30,7 @@ static struct tls_context ctx = {
     .cipher_enabled_len = 6,
     .certfiles_len = 0,
     .anchorfn = 0,
+    .clientcrt.oid = 0,
     .cipher_enabled = {
         (tls_cipher_CHACHA20_POLY1305_SHA256 >> 16) & 0xffff,
         (tls_cipher_CHACHA20_POLY1305_SHA256 >>  0) & 0xffff,
@@ -51,7 +52,7 @@ static struct tls_context ctx = {
 static const char *hstimeoutstr = "10";
 static const char *timeoutstr = "3600";
 static const char *user = 0;
-static int userfromcn = 0;
+static const char *userfromcert = 0;
 
 static long long starttimeout = 3;
 static long long hstimeout;
@@ -94,10 +95,11 @@ static void cleanup(void) {
 #define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
 #define die_fork() { log_f1("unable to fork"); die(111); }
 #define die_dup() { log_f1("unable to dup"); die(111); }
-#define die_droppriv(x) { log_f2("unable to drop privileges to ", (x)); die(111); }
+#define die_droppriv(x) { log_f3("unable to drop privileges to '", (x), "'"); die(111); }
 #define die_jail() { log_f1("unable to create jail"); die(111); }
-#define die_readanchorpem(x) { log_f2("unable to read anchor PEM file ", (x)); die(111); }
-#define die_parseanchorpem(x) { log_f2("unable to parse anchor PEM file ", (x)); die(111); }
+#define die_readanchorpem(x) { log_f3("unable to read anchor PEM file '", (x), "'"); die(111); }
+#define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
+#define die_extractcn(x) { log_f1("unable to extract CN from client certificate"); die(111); }
 
 /* proxy-protocol */
 static char pp_buf[128];
@@ -128,7 +130,18 @@ static void pp_add(const char *ver) {
     }
     pp_buflen = pos;
 }
+static void certuser_add(const char *x) {
 
+    if (!strcmp("CN", x)) {
+        userfromcert = x;
+        ctx.clientcrt.oid = (unsigned char *)"\003\055\004\003";
+    }
+    else {
+        log_f3("unable to parse ASN.1 object from the string '", x, "'");
+        log_f1("available: CN");
+        die(100);
+    }
+}
 static void version_setmax(const char *x) {
 
     long long i;
@@ -287,9 +300,10 @@ int main_tlswrapper(int argc, char **argv) {
             }
 
             /* run child under user */
-#ifdef USERFROMCN
-            if (*x == 'U') { userfromcn = 1; continue; }
-#endif
+            if (*x == 'U') {
+                if (x[1]) { certuser_add(x + 1); break; }
+                if (argv[1]) { certuser_add(*++argv); break; }
+            }
             if (*x == 'u') {
                 if (x[1]) { user = x + 1; break; }
                 if (argv[1]) { user = *++argv; break; }
@@ -389,14 +403,14 @@ int main_tlswrapper(int argc, char **argv) {
             blocking_enable(0);
             blocking_enable(1);
 
-            /* drop root to account from client certificate CN */
+            /* drop root to account from client certificate ASN.1 object */
             do {
                 char account[256];
                 size_t accountlen = sizeof account;
                 if (pipe_readmax(0, account, &accountlen) == -1) die(111);
                 if (accountlen <= 1) break;
                 account[accountlen - 1] = 0;
-                if (!userfromcn) break;
+                if (!userfromcert) break;
                 if (jail_droppriv(account) == -1) die_droppriv(account);
             } while (0);
 
@@ -519,12 +533,20 @@ int main_tlswrapper(int argc, char **argv) {
         }
 
         if ((st & BR_SSL_SENDAPP) && !handshakedone) {
-#ifdef USERFROMCN
-            const char *account = (char *)ctx.xc.cn;
-#else
-            const char *account = "";
-#endif
-            if (pipe_write(tochild[1], account, strlen(account) + 1) == -1) die_writetopipe();
+
+            /* CN from anchor certificate */
+            const char *account;
+            size_t accountlen;
+            ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
+            account = ctx.clientcrtbuf;
+            accountlen = strlen(account);
+
+            if (userfromcert) {
+                if (!accountlen) die_extractcn();
+                log_d4(userfromcert, " from the client certificate '", account, "'");
+            }
+
+            if (pipe_write(tochild[1], account, accountlen + 1) == -1) die_writetopipe();
 
             /* write proxy-protocol string */
             if (pp_buflen) {

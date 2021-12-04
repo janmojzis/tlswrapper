@@ -22,13 +22,6 @@ fi
 
 if [ ! -d "${name}" ]; then
   tar -ozxf "${tarball}"
-  cp bearssl-*.diff "${name}/"
-  (
-    cd "${name}"
-    ls *.diff | while read name; do
-      patch -p1 < "${name}"
-    done
-  )
 fi
 
 mv "${name}" bearssl

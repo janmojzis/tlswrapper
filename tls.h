@@ -50,6 +50,8 @@ struct tls_context {
     const char *anchorpem;
     size_t anchorpemlen;
     struct tls_pubcrt anchorcrt;
+    br_name_element clientcrt;
+    char clientcrtbuf[256];
 
     struct tls_certfile certfiles[tls_CERTFILES];
     size_t certfiles_len;

@@ -183,6 +183,13 @@ void tls_profile(struct tls_context *ctx) {
         br_x509_minimal_set_ecdsa(&ctx->xc, br_ec_get_default(), br_ecdsa_vrfy_asn1_get_default());
         br_ssl_engine_set_x509(&cc->eng, &ctx->xc.vtable);
         br_ssl_server_set_trust_anchor_names_alt(cc, ctx->anchorcrt.ta, ctx->anchorcrt.talen);
+
+        /* parse ASN.1 object */
+        if (ctx->clientcrt.oid) {
+            ctx->clientcrt.buf = ctx->clientcrtbuf;
+            ctx->clientcrt.len = sizeof(ctx->clientcrtbuf);
+            br_x509_minimal_set_name_elements(&ctx->xc, &ctx->clientcrt, 1);
+        }
     }
 
     /*
