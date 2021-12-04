@@ -5,6 +5,7 @@
     echo "CC?=cc"
     echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -I./bearssl/inc"
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"
+    echo "DESTDIR?="
     echo 
 
     i=0
@@ -61,6 +62,11 @@
     echo "	echo 'int main(){}' > try.c"
     echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o try.o \$(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
     echo "	rm -f try.o try.c"
+    echo
+
+    echo "install: tlswrapper"
+    echo "	install -D -m 0755 tlswrapper \$(DESTDIR)/usr/bin/tlswrapper"
+    echo "	ln -s \$(DESTDIR)/usr/bin/tlswrapper \$(DESTDIR)/usr/bin/tlswrapper-tcp"
     echo
 
     echo "test: bearssl \$(BINARIES)"

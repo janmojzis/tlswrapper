@@ -1,12 +1,9 @@
 CC?=cc
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -I./bearssl/inc
 LDFLAGS+=-L./bearssl/build -lbearssl
+DESTDIR?=
 
-BINARIES=testalloc
-BINARIES+=testchacha20
-BINARIES+=testjail
-BINARIES+=testrandombytes
-BINARIES+=tlswrapper
+BINARIES=tlswrapper
 
 all: bearssl $(BINARIES)
 
@@ -92,18 +89,6 @@ strtoip.o: strtoip.c strtoip.h
 
 strtoport.o: strtoport.c strtoport.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoport.c
-
-testalloc.o: testalloc.c alloc.h log.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c testalloc.c
-
-testchacha20.o: testchacha20.c log.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c testchacha20.c
-
-testjail.o: testjail.c log.h jail.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c testjail.c
-
-testrandombytes.o: testrandombytes.c log.h randombytes.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c testrandombytes.c
 
 tls_anchor.o: tls_anchor.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_anchor.c
@@ -203,18 +188,6 @@ OBJECTS+=tls_timeout.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
 
-testalloc: testalloc.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o testalloc testalloc.o $(OBJECTS) $(LDFLAGS)
-
-testchacha20: testchacha20.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o testchacha20 testchacha20.o $(OBJECTS) $(LDFLAGS)
-
-testjail: testjail.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o testjail testjail.o $(OBJECTS) $(LDFLAGS)
-
-testrandombytes: testrandombytes.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o testrandombytes testrandombytes.o $(OBJECTS) $(LDFLAGS)
-
 tlswrapper: tlswrapper.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
 
@@ -223,6 +196,10 @@ bearssl:
 	echo 'int main(){}' > try.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o try.o $(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
 	rm -f try.o try.c
+
+install: tlswrapper
+	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
+	ln -s $(DESTDIR)/usr/bin/tlswrapper $(DESTDIR)/usr/bin/tlswrapper-tcp
 
 test: bearssl $(BINARIES)
 	./test.sh
