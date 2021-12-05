@@ -132,14 +132,17 @@ static void pp_add(const char *ver) {
 }
 static void certuser_add(const char *x) {
 
-    if (!strcmp("CN", x)) {
-        userfromcert = x;
-        /* OID 2.5.4.3 */
+    userfromcert = x;
+    if (!strcmp("commonName", x)) {
         ctx.clientcrt.oid = (unsigned char *)"\003\125\004\003";
+    }
+    else if (!strcmp("emailAddress", x)) {
+        ctx.clientcrt.oid = (unsigned char *)"\011\052\206\110\206\367\015\001\011\001";
     }
     else {
         log_f3("unable to parse ASN.1 object from the string '", x, "'");
-        log_f1("available: CN");
+        log_f1("available: commonName");
+        log_f1("available: emailAddress");
         die(100);
     }
 }
@@ -537,8 +540,9 @@ int main_tlswrapper(int argc, char **argv) {
 
             /* CN from anchor certificate */
             const char *account;
-            size_t accountlen;
+            size_t i, accountlen;
             ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
+            for (i = 0; i < sizeof ctx.clientcrtbuf; ++i) if (ctx.clientcrtbuf[i] == '@') ctx.clientcrtbuf[i] = 0;
             account = ctx.clientcrtbuf;
             accountlen = strlen(account);
 
