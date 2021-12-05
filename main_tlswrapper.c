@@ -99,7 +99,8 @@ static void cleanup(void) {
 #define die_jail() { log_f1("unable to create jail"); die(111); }
 #define die_readanchorpem(x) { log_f3("unable to read anchor PEM file '", (x), "'"); die(111); }
 #define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
-#define die_extractcn(x) { log_f1("unable to extract CN from client certificate"); die(111); }
+#define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", x, " from client certificate: object not found"); die(111); }
+#define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
 
 /* proxy-protocol */
 static char pp_buf[128];
@@ -376,6 +377,7 @@ int main_tlswrapper(int argc, char **argv) {
     }
     if (!*++argv) usage();
     if (!ctx.certfiles_len) usage();
+    if (userfromcert && !ctx.anchorfn) die_optionUa();
     timeout = timeout_parse(timeoutstr);
     hstimeout = timeout_parse(hstimeoutstr);
 
@@ -547,7 +549,7 @@ int main_tlswrapper(int argc, char **argv) {
             accountlen = strlen(account);
 
             if (userfromcert) {
-                if (!accountlen) die_extractcn();
+                if (!ctx.clientcrt.status || !accountlen) die_extractcn(userfromcert);
                 log_d4(userfromcert, " from the client certificate '", account, "'");
             }
 
