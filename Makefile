@@ -51,6 +51,10 @@ main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
  alloc.h tls.h fsyncfile.h writeall.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_loadpem.c
 
+main_tlswrapper_parseasn1.o: main_tlswrapper_parseasn1.c tls.h log.h \
+ alloc.h randombytes.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_parseasn1.c
+
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
  strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
@@ -158,6 +162,7 @@ OBJECTS+=jail_poll.o
 OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_loadpem.o
+OBJECTS+=main_tlswrapper_parseasn1.o
 OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=milliseconds.o
 OBJECTS+=pipe.o
