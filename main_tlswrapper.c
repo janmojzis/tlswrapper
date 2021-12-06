@@ -31,6 +31,7 @@ static struct tls_context ctx = {
     .cipher_enabled_len = 6,
     .certfiles_len = 0,
     .anchorfn = 0,
+    .clientcrtbuf = {0},
     .clientcrt.oid = 0,
     .cipher_enabled = {
         (tls_cipher_CHACHA20_POLY1305_SHA256 >> 16) & 0xffff,
@@ -546,7 +547,7 @@ int main_tlswrapper(int argc, char **argv) {
             if (userfromcert) {
                 if (!ctx.clientcrt.status) die_extractcn(userfromcert);
                 ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
-                log_d4(userfromcert, " from the client certificate '", account, "'");
+                log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
             }
 
             if (pipe_write(tochild[1], ctx.clientcrtbuf, sizeof ctx.clientcrtbuf) == -1) die_writetopipe();
