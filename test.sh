@@ -18,6 +18,11 @@ set -e
   ./opts.sh
   echo "opts test end"
   echo
+
+  echo "asn1 test begin"
+  ./asn1.sh
+  echo "asn1 test end"
+  echo
 )
 
 echo "all tests passed"
