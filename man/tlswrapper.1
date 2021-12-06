@@ -245,6 +245,20 @@ Enable client certificate authentication:
  ... tlswrapper \-a anchorCA.pem \-f rsa.pem ...
 .fi
 .RE
+.PP
+Enable client certificate authentication, and run program under user extracted from client cert. from commonName:
+.RS 4
+.nf
+ ... tlswrapper \-a anchorCA.pem \-U commonName \-f rsa.pem ...
+.fi
+.RE
+.PP
+Enable client certificate authentication, and run program under user extracted from client cert. from emailAddress:
+.RS 4
+.nf
+ ... tlswrapper \-a anchorCA.pem \-U emailAddress \-f rsa.pem ...
+.fi
+.RE
 .SH SEE ALSO
 .BR tlswrapper-tcp (1),
 .BR systemd.socket (5),
