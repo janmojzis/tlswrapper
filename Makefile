@@ -27,6 +27,9 @@ crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
 e.o: e.c e.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c e.c
 
+fixname.o: fixname.c fixname.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c fixname.c
+
 fsyncfile.o: fsyncfile.c fsyncfile.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fsyncfile.c
 
@@ -44,7 +47,7 @@ log.o: log.c e.h log.h
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  randombytes.h alloc.h connectioninfo.h proxyprotocol.h iptostr.h \
- writeall.h tls.h main.h
+ writeall.h fixname.h tls.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
@@ -155,6 +158,7 @@ OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
 OBJECTS+=e.o
+OBJECTS+=fixname.o
 OBJECTS+=fsyncfile.o
 OBJECTS+=iptostr.o
 OBJECTS+=jail.o

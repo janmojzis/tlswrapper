@@ -15,6 +15,7 @@
 #include "proxyprotocol.h"
 #include "iptostr.h"
 #include "writeall.h"
+#include "fixname.h"
 #include "tls.h"
 #include "main.h"
 
@@ -416,6 +417,7 @@ int main_tlswrapper(int argc, char **argv) {
                 if (pipe_readmax(0, account, &accountlen) == -1) die(111);
                 if (accountlen <= 1) break;
                 account[accountlen - 1] = 0;
+                fixname(account, sizeof account);
                 if (!userfromcert) break;
                 if (jail_droppriv(account) == -1) die_droppriv(account);
             } while (0);
@@ -514,7 +516,7 @@ int main_tlswrapper(int argc, char **argv) {
         struct pollfd *watchfromselfpipe;
         unsigned char *buf;
         size_t len;
-        ssize_t r;
+        long long r;
 
         st = br_ssl_engine_current_state(&ctx.cc.eng);
         if (st & BR_SSL_CLOSED) {
@@ -541,19 +543,13 @@ int main_tlswrapper(int argc, char **argv) {
         if ((st & BR_SSL_SENDAPP) && !handshakedone) {
 
             /* CN from anchor certificate */
-            const char *account;
-            size_t i, accountlen;
-            ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
-            for (i = 0; i < sizeof ctx.clientcrtbuf; ++i) if (ctx.clientcrtbuf[i] == '@') ctx.clientcrtbuf[i] = 0;
-            account = ctx.clientcrtbuf;
-            accountlen = strlen(account);
-
             if (userfromcert) {
-                if (!ctx.clientcrt.status || !accountlen) die_extractcn(userfromcert);
+                if (!ctx.clientcrt.status) die_extractcn(userfromcert);
+                ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
                 log_d4(userfromcert, " from the client certificate '", account, "'");
             }
 
-            if (pipe_write(tochild[1], account, accountlen + 1) == -1) die_writetopipe();
+            if (pipe_write(tochild[1], ctx.clientcrtbuf, sizeof ctx.clientcrtbuf) == -1) die_writetopipe();
 
             /* write proxy-protocol string */
             if (pp_buflen) {
