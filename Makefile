@@ -52,7 +52,7 @@ main_tlswrapper_loadpem.o: main_tlswrapper_loadpem.c randombytes.h log.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_loadpem.c
 
 main_tlswrapper_parseasn1.o: main_tlswrapper_parseasn1.c tls.h log.h \
- alloc.h randombytes.h
+ alloc.h fsyncfile.h writeall.h randombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_parseasn1.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
