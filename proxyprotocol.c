@@ -14,26 +14,31 @@ Public domain.
 #include "proxyprotocol.h"
 
 
-static size_t add(char *buf, size_t buflen, size_t pos, const unsigned char *x, size_t len) {
+static long long add(char *buf, long long buflen, long long pos, const unsigned char *x, long long len) {
 
     if (!x) return 0;
+    if (buflen < 0) return 0;
+    if (len < 0) return 0;
+    if (pos < 0) return 0;
     if (pos + len >= buflen) return 0;
 
     memcpy(buf + pos, x, len);
     return pos + len;
 }
 
-static size_t add_str(char *buf, size_t buflen, size_t pos, const char *x) {
+static long long add_str(char *buf, long long buflen, long long pos, const char *x) {
     return add(buf, buflen, pos, (unsigned char *)x, strlen(x));
 }
 
-int proxyprotocol_v1(char *buf, size_t buflen) {
+long long proxyprotocol_v1(char *buf, long long buflen) {
 
     unsigned char localip[16] = {0};
     unsigned char localport[2] = {0};
     unsigned char remoteip[16] = {0};
     unsigned char remoteport[2] = {0};
-    size_t pos = 0;
+    long long pos = 0;
+
+    if (!buf || buflen <= 0) goto fail;
 
     if (!connectioninfo(localip, localport, remoteip, remoteport)) goto fail;
 
@@ -73,9 +78,9 @@ fail:
 }
 
 
-int proxyprotocol_v2(char *buf, size_t buflen) {
+long long proxyprotocol_v2(char *buf, long long buflen) {
 
-    size_t pos = 0;
+    long long pos = 0;
     unsigned char ch;
     unsigned char len[2];
 
@@ -83,6 +88,8 @@ int proxyprotocol_v2(char *buf, size_t buflen) {
     unsigned char localport[2] = {0};
     unsigned char remoteip[16] = {0};
     unsigned char remoteport[2] = {0};
+
+    if (!buf || buflen <= 0) goto fail;
 
     if (!connectioninfo(localip, localport, remoteip, remoteport)) goto fail;
 

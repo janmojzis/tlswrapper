@@ -107,7 +107,7 @@ static char pp_buf[128];
 static long long pp_buflen = 0;
 static void pp_add(const char *ver) {
 
-    size_t pos = 0;
+    long long pos = 0;
 
     if (!strcmp("0", ver)) {
         /* disable proxy protocol*/
@@ -125,7 +125,7 @@ static void pp_add(const char *ver) {
         log_f1("available: 2");
         die(100);
     }
-    if (!pos) {
+    if (pos <= 0) {
         log_f3("unable to create proxy-protocol v", ver, " string");
         die(111);
     }
