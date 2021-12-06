@@ -62,7 +62,7 @@ const char *tls_cipher_str(uint16_t suite) {
 static int use_default = 1;
 int tls_cipher_add(struct tls_context *ctx, const char *x) {
 
-    size_t i;
+    unsigned long long i;
     uint32_t suite = 0;
 
     if (use_default == 1) {
