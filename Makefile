@@ -18,8 +18,8 @@ blocking.o: blocking.c blocking.h
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
-connectioninfo.o: connectioninfo.c strtoip.h strtoport.h log.h \
- connectioninfo.h
+connectioninfo.o: connectioninfo.c strtoip.h strtoport.h porttostr.h \
+ iptostr.h log.h connectioninfo.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
 
 crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \

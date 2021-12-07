@@ -12,6 +12,8 @@ Public domain.
 #include <string.h>
 #include "strtoip.h"
 #include "strtoport.h"
+#include "porttostr.h"
+#include "iptostr.h"
 #include "log.h"
 #include "connectioninfo.h"
 
@@ -20,6 +22,8 @@ Public domain.
 The connectioninfo_fromfd function gets
 informations about TCP connection from the
 getsockname(), getpeername() libc functions.
+Also sets env. variables TCPREMOTEIP, TCPREMOTEPORT,
+TCPLOCALIP, TCPLOCALPORT.
 */
 static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
@@ -57,6 +61,10 @@ static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localpor
         memcpy(remoteport, &sin6->sin6_port, 2);
     }
     log_t8("connectioninfo_fromfd(): localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
+    (void) setenv("TCPREMOTEIP", iptostr(0, remoteip), 1);
+    (void) setenv("TCPREMOTEPORT", porttostr(0, remoteport), 1);
+    (void) setenv("TCPLOCALIP", iptostr(0, localip), 1);
+    (void) setenv("TCPLOCALPORT", porttostr(0, localport), 1);
     return 1;
 }
 
