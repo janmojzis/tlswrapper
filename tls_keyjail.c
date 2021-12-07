@@ -135,7 +135,7 @@ void tls_keyjail(struct tls_context *ctx) {
         if (pipe_readall(0, &datalen, sizeof(datalen)) == -1) goto cleanup;
         if (datalen > sizeof data) goto cleanup;
         if (pipe_readmax(0, data, &datalen) == -1) goto cleanup;
-        datalen = sign(&pem, pemkey, cc, hash_id, data, datalen, sizeof data); /* XXX */
+        datalen = sign(&pem, pemkey, cc, hash_id, data, datalen, sizeof data);
         if (pipe_write(1, data, datalen) == -1) goto cleanup;
     }
 
