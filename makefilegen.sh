@@ -78,7 +78,7 @@
     echo
 
     echo "clean:"
-    echo "	rm -f *.o \$(BINARIES)"
+    echo "	rm -f *.o \$(BINARIES) tlswrapper-tcp"
     echo 
 
   ) > Makefile

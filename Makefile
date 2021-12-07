@@ -222,5 +222,5 @@ test: bearssl $(BINARIES)
 	./test.sh
 
 clean:
-	rm -f *.o $(BINARIES)
+	rm -f *.o $(BINARIES) tlswrapper-tcp
 
