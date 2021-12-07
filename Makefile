@@ -206,9 +206,12 @@ bearssl:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o try.o $(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
 	rm -f try.o try.c
 
-install: tlswrapper
+tlswrapper-tcp: tlswrapper
+	ln -s tlswrapper tlswrapper-tcp
+
+install: tlswrapper tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
-	ln -s $(DESTDIR)/usr/bin/tlswrapper $(DESTDIR)/usr/bin/tlswrapper-tcp
+	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
 
 test: bearssl $(BINARIES)
 	./test.sh

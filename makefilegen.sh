@@ -64,9 +64,13 @@
     echo "	rm -f try.o try.c"
     echo
 
-    echo "install: tlswrapper"
+    echo "tlswrapper-tcp: tlswrapper"
+    echo "	ln -s tlswrapper tlswrapper-tcp"
+    echo
+
+    echo "install: tlswrapper tlswrapper-tcp"
     echo "	install -D -m 0755 tlswrapper \$(DESTDIR)/usr/bin/tlswrapper"
-    echo "	ln -s \$(DESTDIR)/usr/bin/tlswrapper \$(DESTDIR)/usr/bin/tlswrapper-tcp"
+    echo "	install -D -m 0755 tlswrapper-tcp \$(DESTDIR)/usr/bin/tlswrapper-tcp"
     echo
 
     echo "test: bearssl \$(BINARIES)"
