@@ -1,12 +1,11 @@
 #!/bin/sh
 set -e
 
-rm -f tlswrapper-loadpem okpem.out
-ln -s ../tlswrapper tlswrapper-loadpem
+rm -f okpem.out
 
 cleanup() {
   ex=$?
-  rm -f tlswrapper-loadpem okpem.out
+  rm -f okpem.out
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
@@ -22,7 +21,7 @@ trap "cleanup" EXIT TERM INT
   ) | (
     while read name comment; do
       echo "okpem: ${comment}" >&2
-      ./tlswrapper-loadpem -pi "${name}"
+      ../loadpem -pi "${name}"
       echo
     done
   ) 

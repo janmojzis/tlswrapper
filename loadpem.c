@@ -9,7 +9,6 @@
 #include "tls.h"
 #include "fsyncfile.h"
 #include "writeall.h"
-#include "main.h"
 
 static struct tls_pem pem = {0};
 static struct tls_pubcrt crt = {0};
@@ -47,7 +46,7 @@ static void usage(void) {
     die(100);
 }
 
-int main_tlswrapper_loadpem(int argc, char **argv) {
+int main(int argc, char **argv) {
 
     char *x;
 

@@ -38,12 +38,6 @@ int main(int argc, char **argv) {
     if (!strcmp(x, "tlswrapper-tcp")){
         return main_tlswrapper_tcp(argc, argv);
     }
-    if (!strcmp(x, "tlswrapper-loadpem")){
-        return main_tlswrapper_loadpem(argc, argv);
-    }
-    if (!strcmp(x, "tlswrapper-parseasn1")){
-        return main_tlswrapper_parseasn1(argc, argv);
-    }
     return main_tlswrapper(argc, argv);
 
     _exit(111);

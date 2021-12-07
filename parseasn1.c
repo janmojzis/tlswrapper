@@ -63,7 +63,7 @@ static int numparse(unsigned long long *num, const char *x) {
 static char *daysstr = 0;
 static unsigned long long days = 0;
 
-int main_tlswrapper_parseasn1(int argc, char **argv) {
+int main(int argc, char **argv) {
 
     char *x;
 
