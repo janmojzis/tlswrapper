@@ -101,37 +101,38 @@ static void cleanup(void) {
 #define die_jail() { log_f1("unable to create jail"); die(111); }
 #define die_readanchorpem(x) { log_f3("unable to read anchor PEM file '", (x), "'"); die(111); }
 #define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
-#define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", x, " from client certificate: object not found"); die(111); }
+#define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", (x), " from client certificate: object not found"); die(111); }
 #define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
+#define die_proxyprotocol(x) { log_f3("unable to create proxy-protocol v", (x), " string");; die(100); }
+#define die_connectioninfo() { log_f1("unable to get connection info"); die(100); }
+
+static int connectioninfoflag = 0;
 
 /* proxy-protocol */
 static char pp_buf[128];
 static long long pp_buflen = 0;
-static void pp_add(const char *ver) {
+static long long (*proxyprotocol)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static const char *pp_ver = 0;
+static void pp_add(const char *x) {
 
-    long long pos = 0;
-
-    if (!strcmp("0", ver)) {
+    if (!strcmp("0", x)) {
         /* disable proxy protocol*/
         return;
     }
-    else if (!strcmp("1", ver)) {
-        pos = proxyprotocol_v1(pp_buf, sizeof pp_buf);
+    else if (!strcmp("1", x)) {
+        proxyprotocol = proxyprotocol_v1;
+        pp_ver = x;
     }
-    else if (!strcmp("2", ver)) {
-        pos = proxyprotocol_v2(pp_buf, sizeof pp_buf);
+    else if (!strcmp("2", x)) {
+        proxyprotocol = proxyprotocol_v2;
+        pp_ver = x;
     }
     else {
-        log_f3("unable to parse proxy-protocol version from the string '", ver, "'");
+        log_f3("unable to parse proxy-protocol version from the string '", x, "'");
         log_f1("available: 1");
         log_f1("available: 2");
         die(100);
     }
-    if (pos <= 0) {
-        log_f3("unable to create proxy-protocol v", ver, " string");
-        die(111);
-    }
-    pp_buflen = pos;
 }
 static void certuser_add(const char *x) {
 
@@ -386,8 +387,17 @@ int main_tlswrapper(int argc, char **argv) {
     /* start */
     log_time(1);
 
-    if (connectioninfo(localip, localport, remoteip, remoteport)) {
+    /* get connection info */
+    connectioninfoflag = connectioninfo(localip, localport, remoteip, remoteport);
+    if (connectioninfoflag) {
         log_id(iptostr(remoteipstr, remoteip));
+    }
+
+    /* proxyprotocol */
+    if (proxyprotocol) {
+        if (!connectioninfoflag) die_connectioninfo();
+        pp_buflen = proxyprotocol(pp_buf, sizeof pp_buf, localip, localport, remoteip, remoteport);
+        if (pp_buflen <= 0) die_proxyprotocol(pp_ver);
     }
 
     /* non-blockning stdin/stdout */

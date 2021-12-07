@@ -10,7 +10,6 @@ Public domain.
 #include "iptostr.h"
 #include "porttostr.h"
 #include "strtoport.h"
-#include "connectioninfo.h"
 #include "proxyprotocol.h"
 
 
@@ -30,17 +29,11 @@ static long long add_str(char *buf, long long buflen, long long pos, const char 
     return add(buf, buflen, pos, (unsigned char *)x, strlen(x));
 }
 
-long long proxyprotocol_v1(char *buf, long long buflen) {
+long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
-    unsigned char localip[16] = {0};
-    unsigned char localport[2] = {0};
-    unsigned char remoteip[16] = {0};
-    unsigned char remoteport[2] = {0};
     long long pos = 0;
 
     if (!buf || buflen <= 0) goto fail;
-
-    if (!connectioninfo(localip, localport, remoteip, remoteport)) goto fail;
 
     if (!memcmp("\0\0\0\0\0\0\0\0\0\0\377\377", remoteip, 12)) {
         pos = add_str(buf, buflen, pos, "PROXY TCP4 ");
@@ -78,20 +71,13 @@ fail:
 }
 
 
-long long proxyprotocol_v2(char *buf, long long buflen) {
+long long proxyprotocol_v2(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
     long long pos = 0;
     unsigned char ch;
     unsigned char len[2];
 
-    unsigned char localip[16] = {0};
-    unsigned char localport[2] = {0};
-    unsigned char remoteip[16] = {0};
-    unsigned char remoteport[2] = {0};
-
     if (!buf || buflen <= 0) goto fail;
-
-    if (!connectioninfo(localip, localport, remoteip, remoteport)) goto fail;
 
     /* header */
     pos = add(buf, buflen, pos, (unsigned char *)"\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A", 12);
