@@ -418,7 +418,6 @@ int main_tlswrapper(int argc, char **argv) {
                 if (pipe_readmax(0, account, &accountlen) == -1) die(111);
                 if (accountlen <= 1) break;
                 account[accountlen - 1] = 0;
-                fixname(account, sizeof account);
                 if (!userfromcert) break;
                 if (jail_droppriv(account) == -1) die_droppriv(account);
             } while (0);
@@ -548,9 +547,10 @@ int main_tlswrapper(int argc, char **argv) {
                 if (!ctx.clientcrt.status) die_extractcn(userfromcert);
                 ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
                 log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
+                fixname(ctx.clientcrtbuf);
             }
 
-            if (pipe_write(tochild[1], ctx.clientcrtbuf, sizeof ctx.clientcrtbuf) == -1) die_writetopipe();
+            if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
 
             /* write proxy-protocol string */
             if (pp_buflen) {
