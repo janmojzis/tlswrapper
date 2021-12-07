@@ -5,6 +5,7 @@
 #include "randombytes.h"
 #include "log.h"
 #include "jail.h"
+#include "fixpath.h"
 #include "tls.h"
 
 extern void br_ssl_engine_switch_chapol_in(br_ssl_engine_context *cc, int is_client, int prf_id);
@@ -59,23 +60,6 @@ static void prf(struct tls_context *ctx, void *dst, size_t len, int prf_id, cons
 
     iprf = br_ssl_engine_get_PRF(&ctx->cc.eng, prf_id);
     iprf(dst, len, ctx->cc.eng.session.master_secret, sizeof ctx->cc.eng.session.master_secret, label, 1, &seed);
-}
-
-
-static void fixpath(char *s) {
-    char ch;
-    size_t i, j, len = strlen(s);
-
-    j = 0;
-    for (i = 0; i < len; ++i) {
-        ch = s[i];
-        if (j && (s[j - 1] == '/')) {
-            if (ch == '.') ch = ':';
-            if (ch == '/') continue;
-        }
-        s[j++] = ch;
-    }
-    s[j] = 0;
 }
 
 void tls_keyjail(struct tls_context *ctx) {

@@ -30,6 +30,9 @@ e.o: e.c e.h
 fixname.o: fixname.c fixname.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fixname.c
 
+fixpath.o: fixpath.c fixpath.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c fixpath.c
+
 fsyncfile.o: fsyncfile.c fsyncfile.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fsyncfile.c
 
@@ -119,7 +122,8 @@ tls_ecdsa.o: tls_ecdsa.c tls.h
 tls_error.o: tls_error.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_error.c
 
-tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h tls.h
+tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h fixpath.h \
+ tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keyjail.c
 
 tls_keytype.o: tls_keytype.c tls.h
@@ -159,6 +163,7 @@ OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
 OBJECTS+=e.o
 OBJECTS+=fixname.o
+OBJECTS+=fixpath.o
 OBJECTS+=fsyncfile.o
 OBJECTS+=iptostr.o
 OBJECTS+=jail.o
