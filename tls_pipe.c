@@ -105,7 +105,6 @@ uint32_t tls_pipe_mul(unsigned char *G, size_t Glen, const unsigned char *x, siz
     if (pipe_write(tls_pipe_tochild, G, Glen) == -1) goto fail;
 
     /* write tls version, client_random, server_random */
-    /* XXX is better place ?? */
     if (pipe_write(tls_pipe_tochild, &tls_pipe_eng->session.version, sizeof tls_pipe_eng->session.version) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, &tls_pipe_eng->session.cipher_suite, sizeof tls_pipe_eng->session.cipher_suite) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, tls_pipe_eng->client_random, sizeof tls_pipe_eng->client_random) == -1) goto fail;
@@ -273,8 +272,8 @@ static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type, u
     return data + offset;
 cleanup:
     log_e1("encrypt failed");
-    /* XXX */
-    return data;
+    randombytes(datav, *data_len);
+    return datav;
 }
 
 static void out_chapol_init(const br_sslrec_out_class **cc, br_chacha20_run ichacha, br_poly1305_run ipoly, const void *key, const void *iv) {
