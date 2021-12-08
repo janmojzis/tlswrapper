@@ -63,7 +63,7 @@ size_t tls_pipe_mulgen(unsigned char *R, const unsigned char *x, size_t xlen, in
     return Glen;
 
 fail:
-    log_e1("tls_pipe_mulgen failed");
+    log_d1("tls_pipe_mulgen failed");
     return 0;
 }
 
@@ -90,7 +90,7 @@ size_t tls_pipe_dosign(const br_ssl_server_policy_class **pctx, unsigned int alg
     return max;
 
 fail:
-    log_e1("tls_pipe_dosign failed");
+    log_d1("tls_pipe_dosign failed");
     return 0;
 }
 
@@ -114,7 +114,7 @@ uint32_t tls_pipe_mul(unsigned char *G, size_t Glen, const unsigned char *x, siz
     return 1;
 
 fail:
-    log_e1("tls_pipe_mul failed");
+    log_d1("tls_pipe_mul failed");
     return 0;
 }
 
@@ -199,7 +199,7 @@ static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type, un
     log_t1("decrypt finished");
     return data + offset;
 fail:
-    log_e1("decrypt failed");
+    log_d1("decrypt failed");
     return 0;
 }
 
@@ -271,7 +271,7 @@ static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type, u
     if (pipe_readmax(tls_pipe_fromchild, data + offset, data_len) == -1) goto cleanup;
     return data + offset;
 cleanup:
-    log_e1("encrypt failed");
+    log_d1("encrypt failed");
     randombytes(datav, *data_len);
     return datav;
 }

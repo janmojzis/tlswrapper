@@ -223,7 +223,7 @@ void tls_keyjail(struct tls_context *ctx) {
                         offset = 0;
                         if (pipe_write(1, &offset, sizeof offset) == -1) goto cleanup;
                         if (pipe_write(1, 0, 0) == -1) goto cleanup;
-                        log_e1("decrypt failed");
+                        log_d1("decrypt failed");
                     }
                     else {
                         offset = (char)(long long)((unsigned long long)ret - (unsigned long long)data - 64);

@@ -25,15 +25,20 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
     unsigned int chashes;
     struct tls_context *ctx = (struct tls_context *)pctx;
     const char *server_name;
+    uint32_t curves;
 
     log_t1("tls_choose()");
 
     st = br_ssl_server_get_client_suites(cc, &st_num);
     chashes = br_ssl_server_get_client_hashes(cc);
     server_name = br_ssl_engine_get_server_name(&cc->eng);
+    curves = br_ssl_server_get_client_curves(cc);
 
     for (u = 0; u < st_num; ++u) {
         log_d2("clients cipher ", tls_cipher_str(st[u][0]));
+    }
+    for (u = 0; u < 32; ++u) {
+        if (curves & 1 << u) log_d2("clients ECDHE ", tls_ecdhe_str(u));
     }
 
     log_d2("client tls_version=", tls_version_str(br_ssl_engine_get_version(&cc->eng)));

@@ -538,13 +538,13 @@ int main_tlswrapper(int argc, char **argv) {
             else {
                 if (err >= BR_ERR_SEND_FATAL_ALERT) {
                     err -= BR_ERR_SEND_FATAL_ALERT;
-                    log_f2("SSL closed abnormally, sent alert: ", tls_error_str(err));
+                    log_d2("SSL closed abnormally, sent alert: ", tls_error_str(err));
                 } else if (err >= BR_ERR_RECV_FATAL_ALERT) {
                     err -= BR_ERR_RECV_FATAL_ALERT;
-                    log_f2("SSL closed abnormally, received alert: ", tls_error_str(err));
+                    log_d2("SSL closed abnormally, received alert: ", tls_error_str(err));
                 }
                 else {
-                    log_f2("SSL closed abnormally: ", tls_error_str(err));
+                    log_d2("SSL closed abnormally: ", tls_error_str(err));
                 }
             }
             break;
@@ -553,13 +553,12 @@ int main_tlswrapper(int argc, char **argv) {
         if ((st & BR_SSL_SENDAPP) && !handshakedone) {
 
             /* CN from anchor certificate */
+            ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
             if (userfromcert) {
                 if (!ctx.clientcrt.status) die_extractcn(userfromcert);
-                ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
                 log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
                 fixname(ctx.clientcrtbuf);
             }
-
             if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
 
             /* write proxy-protocol string */
@@ -569,7 +568,9 @@ int main_tlswrapper(int argc, char **argv) {
 
             alarm(timeout);
             handshakedone = 1;
-            log_d1("handshake done");
+
+            log_i6("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)));
         }
 
         watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = 0;
@@ -617,7 +618,11 @@ int main_tlswrapper(int argc, char **argv) {
             buf = br_ssl_engine_recvrec_buf(&ctx.cc.eng, &len);
             r = read(0, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) { log_d1("read from standard input failed"); break; }
+            if (r <= 0) {
+                if (r < 0) log_d1("read from standard input failed");
+                if (r == 0) log_t1("read from standard input failed, connection closed");
+                break;
+            }
             br_ssl_engine_recvrec_ack(&ctx.cc.eng, r);
             alarm(timeout); /* refresh timeout */
             continue;
@@ -630,6 +635,7 @@ int main_tlswrapper(int argc, char **argv) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 if (r < 0) log_d1("read from child failed");
+                if (r == 0) log_t1("read from child failed, connection closed");
                 br_ssl_engine_close(&ctx.cc.eng);
                 br_ssl_engine_flush(&ctx.cc.eng, 0);
                 continue;

@@ -111,6 +111,7 @@ extern const tls_ecdhe tls_ecdhes[];
 #define tls_ecdhe_SECP256R1 BR_EC_secp256r1
 #define tls_ecdhe_SECP384R1 BR_EC_secp384r1
 #define tls_ecdhe_SECP521R1 BR_EC_secp521r1
+extern const char *tls_ecdhe_str(unsigned char);
 extern const br_ec_impl *tls_ecdhe_get_default(struct tls_context *);
 extern int tls_ecdhe_add(struct tls_context *, const char *);
 

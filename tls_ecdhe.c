@@ -13,6 +13,16 @@ const tls_ecdhe tls_ecdhes[] = {
     { 0, 0 }
 };
 
+const char *tls_ecdhe_str(unsigned char curve) {
+
+    long long i;
+
+    for (i = 0; tls_ecdhes[i].name; ++i) {
+        if (tls_ecdhes[i].curve == curve) return tls_ecdhes[i].name;
+    }
+    return "unknown";
+}
+
 static int use_default = 1;
 int tls_ecdhe_add(struct tls_context *ctx, const char *x) {
 
