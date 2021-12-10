@@ -12,7 +12,6 @@ Public domain.
 #include <netinet/in.h>
 #include <string.h>
 #include "blocking.h"
-#include "e.h"
 #include "socket.h"
 
 int socket_tcp(void) {

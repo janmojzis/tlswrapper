@@ -2,7 +2,6 @@
 #include <string.h>
 #include <unistd.h>
 #include "e.h"
-#include "log.h"
 #include "readall.h"
 #include "writeall.h"
 #include "alloc.h"

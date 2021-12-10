@@ -70,14 +70,14 @@ parseasn1.o: parseasn1.c tls.h log.h alloc.h fsyncfile.h writeall.h \
  randombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c parseasn1.c
 
-pipe.o: pipe.c e.h log.h readall.h writeall.h alloc.h pipe.h
+pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
 
 porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
 proxyprotocol.o: proxyprotocol.c strtoip.h iptostr.h porttostr.h \
- strtoport.h connectioninfo.h proxyprotocol.h
+ strtoport.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c log.h randombytes.h
@@ -93,7 +93,7 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
  resolvehost.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c resolvehost.c
 
-socket.o: socket.c blocking.h e.h socket.h
+socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
 
 strtoip.o: strtoip.c strtoip.h

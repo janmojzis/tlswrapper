@@ -89,6 +89,7 @@ static void signalhandler(int signum) {
 int main_tlswrapper_tcp(int argc, char **argv) {
 
     char *x;
+    long long i;
 
     log_name("tlswrapper-tcp");
 
@@ -158,6 +159,9 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     if (iplen == 0) {
         log_f3("unable to resolve host '", hoststr, "': name not exist");
         die(111);
+    }
+    for (i = 0; i < iplen; i += 16) {
+        log_d3(hoststr, ": ", logip(ip + i));
     }
 
     /* create selfpipe */
@@ -240,6 +244,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 if (r < 0) log_d1("read from standard input failed");
+                if (r == 0) log_t1("read from standard input failed, connection closed");
                 infinished = 1;
                 continue;
             }
@@ -253,6 +258,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { 
                 if (r < 0) log_d5("read from ", hoststr, ":", portstr, " failed" ); 
+                if (r == 0) log_t5("read from ", hoststr, ":", portstr, " failed, connection closed" );
                 outfinished = 1;
                 continue;
             }
