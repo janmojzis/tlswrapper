@@ -1,5 +1,5 @@
 CC?=cc
-CFLAGS+=-W -Wall -Os -fPIC -fwrapv -I./bearssl/inc
+CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc
 LDFLAGS+=-L./bearssl/build -lbearssl
 DESTDIR?=
 

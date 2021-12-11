@@ -69,7 +69,7 @@ struct tls_context {
     const br_ec_impl ecdhe_copy;
 
     size_t cipher_enabled_len;
-    uint16_t cipher_enabled[];
+    uint16_t cipher_enabled[16];
 };
 
 /* flags */
@@ -118,21 +118,14 @@ extern int tls_ecdhe_add(struct tls_context *, const char *);
 /* tls_cipher.c */
 typedef struct {
     const char *name;
-    uint32_t suite;
+    uint16_t ecsuite;
+    uint16_t rsasuite;
     const char *eccomment;
     const char *rsacomment;
 } tls_cipher;
 extern const tls_cipher tls_ciphers[];
-#define tls_cipher_CHACHA20_POLY1305_SHA256 ((BR_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 << 16) + BR_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256)
-#define tls_cipher_AES_256_GCM_SHA384       ((BR_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 << 16) + BR_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384)
-#define tls_cipher_AES_128_GCM_SHA256       ((BR_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 << 16) + BR_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
-#define tls_cipher_AES_256_CBC_SHA384       ((BR_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 << 16) + BR_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384)
-#define tls_cipher_AES_128_CBC_SHA256       ((BR_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 << 16) + BR_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256)
-#define tls_cipher_AES_256_CBC_SHA          ((BR_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA << 16) + BR_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA)
-#define tls_cipher_AES_128_CBC_SHA          ((BR_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA << 16) + BR_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
 extern int tls_cipher_add(struct tls_context *, const char *);
 extern const char *tls_cipher_str(uint16_t);
-extern uint32_t tls_cipher_get(uint16_t);
 
 /* tls_crypto_scalarmult.c */
 #define tls_crypto_scalarmult_MAXSCALARBYTES 66

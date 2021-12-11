@@ -3,7 +3,7 @@
 (
   (
     echo "CC?=cc"
-    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -I./bearssl/inc"
+    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc"
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"
     echo "DESTDIR?="
     echo 
