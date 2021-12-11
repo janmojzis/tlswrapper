@@ -1,4 +1,5 @@
 #include <string.h>
+#include "log.h"
 #include "tls.h"
 
 
@@ -93,6 +94,7 @@ ok:
     if (ecsuite && rsasuite) {
         for (i = 0; i < ctx->cipher_enabled_len; ++i) {
             if (ctx->cipher_enabled[i] == ecsuite) {
+                log_w3("unable to add cipher '", x, "': cipher is already added");
                 ecsuite = 0;
             }
             if (ctx->cipher_enabled[i] == rsasuite) {
@@ -102,6 +104,10 @@ ok:
     }
 
     if (ecsuite && rsasuite) {
+        if ((sizeof ctx->cipher_enabled / sizeof ctx->cipher_enabled[0]) < ctx->cipher_enabled_len + 2) {
+            log_e3("unable to add cipher '", x, "': too many enabled ciphers");
+            return 0;
+        }
         ctx->cipher_enabled[ctx->cipher_enabled_len++] = ecsuite;
         ctx->cipher_enabled[ctx->cipher_enabled_len++] = rsasuite;
     }
