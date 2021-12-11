@@ -7,6 +7,11 @@ mkdir dircert
 ln -s dircert linkcert
 mkfifo fifocert.pem
 
+TCPREMOTEIP=0.0.0.0; export TCPREMOTEIP
+TCPREMOTEPORT=0; export TCPREMOTEPORT
+TCPLOCALIP=0.0.0.0; export TCPLOCALIP
+TCPLOCALPORT=0; export TCPLOCALPORT
+
 cleanup() {
   ex=$?
   if [ "${ex}" -ne 0 ]; then
@@ -19,8 +24,8 @@ cleanup() {
 trap "cleanup" EXIT TERM INT
 
 # server preferences
-../tlswrapper -v -j nobody -J '.' -f filecert.pem -s true </dev/null 1>/dev/null 2>log || { echo "tlswrapper doesn't accept -p" >&2; exit 1; }
-../tlswrapper -v -j nobody -J '.' -f filecert.pem -S true </dev/null 1>/dev/null 2>log || { echo "tlswrapper doesn't accept -P" >&2; exit 1; }
+../tlswrapper -v -j nobody -J '.' -f filecert.pem -s true </dev/null 1>/dev/null 2>log || { echo "tlswrapper doesn't accept -s" >&2; exit 1; }
+../tlswrapper -v -j nobody -J '.' -f filecert.pem -S true </dev/null 1>/dev/null 2>log || { echo "tlswrapper doesn't accept -S" >&2; exit 1; }
 
 # TLS version
 ../tlswrapper -v -j nobody -J '.' -f filecert.pem -m tls00 true </dev/null 1>/dev/null 2>log && { echo "tlswrapper -m accepts bad TLS version" >&2; exit 1; }
