@@ -6,6 +6,7 @@ Public domain.
 
 
 #include <string.h>
+#include "randombytes.h"
 #include "alloc.h"
 #include "log.h"
 #include "tls.h"
@@ -195,8 +196,8 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
 
     ret = 1;
 cleanup:
-    memset(&pc, 0, sizeof pc);
-    memset(&dc5, 0, sizeof dc5);
+    randombytes(&pc, sizeof pc);
+    randombytes(&dc5, sizeof dc5);
     log_t4("tls_pubcrt_parse(buflen = ", lognum(buflen), ") = ", lognum(ret));
     return ret;
 }

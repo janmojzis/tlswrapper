@@ -6,6 +6,7 @@ Public domain.
 
 #include <string.h>
 #include "log.h"
+#include "randombytes.h"
 #include "tls.h"
 
 static void parsedummy(void *yv, const void *x, size_t xlen) {
@@ -112,7 +113,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
 
     ret = 1;
 cleanup:
-    memset(&pc, 0, sizeof pc);
+    randombytes(&pc, sizeof pc);
     log_t4("tls_seccrt_parse(buflen = ", lognum(buflen), ") = ", lognum(ret));
     return ret;
 }

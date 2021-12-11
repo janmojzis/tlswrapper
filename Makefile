@@ -108,7 +108,7 @@ tls_anchor.o: tls_anchor.c tls.h
 tls_certfile.o: tls_certfile.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_certfile.c
 
-tls_cipher.o: tls_cipher.c tls.h
+tls_cipher.o: tls_cipher.c log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_cipher.c
 
 tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h \
@@ -140,10 +140,10 @@ tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h log.h
 tls_profile.o: tls_profile.c log.h randombytes.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
-tls_pubcrt.o: tls_pubcrt.c alloc.h log.h tls.h
+tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pubcrt.c
 
-tls_seccrt.o: tls_seccrt.c log.h tls.h
+tls_seccrt.o: tls_seccrt.c log.h randombytes.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_seccrt.c
 
 tls_timeout.o: tls_timeout.c tls.h
