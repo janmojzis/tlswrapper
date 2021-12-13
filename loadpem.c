@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
     if (flagsecret) {
         tls_pem_decrypt(&pem, key);
-        if (!tls_seccrt_parse(&keycrt, pem.sec, pem.seclen)) {
+        if (!tls_seccrt_parse(&keycrt, pem.sec, pem.seclen, fnin)) {
             log_f2("unable to parse PEM secret-object from the file ", fnin);
             die(111);
         }

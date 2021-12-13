@@ -1,5 +1,6 @@
 #include "log.h"
 #include "randombytes.h"
+#include "e.h"
 #include "tls.h"
 
 static int hash_choose(unsigned int bf) {
@@ -46,22 +47,23 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
 
 
     for (i = 0; i < ctx->certfiles_len; ++i) {
-        if (ctx->certfiles[i].filetype == S_IFDIR && strlen(server_name) == 0) {
-            continue;
-        }
         if (ctx->certfiles[i].filetype == S_IFDIR) {
             /* certificate directory, but server didn't send SNI server_name */
             if (strlen(server_name) == 0) continue;
             if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfiles[i].name, server_name)) {
-                log_w4("unable to get certificate from PEM file ", ctx->certfiles[i].name, "/", server_name);
+                if (errno != ENOENT || ctx->certfiles_len == i + 1) {
+                    log_f5("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "/", server_name, "'");
+                    goto bad;
+                }
+                log_w5("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "/", server_name, "', trying next");
                 continue;
             }
         }
         if (ctx->certfiles[i].filetype == S_IFREG) {
             /* certificate file -> ignore SNI server_name */
             if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, 0, ctx->certfiles[i].name)) {
-                log_w2("unable to get certificate from PEM file ", ctx->certfiles[i].name);
-                continue;
+                log_f3("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "'");
+                goto bad;
             }
         }
 
@@ -98,7 +100,9 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
             }
         }
     }
-    if (i == ctx->certfiles_len) log_e1("no usable PEM certificate");
+
+    log_e1("no usable PEM certificate");
+bad:
     log_t1("tls_choose() = 0");
     return 0;
 ok:

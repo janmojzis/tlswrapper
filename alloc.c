@@ -64,7 +64,7 @@ void *alloc(unsigned long long norig) {
         goto nomem;
     }
     if (n == 0) {
-        log_w3("alloc(0), will allocate ", lognum(alloc_ALIGNMENT), " bytes");
+        log_d3("alloc(0), will allocate ", lognum(alloc_ALIGNMENT), " bytes");
         n = alloc_ALIGNMENT;
     }
     n = ((n + alloc_ALIGNMENT - 1) / alloc_ALIGNMENT) * alloc_ALIGNMENT;

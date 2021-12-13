@@ -17,6 +17,8 @@ extern void br_ssl_engine_switch_cbc_in(br_ssl_engine_context *cc, int is_client
 extern void br_ssl_engine_switch_cbc_out(br_ssl_engine_context *cc, int is_client, int prf_id, int mac_id, const br_block_cbcenc_class *bc_impl, size_t cipher_key_len);
 extern br_tls_prf_impl br_ssl_engine_get_PRF(br_ssl_engine_context *cc, int prf_id);
 
+static char fn[1024] = {0};
+
 static size_t sign(struct tls_pem *pem, unsigned char *key, br_ssl_server_context *cc, unsigned char hash_id, unsigned char *data, size_t hv_len, size_t len) {
 
     const br_ssl_server_policy_class **vtable = 0;
@@ -27,8 +29,8 @@ static size_t sign(struct tls_pem *pem, unsigned char *key, br_ssl_server_contex
     tls_pem_decrypt(pem, key);
 
     /* parse secret key */
-    if (!tls_seccrt_parse(&keycrt, pem->sec, pem->seclen)) {
-        log_e1("tls_seccrt_parse failed");
+    if (!tls_seccrt_parse(&keycrt, pem->sec, pem->seclen, fn)) {
+        log_f3("unable to obtain secret-key from the PEM file '", fn, "'");
         goto cleanup;
     }
     tls_pem_free(pem);
@@ -78,7 +80,6 @@ void tls_keyjail(struct tls_context *ctx) {
     log_d1("start");
 
     for (;;) {
-        char fn[512];
         size_t fn_len = sizeof fn;
         /* read filename from the pipe  */
         if (pipe_readmax(0, fn, &fn_len) == -1) goto cleanup;

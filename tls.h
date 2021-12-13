@@ -178,7 +178,7 @@ extern void tls_pem_encrypt(struct tls_pem *, const unsigned char *);
 extern int tls_pubcrt_parse(struct tls_pubcrt *, const char *, size_t);
 
 /* tls_seccrt.c */
-extern int tls_seccrt_parse(struct tls_seccrt *, const char *, size_t);
+extern int tls_seccrt_parse(struct tls_seccrt *, const char *, size_t, const char *);
 
 /* tls_ecdsa.c */
 extern uint32_t tls_ecdsa_vrfy_asn1(const br_ec_impl *, const void *, size_t, const br_ec_public_key *, const void *, size_t);

@@ -19,7 +19,7 @@ static void parsekey(void *ctx, const void *x, size_t xlen) {
     br_skey_decoder_push((br_skey_decoder_context *)ctx, x, xlen);
 }
 
-int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
+int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, const char *fn) {
 
     br_pem_decoder_context pc;
     long long tlen;
@@ -42,7 +42,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
             case BR_PEM_BEGIN_OBJ:
                 log_t2("PEM secret-object begin: ", br_pem_decoder_name(&pc));
                 if (inobj) {
-                    log_e1("malformed PEM secret-object");
+                    log_e3("malformed PEM secret-object in '", fn, "'");
                     goto cleanup;
                 }
                 inobj = 1;
@@ -52,7 +52,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
                     !strcmp(br_pem_decoder_name(&pc), "RSA PRIVATE KEY") ||
                     !strcmp(br_pem_decoder_name(&pc), "PRIVATE KEY")) {
                     if (br_skey_decoder_key_type(&crt->keydc)) {
-                        log_e1("too many secret-keys in PEM file");
+                        log_e3("too many secret-keys in '", fn, "'");
                         goto cleanup;
                     }
                     br_skey_decoder_init(&crt->keydc);
@@ -62,7 +62,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
             case BR_PEM_END_OBJ:
                 log_t2("PEM secret-object end: ", br_pem_decoder_name(&pc));
                 if (!inobj) {
-                    log_e1("malformed PEM secret-object");
+                    log_e3("malformed PEM secret-object in '", fn, "'");
                     goto cleanup;
                 }
                 inobj = 0;
@@ -74,7 +74,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
                     const br_ec_private_key *eckey;
                     err = br_skey_decoder_last_error(&crt->keydc);
                     if (err != 0) {
-                        log_e2("unable to decode secret-key, err=", tls_error_str(err));
+                        log_e5("unable to decode secret-key, err=", tls_error_str(err), " in '", fn, "'");
                         goto cleanup;
                     }
                     crt->key_type = br_skey_decoder_key_type(&crt->keydc);
@@ -91,23 +91,23 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen) {
                             break;
 
                         default:
-                            log_e1("unknown secret-key type");
+                            log_e5("unknown secret-key type ", lognum(crt->key_type), " in '", fn, "'");
                     }
                 }
                 break;
             case BR_PEM_ERROR:
-                log_e1("malformed PEM secret-object");
+                log_e3("malformed PEM secret-object in '", fn, "'");
                 goto cleanup;
         }
     }
 
     if (inobj) {
-        log_e1("unfinished PEM secret-object");
+        log_e3("unfinished PEM secret-object in '", fn, "'");
         goto cleanup;
     }
 
     if (!crt->key) {
-        log_e1("no supported secret-key in the PEM file");
+        log_e3("no supported secret-key in '", fn, "'");
         goto cleanup;
     }
 

@@ -190,7 +190,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
     }
 
     if (crt->crtlen == 0) {
-        log_e1("no supported public PEM certificates in the PEM file");
+        log_e1("no supported public PEM certificates found in the PEM file");
         goto cleanup;
     }
 
