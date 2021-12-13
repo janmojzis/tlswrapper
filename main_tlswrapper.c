@@ -385,7 +385,6 @@ int main_tlswrapper(int argc, char **argv) {
     hstimeout = timeout_parse(hstimeoutstr);
 
     /* start */
-    log_time(1);
 
     /* get connection info */
     connectioninfoflag = connectioninfo(localip, localport, remoteip, remoteport);

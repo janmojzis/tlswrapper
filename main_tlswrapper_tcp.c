@@ -139,7 +139,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     connecttimeout = timeout_parse(connecttimeoutstr);
 
     /* start */
-    log_time(1);
 
     /* initialize randombytes */
     {
