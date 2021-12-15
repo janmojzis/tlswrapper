@@ -23,10 +23,10 @@ static struct context {
 };
 
 static unsigned char inbuf[4096];
-static long long inbuflen = 0;
+static unsigned long long inbuflen = 0;
 static int infinished = 0;
 static unsigned char outbuf[4096];
-static long long outbuflen = 0;
+static unsigned long long outbuflen = 0;
 static int outfinished = 0;
 
 #define NUMIP 8
@@ -205,10 +205,10 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         watch0 = watch1 = watchfromremote = watchtoremote = watchfromselfpipe = 0;
         q = p;
 
-        if (!infinished && sizeof inbuf > (unsigned long long) inbuflen) { watch0 = q; q->fd = 0; q->events = POLLIN; ++q; }
+        if (!infinished && sizeof inbuf > inbuflen) { watch0 = q; q->fd = 0; q->events = POLLIN; ++q; }
         if (outbuflen > 0) { watch1 = q; q->fd = 1; q->events = POLLOUT; ++q; }
         if (inbuflen > 0) { watchtoremote = q; q->fd = fd; q->events = POLLOUT; ++q; }
-        if (!outfinished && sizeof outbuf > (unsigned long long) outbuflen) { watchfromremote = q; q->fd = fd; q->events = POLLIN; ++q; }
+        if (!outfinished && sizeof outbuf > outbuflen) { watchfromremote = q; q->fd = fd; q->events = POLLIN; ++q; }
         watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
 
         if (jail_poll(p, q - p, -1) < 0) {
