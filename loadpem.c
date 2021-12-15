@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 
 
     if (flagpublic) {
-        if (!tls_pubcrt_parse(&crt, pem.pub, pem.publen)) {
+        if (!tls_pubcrt_parse(&crt, pem.pub, pem.publen, fnin)) {
             log_f2("unable to parse PEM public-object from the file ", fnin);
             die(111);
         }

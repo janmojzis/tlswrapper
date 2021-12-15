@@ -1,3 +1,4 @@
+#include <string.h>
 #include "tls.h"
 #include "pipe.h"
 #include "randombytes.h"
@@ -8,7 +9,7 @@ int tls_pipe_fromchild = -1;
 int tls_pipe_tochild = -1;
 br_ssl_engine_context *tls_pipe_eng;
 
-int tls_pipe_getcert(br_x509_certificate *chain, size_t *chain_len, char *key_type, const char *dir, const char *name) {
+int tls_pipe_getcert(br_x509_certificate *chain, size_t *chain_len, char *key_type, const char *fn) {
 
     int ret = 0;
     size_t i;
@@ -17,14 +18,14 @@ int tls_pipe_getcert(br_x509_certificate *chain, size_t *chain_len, char *key_ty
     struct tls_pubcrt crt = {0};
 
     /* write filename */
-    if (pipe_writefn(tls_pipe_tochild, dir, name) == -1) goto cleanup;
+    if (pipe_write(tls_pipe_tochild, fn, strlen(fn) + 1) == -1) goto cleanup;
 
     /* read PEM */
     pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
     if (!pubpem) goto cleanup;
 
     /* parse PEM */
-    if (!tls_pubcrt_parse(&crt, pubpem, pubpemlen)) goto cleanup;
+    if (!tls_pubcrt_parse(&crt, pubpem, pubpemlen, fn)) goto cleanup;
 
     /* key type*/
     *key_type = crt.key_type;

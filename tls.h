@@ -141,7 +141,7 @@ extern void tls_keyjail(struct tls_context *);
 extern int tls_pipe_fromchild;
 extern int tls_pipe_tochild;
 extern br_ssl_engine_context *tls_pipe_eng;
-extern int tls_pipe_getcert(br_x509_certificate *, size_t *, char *, const char *, const char *);
+extern int tls_pipe_getcert(br_x509_certificate *, size_t *, char *, const char *);
 extern size_t tls_pipe_dosign(const br_ssl_server_policy_class **, unsigned int, unsigned char *, size_t, size_t);
 extern size_t tls_pipe_mulgen(unsigned char *, const unsigned char *, size_t, int);
 extern uint32_t tls_pipe_mul(unsigned char *, size_t, const unsigned char *, size_t, int);
@@ -176,7 +176,7 @@ extern void tls_pem_encrypt(struct tls_pem *, const unsigned char *);
 #define tls_pem_decrypt tls_pem_encrypt
 
 /* tls_pubcrt.c */
-extern int tls_pubcrt_parse(struct tls_pubcrt *, const char *, size_t);
+extern int tls_pubcrt_parse(struct tls_pubcrt *, const char *, size_t, const char *);
 
 /* tls_seccrt.c */
 extern int tls_seccrt_parse(struct tls_seccrt *, const char *, size_t, const char *);

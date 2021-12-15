@@ -506,7 +506,7 @@ int main_tlswrapper(int argc, char **argv) {
         if (pipe_write(tls_pipe_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_writetopipe();
         pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
         if (!pubpem) die_readanchorpem(ctx.anchorfn);
-        if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen)) die_parseanchorpem(ctx.anchorfn);
+        if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen, ctx.anchorfn)) die_parseanchorpem(ctx.anchorfn);
         alloc_free(pubpem);
     }
 

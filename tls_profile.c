@@ -20,6 +20,24 @@ static int hash_choose(unsigned int bf) {
     return 0;
 }
 
+static int copyfn(char *o, size_t olen, const char *a, const char *b) {
+
+    size_t alen = strlen(a);
+    size_t blen = strlen(b);
+
+    /* copy a */
+    if (olen < alen + 1) return 0;
+    memcpy(o, a, alen + 1);
+
+    /* copy b */
+    if (blen) {
+        if (olen < alen + blen + 2) return 0;
+        o[alen] = '/';
+        memcpy(o + alen + 1, b, blen + 1);
+    }
+    return 1;
+}
+
 static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_server_context *cc, br_ssl_server_choices *choices) {
     const br_suite_translated *st;
     size_t i, u, st_num;
@@ -50,7 +68,14 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
         if (ctx->certfiles[i].filetype == S_IFDIR) {
             /* certificate directory, but server didn't send SNI server_name */
             if (strlen(server_name) == 0) continue;
-            if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfiles[i].name, server_name)) {
+
+            /* create filename */
+            if (!copyfn(ctx->certfn, sizeof ctx->certfn, ctx->certfiles[i].name, server_name)) {
+                log_w4("no buffer space for large name ", ctx->certfiles[i].name, "/", server_name);
+                continue;
+            }
+
+            if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfn)) {
                 if (errno != ENOENT || ctx->certfiles_len == i + 1) {
                     log_f5("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "/", server_name, "'");
                     goto bad;
@@ -61,7 +86,12 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
         }
         if (ctx->certfiles[i].filetype == S_IFREG) {
             /* certificate file -> ignore SNI server_name */
-            if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, 0, ctx->certfiles[i].name)) {
+            if (!copyfn(ctx->certfn, sizeof ctx->certfn, ctx->certfiles[i].name, "")) {
+                /* unreachable: name buffer is allways larger than certfn buffer */
+                log_w2("no buffer space for large name ", ctx->certfiles[i].name);
+                continue;
+            }
+            if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfn)) {
                 log_f3("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "'");
                 goto bad;
             }

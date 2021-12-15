@@ -36,31 +36,6 @@ cleanup:
     return -1;
 }
 
-int pipe_writefn(int fd, const char *dir, const char *name) {
-
-    unsigned char num[8];
-    unsigned long long name_len = strlen(name);
-    unsigned long long dir_len = 0;
-    unsigned long long len = name_len + 1;
-
-    if (dir) {
-        dir_len = strlen(dir);
-        len += dir_len + 1;
-    }
-
-    uint64_pack(num, len);
-    if (writeall(fd, num, sizeof num) == -1) goto fail;
-    if (dir) {
-        if (writeall(fd, dir, dir_len) == -1) goto fail;
-        if (writeall(fd, "/", 1) == -1) goto fail;
-    }
-    if (writeall(fd, name, name_len) == -1) goto fail;
-    if (writeall(fd, "", 1) == -1) goto fail;
-    return 0;
-fail:
-    return -1;
-}
-
 int pipe_writeerrno(int fd) {
     unsigned char num[8];
     uint64_pack(num, -errno);

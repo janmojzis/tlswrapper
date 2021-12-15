@@ -64,7 +64,7 @@ static void sa_append(void *sav, const void *bufv, size_t buflen) {
     sa->len += buflen;
 }
 
-int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
+int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, const char *fn) {
 
     long long tlen;
     int inobj = 0;
@@ -83,7 +83,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
     while (buflen > 0) {
         tlen = br_pem_decoder_push(&pc, buf, buflen);
         if (sa.error) {
-            log_e3("br_pem_decoder_push(len = ", lognum(buflen), "), failed");
+            log_e5("br_pem_decoder_push(len = ", lognum(buflen), "), failed in '", fn, "'");
             goto cleanup;
         }
         log_t4("br_pem_decoder_push(len = ", lognum(buflen), ") = ", lognum(tlen));
@@ -94,7 +94,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
             case BR_PEM_BEGIN_OBJ:
                 log_t2("PEM public-object begin: ", br_pem_decoder_name(&pc));
                 if (inobj) {
-                    log_e1("malformed PEM public-object");
+                    log_e3("malformed PEM public-object in '", fn, "'");
                     goto cleanup;
                 }
                 inobj = 1;
@@ -102,7 +102,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
                 if (!strcmp(br_pem_decoder_name(&pc), "CERTIFICATE") ||
                     !strcmp(br_pem_decoder_name(&pc), "X509 CERTIFICATE")) {
                     if (crt->crtlen >= sizeof crt->crt / sizeof crt->crt[0]) {
-                        log_e1("too many public PEM certificates in PEM file");
+                        log_e3("too many public PEM certificates in '", fn, "'");
                         goto cleanup;
                     }
                     sa.len = 0;
@@ -112,7 +112,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
             case BR_PEM_END_OBJ:
                 log_t2("PEM public-object end: ", br_pem_decoder_name(&pc));
                 if (!inobj) {
-                    log_e1("malformed PEM public-object");
+                    log_e3("malformed PEM public-object in '", fn, "'");
                     goto cleanup;
                 }
                 inobj = 0;
@@ -164,7 +164,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
                             if (crt->crtlen == 0) crt->key_type = BR_KEYTYPE_RSA;
                             break;
                         default:
-                            log_e3("br_x509_decoder_get_pkey unsupported public-key type id=", lognum(pk->key_type), " in PEM public-object");
+                            log_e5("br_x509_decoder_get_pkey unsupported public-key type id=", lognum(pk->key_type), " in '", fn, "'");
                             goto cleanup;
                     }
                     {
@@ -179,18 +179,18 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen) {
                 }
                 break;
             case BR_PEM_ERROR:
-                log_e1("malformed PEM public-object");
+                log_e3("malformed PEM public-object in '", fn, "'");
                 goto cleanup;
         }
     }
 
     if (inobj) {
-        log_e1("unfinished PEM public-object");
+        log_e3("unfinished PEM public-object in '", fn, "'");
         goto cleanup;
     }
 
     if (crt->crtlen == 0) {
-        log_e1("no supported public PEM certificates found in the PEM file");
+        log_e3("no supported public PEM certificates in '", fn, "'");
         goto cleanup;
     }
 
