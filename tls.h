@@ -53,6 +53,7 @@ struct tls_context {
     br_name_element clientcrt;
     char clientcrtbuf[256];
 
+    char certfn[1024];
     struct tls_certfile certfiles[tls_CERTFILES];
     size_t certfiles_len;
 

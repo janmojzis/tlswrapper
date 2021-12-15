@@ -17,9 +17,7 @@ extern void br_ssl_engine_switch_cbc_in(br_ssl_engine_context *cc, int is_client
 extern void br_ssl_engine_switch_cbc_out(br_ssl_engine_context *cc, int is_client, int prf_id, int mac_id, const br_block_cbcenc_class *bc_impl, size_t cipher_key_len);
 extern br_tls_prf_impl br_ssl_engine_get_PRF(br_ssl_engine_context *cc, int prf_id);
 
-static char fn[1024] = {0};
-
-static size_t sign(struct tls_pem *pem, unsigned char *key, br_ssl_server_context *cc, unsigned char hash_id, unsigned char *data, size_t hv_len, size_t len) {
+static size_t sign(struct tls_context *ctx, struct tls_pem *pem, unsigned char *key, br_ssl_server_context *cc, unsigned char hash_id, unsigned char *data, size_t hv_len, size_t len) {
 
     const br_ssl_server_policy_class **vtable = 0;
     size_t ret = 0;
@@ -29,8 +27,8 @@ static size_t sign(struct tls_pem *pem, unsigned char *key, br_ssl_server_contex
     tls_pem_decrypt(pem, key);
 
     /* parse secret key */
-    if (!tls_seccrt_parse(&keycrt, pem->sec, pem->seclen, fn)) {
-        log_f3("unable to obtain secret-key from the PEM file '", fn, "'");
+    if (!tls_seccrt_parse(&keycrt, pem->sec, pem->seclen, ctx->certfn)) {
+        log_f3("unable to obtain secret-key from the PEM file '", ctx->certfn, "'");
         goto cleanup;
     }
     tls_pem_free(pem);
@@ -80,18 +78,18 @@ void tls_keyjail(struct tls_context *ctx) {
     log_d1("start");
 
     for (;;) {
-        size_t fn_len = sizeof fn;
+        size_t fn_len = sizeof ctx->certfn;
         /* read filename from the pipe  */
-        if (pipe_readmax(0, fn, &fn_len) == -1) goto cleanup;
+        if (pipe_readmax(0, ctx->certfn, &fn_len) == -1) goto cleanup;
         if (fn_len == 0) break;
-        fn[fn_len - 1] = 0;
+        ctx->certfn[fn_len - 1] = 0;
         /* for security reasons replace '/.' -> '/:' in the filename */
-        fixpath(fn);
-        log_t2("file = ", fn);
+        fixpath(ctx->certfn);
+        log_t2("file = ", ctx->certfn);
 
         /* load the file content to the memory */
         randombytes(pemkey, sizeof pemkey);
-        if (!tls_pem_load(&pem, fn, pemkey)) {
+        if (!tls_pem_load(&pem, ctx->certfn, pemkey)) {
             if (pipe_writeerrno(1) == -1) goto cleanup;
             continue;
         }
@@ -120,7 +118,7 @@ void tls_keyjail(struct tls_context *ctx) {
         if (pipe_readall(0, &datalen, sizeof(datalen)) == -1) goto cleanup;
         if (datalen > sizeof data) goto cleanup;
         if (pipe_readmax(0, data, &datalen) == -1) goto cleanup;
-        datalen = sign(&pem, pemkey, cc, hash_id, data, datalen, sizeof data);
+        datalen = sign(ctx, &pem, pemkey, cc, hash_id, data, datalen, sizeof data);
         if (pipe_write(1, data, datalen) == -1) goto cleanup;
     }
 
