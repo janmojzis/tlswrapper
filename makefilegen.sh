@@ -62,6 +62,7 @@
     echo "	echo 'int main(){}' > try.c"
     echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o try.o \$(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
     echo "	rm -f try.o try.c"
+    echo "	mkdir -p bearssl/inc"
     echo
 
     echo "tlswrapper-tcp: tlswrapper"

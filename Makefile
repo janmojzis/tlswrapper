@@ -216,6 +216,7 @@ bearssl:
 	echo 'int main(){}' > try.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o try.o $(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
 	rm -f try.o try.c
+	mkdir -p bearssl/inc
 
 tlswrapper-tcp: tlswrapper
 	ln -s tlswrapper tlswrapper-tcp
