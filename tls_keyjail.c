@@ -126,6 +126,8 @@ void tls_keyjail(struct tls_context *ctx) {
 
     /* scalar multiplication */
     if (pipe_readall(0, pk, pklen) == -1) goto cleanup;
+    if (pipe_readall(0, &cc->eng.session.session_id, sizeof cc->eng.session.session_id) == -1) goto cleanup;
+    tls_logsessionid(&cc->eng);
     if (pipe_readall(0, &cc->eng.session.version, sizeof cc->eng.session.version) == -1) goto cleanup;
     if (pipe_readall(0, &cc->eng.session.cipher_suite, sizeof cc->eng.session.cipher_suite) == -1) goto cleanup;
     if (pipe_readall(0, cc->eng.client_random, sizeof cc->eng.client_random) == -1) goto cleanup;

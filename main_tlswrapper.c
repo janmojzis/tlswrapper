@@ -389,7 +389,7 @@ int main_tlswrapper(int argc, char **argv) {
     /* get connection info */
     connectioninfoflag = connectioninfo(localip, localport, remoteip, remoteport);
     if (connectioninfoflag) {
-        log_id(iptostr(remoteipstr, remoteip));
+        log_ip(iptostr(remoteipstr, remoteip));
     }
 
     /* proxyprotocol */

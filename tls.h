@@ -190,4 +190,7 @@ extern int tls_timeout_parse(long long *, const char *);
 /* tls_anchor.c */
 extern int tls_anchor_add(struct tls_context *, const char *);
 
+/* tls_logsessionid.c */
+extern void tls_logsessionid(const br_ssl_engine_context *cc);
+
 #endif

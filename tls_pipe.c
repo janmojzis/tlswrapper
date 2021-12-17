@@ -105,7 +105,8 @@ uint32_t tls_pipe_mul(unsigned char *G, size_t Glen, const unsigned char *x, siz
     /* write pk */
     if (pipe_write(tls_pipe_tochild, G, Glen) == -1) goto fail;
 
-    /* write tls version, client_random, server_random */
+    /* write tls session_id, version, client_random, server_random */
+    if (pipe_write(tls_pipe_tochild, &tls_pipe_eng->session.session_id, sizeof tls_pipe_eng->session.session_id) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, &tls_pipe_eng->session.version, sizeof tls_pipe_eng->session.version) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, &tls_pipe_eng->session.cipher_suite, sizeof tls_pipe_eng->session.cipher_suite) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, tls_pipe_eng->client_random, sizeof tls_pipe_eng->client_random) == -1) goto fail;

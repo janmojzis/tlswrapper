@@ -1,5 +1,5 @@
 /*
-20201202
+20211217
 Jan Mojzis
 Public domain.
 
@@ -9,42 +9,69 @@ function and line number.
 Non-printable characters are escaped.
 
 Log format:
-time: name: id: level: message (error){file:line}
+time: name: ip: level: message (error){file:line}
 time .......... optional
 name .......... optional
+ip ............ optional
 id ............ optional
 {file:line} ... in debug mode
 */
 
 #include <arpa/inet.h>
 #include <string.h>
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 #include "e.h"
 #include "log.h"
 
 static const char *logname = 0;
+static const char *logipstr = 0;
 static const char *logid = 0;
 static int loglevel = 1;
 static int logtime = 0;
 static long long loglimit = 200;
 
+static int initialized = 0;
+static void _init(void) {
+
+    if (!initialized) {
+        if (!logid) logid = getenv("LOG_ID");
+        initialized = 1;
+    }
+}
+
 void log_name(const char *name) {
+    _init();
     logname = name;
 }
 
 void log_level(int level) {
+    _init();
     loglevel = level;
     if (level < 0) loglevel = 0;
     if (level > 4) loglevel = 4;
 }
 
 void log_time(int flag) {
+    _init();
     logtime = flag;
 }
 
 void log_limit(long long limit) {
+    _init();
     loglimit = limit;
+}
+
+void log_ip(const char *ip) {
+    _init();
+    logipstr = ip;
+}
+
+void log_id(const char *id) {
+    _init();
+    logid = id;
+    (void) setenv("LOG_ID", id, 1);
 }
 
 static char buf[256];
@@ -234,6 +261,13 @@ void log_9_(
         outsescape(logname, 0, counterptr); outs(": ");
     } while (0);
 
+    /* 'ip:' */
+    do {
+        if (!level) break;           /* don't print in usage level */
+        if (!logipstr) break;        /* don't print when logipstr = 0 */
+        outsescape(logipstr, 0, counterptr); outs(": ");
+    } while (0);
+
     /* 'id:' */
     do {
         if (!level) break;           /* don't print in usage level */
@@ -325,10 +359,3 @@ char *loghex(unsigned char *y, long long ylen) {
     return x;
 }
 
-void log_id(const char *id) {
-    static char strpid[41];
-    if (!id) {
-        id = numtostr(strpid, sizeof strpid, getpid(), 0);
-    }
-    logid = id;
-}
