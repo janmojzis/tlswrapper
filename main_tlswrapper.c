@@ -39,7 +39,7 @@ static struct tls_context ctx = {
         BR_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
         BR_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
         BR_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-        BR_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+        BR_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
         /* space for ECDSA AES_256_CBC_SHA384 */ 0,
         /* space for RSA AES_256_CBC_SHA384 */ 0,
         /* space for ECDSA AES_128_CBC_SHA256 */ 0,
