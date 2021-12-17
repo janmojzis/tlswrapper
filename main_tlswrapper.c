@@ -537,13 +537,13 @@ int main_tlswrapper(int argc, char **argv) {
             else {
                 if (err >= BR_ERR_SEND_FATAL_ALERT) {
                     err -= BR_ERR_SEND_FATAL_ALERT;
-                    log_d2("SSL closed abnormally, sent alert: ", tls_error_str(err));
+                    log_e2("SSL closed abnormally, sent alert: ", tls_error_str(err));
                 } else if (err >= BR_ERR_RECV_FATAL_ALERT) {
                     err -= BR_ERR_RECV_FATAL_ALERT;
-                    log_d2("SSL closed abnormally, received alert: ", tls_error_str(err));
+                    log_e2("SSL closed abnormally, received alert: ", tls_error_str(err));
                 }
                 else {
-                    log_d2("SSL closed abnormally: ", tls_error_str(err));
+                    log_e2("SSL closed abnormally: ", tls_error_str(err));
                 }
             }
             break;
