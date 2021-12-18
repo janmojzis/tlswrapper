@@ -170,16 +170,16 @@ void tls_keyjail(struct tls_context *ctx) {
             break;
         case BR_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:
         case BR_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:
-            br_ssl_engine_compute_master(&cc->eng, prf_id, pk, pklen);
-            br_ssl_engine_switch_cbc_in(&cc->eng, 0, prf_id, prf_id, cc->eng.iaes_cbcdec, 32);
-            br_ssl_engine_switch_cbc_out(&cc->eng, 0, prf_id, prf_id, cc->eng.iaes_cbcenc, 32);
-            break;
-        case BR_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
-        case BR_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
             prf_id = br_sha256_ID;
             br_ssl_engine_compute_master(&cc->eng, prf_id, pk, pklen);
             br_ssl_engine_switch_cbc_in(&cc->eng, 0, prf_id, prf_id, cc->eng.iaes_cbcdec, 16);
             br_ssl_engine_switch_cbc_out(&cc->eng, 0, prf_id, prf_id, cc->eng.iaes_cbcenc, 16);
+            break;
+        case BR_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
+        case BR_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
+            br_ssl_engine_compute_master(&cc->eng, prf_id, pk, pklen);
+            br_ssl_engine_switch_cbc_in(&cc->eng, 0, prf_id, prf_id, cc->eng.iaes_cbcdec, 32);
+            br_ssl_engine_switch_cbc_out(&cc->eng, 0, prf_id, prf_id, cc->eng.iaes_cbcenc, 32);
             break;
         case BR_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
         case BR_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
