@@ -6,6 +6,7 @@ DESTDIR?=
 BINARIES=loadpem
 BINARIES+=parseasn1
 BINARIES+=tlswrapper
+BINARIES+=tlswrapper-test
 
 all: bearssl $(BINARIES)
 
@@ -158,6 +159,9 @@ tls_version.o: tls_version.c tls.h
 tlswrapper.o: tlswrapper.c main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
 
+tlswrapper-test.o: tlswrapper-test.c log.h randombytes.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper-test.c
+
 writeall.o: writeall.c e.h jail.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c writeall.c
 
@@ -214,6 +218,9 @@ parseasn1: parseasn1.o $(OBJECTS)
 
 tlswrapper: tlswrapper.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
+
+tlswrapper-test: tlswrapper-test.o $(OBJECTS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS)
 
 
 bearssl:

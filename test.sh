@@ -1,29 +1,81 @@
 #!/bin/sh
 set -e
 
-(
-  cd tests
+check() {
+  if [ x"`shasum < data.in`" = x"`shasum < data.out`" ]; then
+    echo "$1 OK"
+  else
+    echo "$1 FAILED" >&2
+    cat log >&2
+    exit 1
+  fi
+}
 
-  echo "okpem test begin"
-  ./okpem.sh
-  echo "okpem test end"
-  echo
+randdata() {
+  # create random datafile
+  dd if=/dev/urandom of=data.in bs=1 count=16385 2>/dev/null
+}
 
-  echo "badpem test begin"
-  ./badpem.sh
-  echo "badpem test end"
-  echo
 
-  echo "opts test begin"
-  ./opts.sh
-  echo "opts test end"
-  echo
+cleanup() {
+  ex=$?
+  rm -rf data.in data.out log tlswrappernojail
+  exit "${ex}"
+}
+trap "cleanup" EXIT TERM INT
 
-  echo "asn1 test begin"
-  ./asn1.sh
-  echo "asn1 test end"
-  echo
-)
+ln -s tlswrapper tlswrappernojail
 
-echo "all tests passed"
+PATH="./:${PATH}"
+export PATH
+
+CMD="tlswrapper-test -vvv"
+CMD="${CMD} -d `cat testcerts/days`"
+
+ls testcerts | grep '^server-' | grep 'ok$' |\
+while read name; do
+  # get CA name
+  catype=`echo ${name} | cut -d- -f2`
+  casize=`echo ${name} | cut -d- -f3`
+  caname="testcerts/ca-${catype}-${casize}.pem"
+  type=`echo ${name} | cut -d- -f4`
+  size=`echo ${name} | cut -d- -f5`
+
+  randdata
+  CMD="${CMD} -a ${caname} -h "${name}""
+  ${CMD} -w tlswrappernojail -v -d "`pwd`/testcerts" sh -c 'exec cat > data.out' < data.in  2>log
+  check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), upload"
+
+  randdata
+  ${CMD} -r tlswrappernojail -v -d "`pwd`/testcerts" cat data.in > data.out 2>log
+  check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), download"
+
+  randdata
+  CMD="${CMD} -a ${caname} -h "${name}""
+  ${CMD} -w tlswrappernojail -v -f "testcerts/${name}" sh -c 'exec cat > data.out' < data.in  2>log
+  check "CA=${catype}-${casize}, cert=${type}-${size}, certfile (-f), upload"
+
+  randdata
+  ${CMD} -r tlswrappernojail -v -f "testcerts/${name}" cat data.in > data.out 2>log
+  check "CA=${catype}-${casize}, cert=${type}-${size}, certfile (-f), download"
+done
+
+exit 0
+
+
+ls testcerts | grep '^server-' | grep 'ok$' |\
+while read name; do
+  # get CA name
+  catype=`echo ${name} | cut -d- -f2`
+  casize=`echo ${name} | cut -d- -f3`
+  caname="testcerts/ca-${catype}-${casize}.pem"
+
+  # create random datafile
+  dd if=/dev/urandom of=data.in bs=1 count=16385 2>/dev/null
+
+  CMD="${CMD} -a ${caname} -h "${name}" -r"
+  ${CMD} tlswrappernojail -v -d "`pwd`/testcerts" cat data.in > data.out 2>log
+  check "download test ${name}"
+done
+
 exit 0

@@ -59,8 +59,8 @@ struct tls_context {
 
     struct tls_pubcrt crt;
 
+    int flagnojail;
     const char *jailaccount;
-
     const char *jaildir;
 
     unsigned int version_min;
