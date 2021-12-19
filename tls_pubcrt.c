@@ -74,6 +74,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
     br_x509_decoder_context dc5;
     br_x509_pkey *pk;
     int err;
+    size_t buflenorig = buflen;
 
     log_t3("tls_pubcrt_parse(buflen = ", lognum(buflen), ")");
 
@@ -198,6 +199,6 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
 cleanup:
     randombytes(&pc, sizeof pc);
     randombytes(&dc5, sizeof dc5);
-    log_t4("tls_pubcrt_parse(buflen = ", lognum(buflen), ") = ", lognum(ret));
+    log_t4("tls_pubcrt_parse(buflen = ", lognum(buflenorig), ") = ", lognum(ret));
     return ret;
 }

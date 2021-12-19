@@ -26,6 +26,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
     int inobj = 0;
     int ret = 0;
     int err;
+    size_t buflenorig = buflen;
 
     log_t3("tls_seccrt_parse(buflen = ", lognum(buflen), ")");
 
@@ -114,6 +115,6 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
     ret = 1;
 cleanup:
     randombytes(&pc, sizeof pc);
-    log_t4("tls_seccrt_parse(buflen = ", lognum(buflen), ") = ", lognum(ret));
+    log_t4("tls_seccrt_parse(buflen = ", lognum(buflenorig), ") = ", lognum(ret));
     return ret;
 }
