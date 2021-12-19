@@ -190,6 +190,7 @@ static void certfile_add_dir(const char *x) {
         die(100)
     }
     if (x[0] != '/') {
+        errno = 0;
         log_f3("unable to add certdir '", x, "': directory path must be absolute");
         die(100);
     }
@@ -207,6 +208,7 @@ static void certfile_add_file(const char *x) {
         die(100);
     }
     if ((st.st_mode & S_IFMT) != S_IFREG) {
+        errno = 0;
         log_f3("unable to add certfile '", x, "': not a regular file");
         die(100);
     }
@@ -223,6 +225,7 @@ static void anchor_add(char *x) {
         die(100);
     }
     if ((st.st_mode & S_IFMT) != S_IFREG) {
+        errno = 0;
         log_f3("unable to add anchor file '", x, "': not a regular file");
         die(100);
     }
