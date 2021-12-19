@@ -53,7 +53,7 @@ static struct tls_context ctx = {
     },
 };
 
-static const char *hstimeoutstr = "10";
+static const char *hstimeoutstr = "30";
 static const char *timeoutstr = "3600";
 static const char *user = 0;
 static const char *userfromcert = 0;
@@ -266,6 +266,10 @@ static long long timeout_parse(const char *x) {
     }
     if (ret < 1) {
         log_f3("timeout must be a number > 0, not '", x, "'");
+        die(100);
+    }
+    if (ret > 86400) {
+        log_f3("timeout must be a number < 86400, not '", x, "'");
         die(100);
     }
     return ret;

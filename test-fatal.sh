@@ -86,4 +86,29 @@ echo 'tlswrapper rejects bad ASN.1 object'
 tlswrapper-test -qr tlswrappernojail -f testfile -U xxx 2>&1
 echo $?; echo
 
+# timeouts
+echo 'tlswrapper rejects zero number as a network timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -t0 true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects zero number as a handshake timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -T0 true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects negative number as a network timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -t -1 true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects nefative number as a handshake timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -T -1 true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects bad number as a network timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -t badtimeout true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects bad numbern as a handshake timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -T badtimeout true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects too large number as a network timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -t 86401 true 2>&1
+echo $?; echo
+echo 'tlswrapper rejects too large numbern as a handshake timeout'
+tlswrapper-test -qr tlswrappernojail -f testfile -T 86401 true 2>&1
+echo $?; echo
 
