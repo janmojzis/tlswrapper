@@ -11,8 +11,12 @@ Systemd.socket/inetd/tcpserver/... creates the server connection, \fBtlswrapper\
 Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-> \fIprog\fR
 .PP
 .SH OPTIONS
+.TP
+.B \-q
+Quiet mode. No error messages. See LOGGING LEVELS.
+.TP
 .B \-v
-Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3.
+Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3. See LOGGING LEVELS.
 .TP
 .B \-f \fIcertfile\fR
 Add a file containing key+certificate(s) in PEM format.
@@ -141,6 +145,19 @@ x25519	ECDHE using X25519	default
 secp256r1	ECDHE using NIST P-256	default
 secp384r1	ECDHE using NIST P-384	optional
 secp521r1	ECDHE using NIST P-521	optional
+.TE
+.SH LOGGING LEVELS
+.TS
+allbox;
+c s s
+l l l.
+levels
+level	option	notes
+usage	-q	Quiet mode. No error messages. Prints only usage.
+fatal	-Q	Prints only fatal error messages (default).
+info	-v	Prints info/warning/error messages.
+debug	-vv	Prints debug messages.
+tracing	-vvv	Prints tracing informations.
 .TE
 .SH EXAMPLES
 .PP
