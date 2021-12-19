@@ -3,9 +3,7 @@ CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc
 LDFLAGS+=-L./bearssl/build -lbearssl
 DESTDIR?=
 
-BINARIES=loadpem
-BINARIES+=parseasn1
-BINARIES+=tlswrapper
+BINARIES=tlswrapper
 BINARIES+=tlswrapper-test
 
 all: bearssl $(BINARIES)
@@ -48,10 +46,6 @@ jail.o: jail.c log.h randommod.h jail.h
 jail_poll.o: jail_poll.c log.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c jail_poll.c
 
-loadpem.o: loadpem.c randombytes.h log.h alloc.h tls.h fsyncfile.h \
- writeall.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c loadpem.c
-
 log.o: log.c e.h randombytes.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
@@ -70,10 +64,6 @@ main_tlswrapper_test.o: main_tlswrapper_test.c log.h randombytes.h \
 
 milliseconds.o: milliseconds.c milliseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c milliseconds.c
-
-parseasn1.o: parseasn1.c tls.h log.h alloc.h fsyncfile.h writeall.h \
- randombytes.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c parseasn1.c
 
 pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
@@ -210,12 +200,6 @@ OBJECTS+=tls_seccrt.o
 OBJECTS+=tls_timeout.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
-
-loadpem: loadpem.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o loadpem loadpem.o $(OBJECTS) $(LDFLAGS)
-
-parseasn1: parseasn1.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o parseasn1 parseasn1.o $(OBJECTS) $(LDFLAGS)
 
 tlswrapper: tlswrapper.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
