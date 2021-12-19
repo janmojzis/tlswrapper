@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "log.h"
 #include "randombytes.h"
 #include "bearssl.h"
@@ -19,6 +21,7 @@ static int flagflush = 1;
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
 static pid_t child = -1;
+static int childstatus;
 
 static br_ssl_client_context sc;
 static br_ssl_client_context *cc = &sc;
@@ -126,7 +129,7 @@ int main_tlswrapper_test(int argc, char **argv) {
 
     signal(SIGPIPE, SIG_IGN);
     log_name("tlswrapper-test");
-    log_id(0);
+    log_id("");
 
     (void) argc;
     if (!argv[0]) usage();
@@ -271,7 +274,6 @@ int main_tlswrapper_test(int argc, char **argv) {
         err = br_ssl_engine_last_error(&sc.eng);
         if (err == BR_ERR_OK) {
             log_i1("SSL closed normally");
-            die(0);
         }
         else {
             if (err >= BR_ERR_SEND_FATAL_ALERT) {
@@ -286,6 +288,9 @@ int main_tlswrapper_test(int argc, char **argv) {
             }
         }
     }
+
+    while (waitpid(child, &childstatus, 0) != child) {};
+    die(WEXITSTATUS(childstatus));
 
     die(0);
 }
