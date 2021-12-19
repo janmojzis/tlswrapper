@@ -19,7 +19,7 @@ static struct context {
     const char *empty_dir;
 } ctx = {
     .account = 0,
-    .empty_dir = "/var/lib/tlswrapper/empty",
+    .empty_dir = EMPTYDIR,
 };
 
 static unsigned char inbuf[4096];

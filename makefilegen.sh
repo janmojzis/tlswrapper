@@ -3,10 +3,10 @@
 (
   (
     echo "CC?=cc"
-    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc"
+    echo "EMPTYDIR?=/var/lib/tlswrapper/empty"
+    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc -DEMPTYDIR=\\\"\$(EMPTYDIR)\\\""
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"
     echo "DESTDIR?="
-    echo "EMPTYDIR?=/var/lib/tlswrapper/empty"
     echo 
 
     i=0

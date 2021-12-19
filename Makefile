@@ -1,8 +1,8 @@
 CC?=cc
-CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc
+EMPTYDIR?=/var/lib/tlswrapper/empty
+CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc -DEMPTYDIR=\"$(EMPTYDIR)\"
 LDFLAGS+=-L./bearssl/build -lbearssl
 DESTDIR?=
-EMPTYDIR?=/var/lib/tlswrapper/empty
 
 BINARIES=tlswrapper
 BINARIES+=tlswrapper-test
