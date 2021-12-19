@@ -1,6 +1,7 @@
 #include "log.h"
 #include "randombytes.h"
 #include "e.h"
+#include "fixpath.h"
 #include "tls.h"
 
 static int hash_choose(unsigned int bf) {
@@ -35,6 +36,7 @@ static int copyfn(char *o, size_t olen, const char *a, const char *b) {
         o[alen] = '/';
         memcpy(o + alen + 1, b, blen + 1);
     }
+    fixpath(o);
     return 1;
 }
 

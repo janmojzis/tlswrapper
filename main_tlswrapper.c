@@ -16,6 +16,7 @@
 #include "iptostr.h"
 #include "writeall.h"
 #include "fixname.h"
+#include "fixpath.h"
 #include "tls.h"
 #include "main.h"
 
@@ -214,7 +215,7 @@ static void certfile_add_file(const char *x) {
         die(100);
     }
 }
-static void anchor_add(const char *x) {
+static void anchor_add(char *x) {
     struct stat st;
 
     if (stat(x, &st) == -1) {
@@ -510,6 +511,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         char *pubpem;
         size_t pubpemlen;
         /* get anchor PEM file, and parse it */
+        fixpath(ctx.anchorfn);
         if (pipe_write(tls_pipe_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_writetopipe();
         pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
         if (!pubpem) die_readanchorpem(ctx.anchorfn);

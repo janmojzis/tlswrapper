@@ -46,7 +46,7 @@ struct tls_context {
 
     /* anchor */
     br_x509_minimal_context xc;
-    const char *anchorfn;
+    char *anchorfn;
     const char *anchorpem;
     size_t anchorpemlen;
     struct tls_pubcrt anchorcrt;
@@ -188,6 +188,6 @@ extern uint32_t tls_ecdsa_vrfy_asn1(const br_ec_impl *, const void *, size_t, co
 extern int tls_timeout_parse(long long *, const char *);
 
 /* tls_anchor.c */
-extern int tls_anchor_add(struct tls_context *, const char *);
+extern int tls_anchor_add(struct tls_context *, char *);
 
 #endif
