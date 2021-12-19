@@ -94,6 +94,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
 
     log_name("tlswrapper-tcp");
+    log_id(0);
 
     (void) argc;
     if (!argv[0]) usage();

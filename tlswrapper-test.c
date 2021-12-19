@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
 
     signal(SIGPIPE, SIG_IGN);
     log_name("tlswrapper-test");
+    log_id(0);
 
     (void) argc;
     if (!argv[0]) usage();
@@ -164,7 +165,15 @@ int main(int argc, char **argv) {
         die(100);
     }
 
+    log_ip("0.0.0.0");
     log_d1("start");
+
+    /* set fake env. variables */
+    if (setenv("TCPREMOTEIP", "0.0.0.0", 1) == -1) die_setenv("TCPREMOTEIP");
+    if (setenv("TCPREMOTEPORT", "0", 1) == -1) die_setenv("TCPREMOTEPORT");
+    if (setenv("TCPLOCALIP", "0.0.0.0", 1) == -1) die_setenv("TCPLOCALIP");
+    if (setenv("TCPLOCALPORT", "0", 1) == -1) die_setenv("TCPLOCALPORT");
+
 
     /* run child process */
     if (pipe(fromchild) == -1) die_pipe();
@@ -180,13 +189,6 @@ int main(int argc, char **argv) {
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-
-
-            /* set fake env. variables */
-            if (setenv("TCPREMOTEIP", "0.0.0.0", 1) == -1) die_setenv("TCPREMOTEIP");
-            if (setenv("TCPREMOTEPORT", "0", 1) == -1) die_setenv("TCPREMOTEPORT");
-            if (setenv("TCPLOCALIP", "0.0.0.0", 1) == -1) die_setenv("TCPLOCALIP");
-            if (setenv("TCPLOCALPORT", "0", 1) == -1) die_setenv("TCPLOCALPORT");
 
             signal(SIGPIPE, SIG_DFL);
             execvp(*argv, argv);

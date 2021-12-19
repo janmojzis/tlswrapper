@@ -284,6 +284,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     alarm(starttimeout);
 
     log_name("tlswrapper");
+    log_id(0);
 
     (void) argc;
     if (!argv[0]) usage();

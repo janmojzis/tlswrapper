@@ -46,8 +46,6 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
     const char *server_name;
     uint32_t curves;
 
-    tls_logsessionid(&cc->eng);
-
     log_t1("tls_choose()");
 
     st = br_ssl_server_get_client_suites(cc, &st_num);

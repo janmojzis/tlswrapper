@@ -132,9 +132,6 @@ tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h fixpath.h \
 tls_keytype.o: tls_keytype.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keytype.c
 
-tls_logsessionid.o: tls_logsessionid.c log.h tls.h randombytes.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_logsessionid.c
-
 tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pem.c
 
@@ -159,7 +156,8 @@ tls_version.o: tls_version.c tls.h
 tlswrapper.o: tlswrapper.c main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
 
-tlswrapper-test.o: tlswrapper-test.c log.h randombytes.h
+tlswrapper-test.o: tlswrapper-test.c log.h randombytes.h fsyncfile.h \
+ writeall.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper-test.c
 
 writeall.o: writeall.c e.h jail.h writeall.h
@@ -200,7 +198,6 @@ OBJECTS+=tls_ecdsa.o
 OBJECTS+=tls_error.o
 OBJECTS+=tls_keyjail.o
 OBJECTS+=tls_keytype.o
-OBJECTS+=tls_logsessionid.o
 OBJECTS+=tls_pem.o
 OBJECTS+=tls_pipe.o
 OBJECTS+=tls_profile.o
