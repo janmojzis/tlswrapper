@@ -1,0 +1,168 @@
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-prime256v1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-prime256v1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: unable to decode public-key, err=Certificate contains unsupported features that cannot be ignored. 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp224r1-unsupported.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp384r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp384r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp521r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp521r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-2048-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-2048-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-3072-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-3072-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-4096-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-4096-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-prime256v1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-prime256v1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: unable to decode public-key, err=Certificate contains unsupported features that cannot be ignored. 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp224r1-unsupported.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-secp384r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp384r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-secp521r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp521r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-2048-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-2048-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-3072-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-3072-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-4096-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-4096-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-prime256v1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-prime256v1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: unable to decode public-key, err=Certificate contains unsupported features that cannot be ignored. 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp224r1-unsupported.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp384r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp384r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp521r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp521r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-2048-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-2048-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-3072-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-3072-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-4096-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-4096-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-ec-prime256v1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-prime256v1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: unable to decode public-key, err=Certificate contains unsupported features that cannot be ignored. 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp224r1-unsupported.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp384r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp384r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp521r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp521r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-rsa-2048-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-2048-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-rsa-3072-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-3072-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-rsa-4096-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-4096-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-ec-prime256v1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-prime256v1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: unable to decode public-key, err=Certificate contains unsupported features that cannot be ignored. 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp224r1-unsupported.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp384r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp384r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp521r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp521r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-rsa-2048-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-2048-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-rsa-3072-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-3072-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-rsa-4096-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-4096-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-ec-prime256v1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-prime256v1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: unable to decode public-key, err=Certificate contains unsupported features that cannot be ignored. 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp224r1-unsupported.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp384r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp384r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp521r1-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp521r1-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-rsa-2048-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-2048-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-rsa-3072-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-3072-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0
+tlswrapper net: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-rsa-4096-keyonly.pem' 
+tlswrapper net: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-4096-keyonly.pem' 
+tlswrapper net: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
+0

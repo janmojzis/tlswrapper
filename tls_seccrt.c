@@ -108,7 +108,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
     }
 
     if (!crt->key) {
-        log_e3("no supported secret-key in '", fn, "'");
+        log_e3("no PEM secret-object in '", fn, "'");
         goto cleanup;
     }
 

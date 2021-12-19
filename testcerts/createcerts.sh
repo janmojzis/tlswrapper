@@ -15,10 +15,9 @@ export PATH
   while read catype casize; do
 
     # ca
-    ca.sh "${catype}" ${casize} > ca-${catype}-${casize}.pem
-
-    # auth ca
-    #ca.sh "${catype}" ${casize} > auth-${catype}-${casize}.pem
+    if [ ! -f "ca-${catype}-${casize}.pem" ]; then
+       ca.sh "${catype}" ${casize} > ca-${catype}-${casize}.pem
+    fi
 
 
     (
@@ -30,10 +29,28 @@ export PATH
       echo "rsa 4096"
     ) | (
       while read type size; do
-        sname="server-${catype}-${casize}-${type}-${size}-ok"
-        server.sh "ca-${catype}-${casize}.pem" "${type}" "${size}" "${sname}" > "${sname}"
-        #cname="client-${catype}-${casize}-${type}-${size}-ok"
-        #client.sh "auth-${catype}-${casize}.pem" "${type}" "${size}" "${cname}" > "${cname}"
+        name="okcert-${catype}-${casize}-${type}-${size}-ok.pem"
+        if [ ! -f "${name}" ]; then
+          server.sh "ca-${catype}-${casize}.pem" "${type}" "${size}" "${name}" > "${name}"
+        fi
+        oname="badcert-${catype}-${casize}-${type}-${size}-keyonly.pem"
+        if [ ! -f "${oname}" ]; then
+          openssl "${type}" -in "${name}" > "${oname}"
+        fi
+        oname="badkey-${catype}-${casize}-${type}-${size}-certonly.pem"
+        if [ ! -f "${oname}" ]; then
+          openssl x509 -in "${name}" > "${oname}"
+        fi
+      done
+    )
+    (
+      echo "ec secp224r1"
+    ) | (
+      while read type size; do
+        name="badcert-${catype}-${casize}-${type}-${size}-unsupported.pem"
+        if [ ! -f "${name}" ]; then
+          server.sh "ca-${catype}-${casize}.pem" "${type}" "${size}" "${name}" > "${name}"
+        fi
       done
     )
   done

@@ -31,7 +31,7 @@ export PATH
 CMD="tlswrapper-test -vvv"
 CMD="${CMD} -d `cat testcerts/days`"
 
-ls testcerts | grep '^server-' | grep 'ok$' |\
+ls testcerts | grep '^okcert-' |\
 while read name; do
   # get CA name
   catype=`echo ${name} | cut -d- -f2`
