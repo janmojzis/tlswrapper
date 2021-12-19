@@ -52,7 +52,7 @@ loadpem.o: loadpem.c randombytes.h log.h alloc.h tls.h fsyncfile.h \
  writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c loadpem.c
 
-log.o: log.c e.h log.h
+log.o: log.c e.h randombytes.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
@@ -63,6 +63,10 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
  strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
+
+main_tlswrapper_test.o: main_tlswrapper_test.c log.h randombytes.h \
+ fsyncfile.h writeall.h tls.h main.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
 
 milliseconds.o: milliseconds.c milliseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c milliseconds.c
@@ -156,8 +160,7 @@ tls_version.o: tls_version.c tls.h
 tlswrapper.o: tlswrapper.c main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
 
-tlswrapper-test.o: tlswrapper-test.c log.h randombytes.h fsyncfile.h \
- writeall.h tls.h
+tlswrapper-test.o: tlswrapper-test.c main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper-test.c
 
 writeall.o: writeall.c e.h jail.h writeall.h
@@ -178,6 +181,7 @@ OBJECTS+=jail_poll.o
 OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_tcp.o
+OBJECTS+=main_tlswrapper_test.o
 OBJECTS+=milliseconds.o
 OBJECTS+=pipe.o
 OBJECTS+=porttostr.o

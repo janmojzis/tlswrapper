@@ -35,11 +35,7 @@ int main(int argc, char **argv) {
     x = basename(argv[0]);
     if (!x) _exit(100);
 
-    /* tlswrappernojail for test purposes ONLY !!! */
-    if (!strcmp(x, "tlswrappernojail")) {
-        return main_tlswrapper(argc, argv, 1);
-    }
-    else if (!strcmp(x, "tlswrapper-tcp")){
+    if (!strcmp(x, "tlswrapper-tcp")){
         return main_tlswrapper_tcp(argc, argv);
     }
     return main_tlswrapper(argc, argv, 0);

@@ -24,7 +24,7 @@ cleanup() {
 }
 trap "cleanup" EXIT TERM INT
 
-ln -s tlswrapper tlswrappernojail
+ln -s tlswrapper-test tlswrappernojail
 
 PATH="./:${PATH}"
 export PATH
