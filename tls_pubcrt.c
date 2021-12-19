@@ -160,7 +160,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
                             crt->ta[crt->talen].pkey.key_type = BR_KEYTYPE_RSA;
                             XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.n, pk->key.rsa.n, pk->key.rsa.nlen);
                             crt->ta[crt->talen].pkey.key.rsa.nlen = pk->key.rsa.nlen;
-                            XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.e, pk->key.rsa.n, pk->key.rsa.elen);
+                            XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.e, pk->key.rsa.e, pk->key.rsa.elen);
                             crt->ta[crt->talen].pkey.key.rsa.elen = pk->key.rsa.elen;
                             if (crt->crtlen == 0) crt->key_type = BR_KEYTYPE_RSA;
                             break;
