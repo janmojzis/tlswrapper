@@ -9,12 +9,12 @@ function and line number.
 Non-printable characters are escaped.
 
 Log format:
-id: ip: time: name: level: message (error){file:line}
-id ............ optional
-ip ............ optional
+time: name: level: ip: message (error){file:line}[id]
 time .......... optional
+ip ............ optional
 name .......... optional
 {file:line} ... in debug mode
+[id] .......... optional
 */
 
 #include <arpa/inet.h>
@@ -23,13 +23,13 @@ name .......... optional
 #include <time.h>
 #include <unistd.h>
 #include "e.h"
-#include "randombytes.h"
+#include "randommod.h"
 #include "log.h"
 
 static const char *logname = 0;
 static const char *logipstr = 0;
-static char staticlogid[19];
 static const char *logid = "";
+static char logidbuf[9];
 static int loglevel = 1;
 static int logtime = 0;
 static long long loglimit = 200;
@@ -216,22 +216,8 @@ void log_9_(
             break;
     }
 
-    /* id: ip: time: name: level: message (error){file:line} */
+    /* time: name: level: ip: message (error){file:line}[id] */
 
-    /* 'id:' */
-    do {
-        if (!level) break;           /* don't print in usage level */
-        if (!logid) break;           /* don't print when logid = 0 */
-        if (logid[0] == 0) break;    /* don't print when logid = "" */
-        outsescape(logid, 0, counterptr); outs(": ");
-    } while (0);
-
-    /* 'ip:' */
-    do {
-        if (!level) break;           /* don't print in usage level */
-        if (!logipstr) break;        /* don't print when logipstr = 0 */
-        outsescape(logipstr, 0, counterptr); outs(": ");
-    } while (0);
 
     /* 'time:' */
     do {
@@ -251,6 +237,7 @@ void log_9_(
         errno = saved_errno;
     } while (0);
 
+
     /* 'name:' */
     do {
         if (!level) break;           /* don't print in usage level */
@@ -262,6 +249,13 @@ void log_9_(
     do {
         if (!level) break;           /* don't print in usage level */
         outs(m); outs(": ");
+    } while (0);
+
+    /* 'ip:' */
+    do {
+        if (!level) break;           /* don't print in usage level */
+        if (!logipstr) break;        /* don't print when logipstr = 0 */
+        outsescape(logipstr, 0, counterptr); outs(": ");
     } while (0);
 
     /* 'message' */
@@ -284,6 +278,14 @@ void log_9_(
         if (!level) break;          /* don't print in usage level             */
         if (loglevel <= 2) break;   /* print only when debug verbosity is set */
         outs("{"); outs(f); outs(":"); outnum(l, 0); outs("}");
+    } while (0);
+
+    /* [id] */
+    do {
+        if (loglevel <= 1) break;    /* don't print in usage, fatal level */
+        if (!logid) break;           /* don't print when logid = 0 */
+        if (logid[0] == 0) break;    /* don't print when logid = "" */
+        outs("["); outsescape(logid, 0, counterptr); outs("]");
     } while (0);
 
     outs("\n");
@@ -350,10 +352,13 @@ void log_id(const char *id) {
 
     if (!id) id = getenv("LOG_ID");
     if (!id) {
-        unsigned char randomid[sizeof staticlogid / 2 - 1];
-        randombytes(randomid, sizeof randomid);
-        tohex(staticlogid, sizeof staticlogid, randomid, sizeof randomid);
-        id = staticlogid;
+        static char chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789";
+        unsigned long long i;
+        for (i = 0; i < sizeof logidbuf; ++i) {
+            logidbuf[i] = chars[randommod(sizeof chars - 1)];
+        }
+        logidbuf[sizeof logidbuf - 1] = 0;
+        id = logidbuf;
     }
     logid = id;
     (void) setenv("LOG_ID", id, 1);
