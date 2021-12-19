@@ -9,11 +9,11 @@ function and line number.
 Non-printable characters are escaped.
 
 Log format:
-time: name: ip: level: message (error){file:line}
+id: ip: time: name: level: message (error){file:line}
+id ............ optional
+ip ............ optional
 time .......... optional
 name .......... optional
-ip ............ optional
-id ............ optional
 {file:line} ... in debug mode
 */
 
@@ -28,7 +28,7 @@ id ............ optional
 
 static const char *logname = 0;
 static const char *logipstr = 0;
-static char staticlogid[17];
+static char staticlogid[19];
 static const char *logid = 0;
 static int loglevel = 1;
 static int logtime = 0;
@@ -216,7 +216,21 @@ void log_9_(
             break;
     }
 
-    /* time: name: id: level: message (error){file:line} */
+    /* id: ip: time: name: level: message (error){file:line} */
+
+    /* 'id:' */
+    do {
+        if (!level) break;           /* don't print in usage level */
+        if (!logid) break;           /* don't print when logid = 0 */
+        outsescape(logid, 0, counterptr); outs(": ");
+    } while (0);
+
+    /* 'ip:' */
+    do {
+        if (!level) break;           /* don't print in usage level */
+        if (!logipstr) break;        /* don't print when logipstr = 0 */
+        outsescape(logipstr, 0, counterptr); outs(": ");
+    } while (0);
 
     /* 'time:' */
     do {
@@ -241,20 +255,6 @@ void log_9_(
         if (!level) break;           /* don't print in usage level */
         if (!logname) break;         /* don't print when logname = 0 */
         outsescape(logname, 0, counterptr); outs(": ");
-    } while (0);
-
-    /* 'ip:' */
-    do {
-        if (!level) break;           /* don't print in usage level */
-        if (!logipstr) break;        /* don't print when logipstr = 0 */
-        outsescape(logipstr, 0, counterptr); outs(": ");
-    } while (0);
-
-    /* 'id:' */
-    do {
-        if (!level) break;           /* don't print in usage level */
-        if (!logid) break;           /* don't print when logid = 0 */
-        outsescape(logid, 0, counterptr); outs(": ");
     } while (0);
 
     /* 'level:' */

@@ -52,7 +52,7 @@ log.o: log.c e.h randombytes.h log.h
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  randombytes.h alloc.h connectioninfo.h proxyprotocol.h iptostr.h \
- writeall.h fixname.h tls.h main.h
+ writeall.h fixname.h fixpath.h tls.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
@@ -133,7 +133,7 @@ tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h
 tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
-tls_profile.o: tls_profile.c log.h randombytes.h e.h tls.h
+tls_profile.o: tls_profile.c log.h randombytes.h e.h fixpath.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
 tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h tls.h
