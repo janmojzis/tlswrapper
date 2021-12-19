@@ -2,6 +2,7 @@ CC?=cc
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc
 LDFLAGS+=-L./bearssl/build -lbearssl
 DESTDIR?=
+EMPTYDIR?=/var/lib/tlswrapper/empty
 
 BINARIES=tlswrapper
 BINARIES+=tlswrapper-test
@@ -220,6 +221,7 @@ tlswrapper-tcp: tlswrapper
 install: tlswrapper tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
 	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
+	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES)
 	./test.sh

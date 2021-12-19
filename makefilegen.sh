@@ -6,6 +6,7 @@
     echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc"
     echo "LDFLAGS+=-L./bearssl/build -lbearssl"
     echo "DESTDIR?="
+    echo "EMPTYDIR?=/var/lib/tlswrapper/empty"
     echo 
 
     i=0
@@ -72,6 +73,7 @@
     echo "install: tlswrapper tlswrapper-tcp"
     echo "	install -D -m 0755 tlswrapper \$(DESTDIR)/usr/bin/tlswrapper"
     echo "	install -D -m 0755 tlswrapper-tcp \$(DESTDIR)/usr/bin/tlswrapper-tcp"
+    echo "	install -d -m 0755 \$(DESTDIR)/\$(EMPTYDIR)"
     echo
 
     echo "test: bearssl \$(BINARIES)"
