@@ -355,5 +355,5 @@ void log_id(const char *id) {
         id = staticlogid;
     }
     logid = id;
+    (void) setenv("LOG_ID", id, 1);
 }
-
