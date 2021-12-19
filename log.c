@@ -29,7 +29,7 @@ name .......... optional
 static const char *logname = 0;
 static const char *logipstr = 0;
 static char staticlogid[19];
-static const char *logid = 0;
+static const char *logid = "";
 static int loglevel = 1;
 static int logtime = 0;
 static long long loglimit = 200;
@@ -222,6 +222,7 @@ void log_9_(
     do {
         if (!level) break;           /* don't print in usage level */
         if (!logid) break;           /* don't print when logid = 0 */
+        if (logid[0] == 0) break;    /* don't print when logid = "" */
         outsescape(logid, 0, counterptr); outs(": ");
     } while (0);
 
