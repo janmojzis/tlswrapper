@@ -224,7 +224,7 @@ install: tlswrapper tlswrapper-tcp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES)
-	sh test-fatal.sh > test-fatal.out; cmp test-fatal.exp test-fatal.out || (cat test-fatal.out; exit 1;)
+	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)
 	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)
 
 clean:

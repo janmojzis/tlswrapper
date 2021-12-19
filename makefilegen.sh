@@ -77,7 +77,7 @@
     echo
 
     echo "test: bearssl \$(BINARIES)"
-    echo "	sh test-fatal.sh > test-fatal.out; cmp test-fatal.exp test-fatal.out || (cat test-fatal.out; exit 1;)"
+    echo "	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)"
     echo "	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)"
     echo
 
