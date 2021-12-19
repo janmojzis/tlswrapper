@@ -95,7 +95,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
             case BR_PEM_BEGIN_OBJ:
                 log_t2("PEM public-object begin: ", br_pem_decoder_name(&pc));
                 if (inobj) {
-                    log_e3("malformed PEM public-object in '", fn, "'");
+                    log_e3("malformed PEM public-object in '", fn, "', extra BEGIN line");
                     goto cleanup;
                 }
                 inobj = 1;
@@ -113,7 +113,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
             case BR_PEM_END_OBJ:
                 log_t2("PEM public-object end: ", br_pem_decoder_name(&pc));
                 if (!inobj) {
-                    log_e3("malformed PEM public-object in '", fn, "'");
+                    log_e3("malformed PEM public-object in '", fn, "', extra END line");
                     goto cleanup;
                 }
                 inobj = 0;

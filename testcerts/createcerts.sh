@@ -37,6 +37,17 @@ export PATH
         if [ ! -f "${oname}" ]; then
           openssl "${type}" -in "${name}" > "${oname}"
         fi
+        oname="badcert-${catype}-${casize}-${type}-${size}-extrabegin.pem"
+        if [ ! -f "${oname}" ]; then
+          (
+            echo '-----BEGIN CERTIFICATE-----'
+            cat "${name}"
+          ) > "${oname}"
+        fi
+        oname="badcert-${catype}-${casize}-${type}-${size}-malformed.pem"
+        if [ ! -f "${oname}" ]; then
+          tr -s 'cde' 'def' < "${name}" >"${oname}"
+        fi
         oname="badkey-${catype}-${casize}-${type}-${size}-certonly.pem"
         if [ ! -f "${oname}" ]; then
           openssl x509 -in "${name}" > "${oname}"
