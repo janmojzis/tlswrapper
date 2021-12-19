@@ -224,7 +224,8 @@ install: tlswrapper tlswrapper-tcp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES)
-	./test.sh
+	sh -e testopts.sh
+	sh -e test.sh
 
 clean:
 	rm -f *.o $(BINARIES) tlswrapper-tcp

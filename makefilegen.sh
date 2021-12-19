@@ -77,7 +77,8 @@
     echo
 
     echo "test: bearssl \$(BINARIES)"
-    echo "	./test.sh"
+    echo "	sh -e testopts.sh"
+    echo "	sh -e test.sh"
     echo
 
     echo "clean:"
