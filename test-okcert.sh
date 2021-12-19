@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 check() {
   if [ x"`shasum < data.in`" = x"`shasum < data.out`" ]; then
@@ -58,24 +57,6 @@ while read name; do
   randdata
   ${CMD} -r tlswrappernojail -v -f "testcerts/${name}" cat data.in > data.out 2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certfile (-f), download"
-done
-
-exit 0
-
-
-ls testcerts | grep '^server-' | grep 'ok$' |\
-while read name; do
-  # get CA name
-  catype=`echo ${name} | cut -d- -f2`
-  casize=`echo ${name} | cut -d- -f3`
-  caname="testcerts/ca-${catype}-${casize}.pem"
-
-  # create random datafile
-  dd if=/dev/urandom of=data.in bs=1 count=16385 2>/dev/null
-
-  CMD="${CMD} -a ${caname} -h "${name}" -r"
-  ${CMD} tlswrappernojail -v -d "`pwd`/testcerts" cat data.in > data.out 2>log
-  check "download test ${name}"
 done
 
 exit 0

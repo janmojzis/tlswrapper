@@ -77,12 +77,13 @@
     echo
 
     echo "test: bearssl \$(BINARIES)"
-    echo "	sh -e testopts.sh"
-    echo "	sh -e test.sh"
+    echo "	sh test-fatal.sh > test-fatal.out; cmp test-fatal.exp test-fatal.out || (cat test-fatal.out; exit 1;)"
+    echo "	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)"
+    #echo "	sh -e testopts.sh"
     echo
 
     echo "clean:"
-    echo "	rm -f *.o \$(BINARIES) tlswrapper-tcp"
+    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp"
     echo 
 
   ) > Makefile

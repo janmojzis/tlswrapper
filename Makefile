@@ -47,7 +47,7 @@ jail.o: jail.c log.h randommod.h jail.h
 jail_poll.o: jail_poll.c log.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c jail_poll.c
 
-log.o: log.c e.h randombytes.h log.h
+log.o: log.c e.h randommod.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
@@ -224,9 +224,9 @@ install: tlswrapper tlswrapper-tcp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES)
-	sh -e testopts.sh
-	sh -e test.sh
+	sh test-fatal.sh > test-fatal.out; cmp test-fatal.exp test-fatal.out || (cat test-fatal.out; exit 1;)
+	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)
 
 clean:
-	rm -f *.o $(BINARIES) tlswrapper-tcp
+	rm -f *.o *.out $(BINARIES) tlswrapper-tcp
 
