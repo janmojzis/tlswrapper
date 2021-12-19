@@ -2,10 +2,10 @@ CC?=cc
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc
 LDFLAGS+=-L./bearssl/build -lbearssl
 DESTDIR?=
+EMPTYDIR?=/var/lib/tlswrapper/empty
 
-BINARIES=loadpem
-BINARIES+=parseasn1
-BINARIES+=tlswrapper
+BINARIES=tlswrapper
+BINARIES+=tlswrapper-test
 
 all: bearssl $(BINARIES)
 
@@ -47,11 +47,7 @@ jail.o: jail.c log.h randommod.h jail.h
 jail_poll.o: jail_poll.c log.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c jail_poll.c
 
-loadpem.o: loadpem.c randombytes.h log.h alloc.h tls.h fsyncfile.h \
- writeall.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c loadpem.c
-
-log.o: log.c e.h log.h
+log.o: log.c e.h randombytes.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
@@ -63,12 +59,12 @@ main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
  strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
+main_tlswrapper_test.o: main_tlswrapper_test.c log.h randombytes.h \
+ fsyncfile.h writeall.h tls.h main.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
+
 milliseconds.o: milliseconds.c milliseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c milliseconds.c
-
-parseasn1.o: parseasn1.c tls.h log.h alloc.h fsyncfile.h writeall.h \
- randombytes.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c parseasn1.c
 
 pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
@@ -131,9 +127,6 @@ tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h fixpath.h \
 tls_keytype.o: tls_keytype.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keytype.c
 
-tls_logsessionid.o: tls_logsessionid.c log.h tls.h randombytes.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_logsessionid.c
-
 tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pem.c
 
@@ -158,6 +151,9 @@ tls_version.o: tls_version.c tls.h
 tlswrapper.o: tlswrapper.c main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
 
+tlswrapper-test.o: tlswrapper-test.c main.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper-test.c
+
 writeall.o: writeall.c e.h jail.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c writeall.c
 
@@ -176,6 +172,7 @@ OBJECTS+=jail_poll.o
 OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_tcp.o
+OBJECTS+=main_tlswrapper_test.o
 OBJECTS+=milliseconds.o
 OBJECTS+=pipe.o
 OBJECTS+=porttostr.o
@@ -196,7 +193,6 @@ OBJECTS+=tls_ecdsa.o
 OBJECTS+=tls_error.o
 OBJECTS+=tls_keyjail.o
 OBJECTS+=tls_keytype.o
-OBJECTS+=tls_logsessionid.o
 OBJECTS+=tls_pem.o
 OBJECTS+=tls_pipe.o
 OBJECTS+=tls_profile.o
@@ -206,14 +202,11 @@ OBJECTS+=tls_timeout.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
 
-loadpem: loadpem.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o loadpem loadpem.o $(OBJECTS) $(LDFLAGS)
-
-parseasn1: parseasn1.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o parseasn1 parseasn1.o $(OBJECTS) $(LDFLAGS)
-
 tlswrapper: tlswrapper.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
+
+tlswrapper-test: tlswrapper-test.o $(OBJECTS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS)
 
 
 bearssl:
@@ -228,6 +221,7 @@ tlswrapper-tcp: tlswrapper
 install: tlswrapper tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
 	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
+	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES)
 	./test.sh

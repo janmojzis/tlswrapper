@@ -101,7 +101,9 @@ void tls_keyjail(struct tls_context *ctx) {
     }
 
     /* drop privileges, chroot, set limits, ... KEYJAIL starts here */
-    if (jail(ctx->jailaccount, ctx->jaildir, 1) == -1) goto cleanup;
+    if (!ctx->flagnojail) {
+        if (jail(ctx->jailaccount, ctx->jaildir, 1) == -1) goto cleanup;
+    }
 
     /* scalar multiplication - keygen */
     if (pipe_readall(0, &curve_id, sizeof(curve_id)) == -1) goto cleanup;
@@ -127,7 +129,6 @@ void tls_keyjail(struct tls_context *ctx) {
     /* scalar multiplication */
     if (pipe_readall(0, pk, pklen) == -1) goto cleanup;
     if (pipe_readall(0, &cc->eng.session.session_id, sizeof cc->eng.session.session_id) == -1) goto cleanup;
-    tls_logsessionid(&cc->eng);
     if (pipe_readall(0, &cc->eng.session.version, sizeof cc->eng.session.version) == -1) goto cleanup;
     if (pipe_readall(0, &cc->eng.session.cipher_suite, sizeof cc->eng.session.cipher_suite) == -1) goto cleanup;
     if (pipe_readall(0, cc->eng.client_random, sizeof cc->eng.client_random) == -1) goto cleanup;

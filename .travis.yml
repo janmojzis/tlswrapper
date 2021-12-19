@@ -14,8 +14,6 @@ script:
   - sudo apt-get install build-essential curl
   - cd "$TRAVIS_BUILD_DIR"
   - $CC -dM -E - < /dev/null
-  - #sh bearssl.sh
-  - #( cd bearssl; make; rm build/*.so; )
-  - sudo make test
+  - make test
 
 install: skip

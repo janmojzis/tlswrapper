@@ -35,10 +35,10 @@ int main(int argc, char **argv) {
     x = basename(argv[0]);
     if (!x) _exit(100);
 
-    if (!strcmp(x, "tlswrapper-tcp")){
-        return main_tlswrapper_tcp(argc, argv);
+    if (!strcmp(x, "tlswrappernojail")) {
+        return main_tlswrapper(argc, argv, 1);
     }
-    return main_tlswrapper(argc, argv, 0);
+    return main_tlswrapper_test(argc, argv);
 
     _exit(111);
     return 111; /* make compiler happy */

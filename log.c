@@ -23,55 +23,37 @@ id ............ optional
 #include <time.h>
 #include <unistd.h>
 #include "e.h"
+#include "randombytes.h"
 #include "log.h"
 
 static const char *logname = 0;
 static const char *logipstr = 0;
+static char staticlogid[17];
 static const char *logid = 0;
 static int loglevel = 1;
 static int logtime = 0;
 static long long loglimit = 200;
 
-static int initialized = 0;
-static void _init(void) {
-
-    if (!initialized) {
-        if (!logid) logid = getenv("LOG_ID");
-        initialized = 1;
-    }
-}
-
 void log_name(const char *name) {
-    _init();
     logname = name;
 }
 
 void log_level(int level) {
-    _init();
     loglevel = level;
     if (level < 0) loglevel = 0;
     if (level > 4) loglevel = 4;
 }
 
 void log_time(int flag) {
-    _init();
     logtime = flag;
 }
 
 void log_limit(long long limit) {
-    _init();
     loglimit = limit;
 }
 
 void log_ip(const char *ip) {
-    _init();
     logipstr = ip;
-}
-
-void log_id(const char *id) {
-    _init();
-    logid = id;
-    (void) setenv("LOG_ID", id, 1);
 }
 
 static char buf[256];
@@ -340,22 +322,38 @@ char *lognum0(long long num, long long cnt) {
     return numtostr(staticbuf[staticbufcounter], STATICBUFSIZE, num, cnt);
 }
 
-char *loghex(unsigned char *y, long long ylen) {
+static void tohex(char *x, long long xlen, unsigned char *y, long long ylen) {
     long long i;
-    char *x;
-    staticbufcounter = (staticbufcounter + 1) % 9;
-    x = staticbuf[staticbufcounter];
     for (i = 0; i < ylen; ++i) {
-        if (i == (STATICBUFSIZE - 3) / 2) {
+        if (i == (xlen - 3) / 2) {
             x[2 * i    ] = '.';
             x[2 * i + 1] = '.';
             x[2 * i + 2] = 0;
-            return x;
+            return;
         }
         x[2 * i    ] = "0123456789abcdef"[(y[i] >> 4) & 15];
         x[2 * i + 1] = "0123456789abcdef"[(y[i] >> 0) & 15];
     }
     x[2 * i] = 0;
+}
+
+char *loghex(unsigned char *y, long long ylen) {
+    char *x;
+    staticbufcounter = (staticbufcounter + 1) % 9;
+    x = staticbuf[staticbufcounter];
+    tohex(x, STATICBUFSIZE, y, ylen);
     return x;
+}
+
+void log_id(const char *id) {
+
+    if (!id) id = getenv("LOG_ID");
+    if (!id) {
+        unsigned char randomid[sizeof staticlogid / 2 - 1];
+        randombytes(randomid, sizeof randomid);
+        tohex(staticlogid, sizeof staticlogid, randomid, sizeof randomid);
+        id = staticlogid;
+    }
+    logid = id;
 }
 

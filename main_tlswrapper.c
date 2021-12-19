@@ -23,6 +23,7 @@
 
 static struct tls_context ctx = {
     .flags = (tls_flags_ENFORCE_SERVER_PREFERENCES | tls_flags_NO_RENEGOTIATION),
+    .flagnojail = 0,
     .jailaccount = 0,
     .jaildir = "/var/lib/tlswrapper/empty",
     .version_min = tls_version_TLS12,
@@ -272,7 +273,7 @@ static void usage(void) {
 }
 
 
-int main_tlswrapper(int argc, char **argv) {
+int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     char *x;
     int handshakedone = 0;
@@ -283,6 +284,7 @@ int main_tlswrapper(int argc, char **argv) {
     alarm(starttimeout);
 
     log_name("tlswrapper");
+    log_id(0);
 
     (void) argc;
     if (!argv[0]) usage();
@@ -385,6 +387,9 @@ int main_tlswrapper(int argc, char **argv) {
     hstimeout = timeout_parse(hstimeoutstr);
 
     /* start */
+
+    /* set flagnojail */
+    ctx.flagnojail = flagnojail;
 
     /* get connection info */
     connectioninfoflag = connectioninfo(localip, localport, remoteip, remoteport);
@@ -497,7 +502,9 @@ int main_tlswrapper(int argc, char **argv) {
     log_d1("start");
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
-    if (jail(ctx.jailaccount, ctx.jaildir, 1) == -1) die_jail();
+    if (!ctx.flagnojail) {
+        if (jail(ctx.jailaccount, ctx.jaildir, 1) == -1) die_jail();
+    }
 
     if (ctx.anchorfn) {
         char *pubpem;

@@ -118,6 +118,8 @@ int tls_pem_load(struct tls_pem *ctx, const char *fn, const unsigned char *key) 
 cleanup:
     if (fd != -1) close(fd);
     if (ret == 0) tls_pem_free(ctx);
+    log_t2("publen = ", lognum(ctx->publen));
+    log_t2("seclen = ", lognum(ctx->seclen));
     log_t4("tls_pem_load(fn = ", fn, ") = ", lognum(ret));
     return ret;
 }
