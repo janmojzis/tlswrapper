@@ -1,6 +1,7 @@
 #include "log.h"
 #include "randombytes.h"
 #include "e.h"
+#include "buf.h"
 #include "fixpath.h"
 #include "tls.h"
 
@@ -21,22 +22,34 @@ static int hash_choose(unsigned int bf) {
     return 0;
 }
 
-static int copyfn(char *o, size_t olen, const char *a, const char *b) {
+static int copyfn(char *buf, long long buflen, const char *a, const char *b) {
 
-    size_t alen = strlen(a);
-    size_t blen = strlen(b);
+    long long pos = 0;
 
-    /* copy a */
-    if (olen < alen + 1) return 0;
-    memcpy(o, a, alen + 1);
+    if (!buf || !a || !b || buflen < 0) return 0;
 
-    /* copy b */
-    if (blen) {
-        if (olen < alen + blen + 2) return 0;
-        o[alen] = '/';
-        memcpy(o + alen + 1, b, blen + 1);
+    /* if a has relative path, prepend './' */
+    if (a[0] != '/') {
+        pos = buf_puts(buf, buflen, pos, "./");
+        if (!pos) return 0;
     }
-    fixpath(o);
+
+    /* add a */
+    pos = buf_puts(buf, buflen, pos, a);
+    if (!pos) return 0;
+
+    if (b && strlen(b) > 0) {
+        /* add '/' */
+        pos = buf_puts(buf, buflen, pos, "/");
+        if (!pos) return 0;
+
+        /* add b */
+        pos = buf_puts(buf, buflen, pos, b);
+        if (!pos) return 0;
+    }
+
+
+    fixpath(buf);
     return 1;
 }
 

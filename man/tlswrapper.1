@@ -24,8 +24,7 @@ Add a file containing key+certificate(s) in PEM format.
 .B \-d \fIcertdir\fR
 Add a directory containing multiple key+certificate(s) files in PEM format.
 The file in the directory is selected by hostname extracted from SNI extension.
-Warning: For security reasons \fIcertdir\fR directory path must be absolute, and
-\fBtlswrapper\fR does not allow dots immediately after slashes in certdir name. It changes these dots to colons before attempting to open the PEM file.
+Warning: For security reasons \fBtlswrapper\fR does not allow dots immediately after slashes in certdir name. It changes these dots to colons before attempting to open the PEM file.
 .TP
 .B \-a \fIanchorfile\fR
 Enable client certificate authentication. Use CA trust anchor \fIanchorfile\fR. Only one \-a option supported.

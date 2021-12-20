@@ -1,5 +1,5 @@
 tlswrapper rejects fifo as a certdir
-tlswrapper: fatal: unable to add certdir '/.../testfifo' (not a directory)
+tlswrapper: fatal: unable to add certdir 'testfifo' (not a directory)
 100
 
 tlswrapper rejects fifo as a certfile
@@ -11,7 +11,7 @@ tlswrapper: fatal: unable to add anchor file 'testfifo': not a regular file
 100
 
 tlswrapper rejects nonexistent file as a certdir
-tlswrapper: fatal: unable to stat certdir '/.../notexist' (file does not exist)
+tlswrapper: fatal: unable to stat certdir 'notexist' (file does not exist)
 100
 
 tlswrapper rejects nonexistent file as a certfile
@@ -23,7 +23,7 @@ tlswrapper: fatal: unable to add anchor file 'notexist' (file does not exist)
 100
 
 tlswrapper rejects regular file as a certdir
-tlswrapper: fatal: unable to add certdir '/.../testfile' (not a directory)
+tlswrapper: fatal: unable to add certdir 'testfile' (not a directory)
 100
 
 tlswrapper rejects directory as a certfile
@@ -44,10 +44,6 @@ tlswrapper: fatal: unable to add certfile 'testdirlink': not a regular file
 
 tlswrapper rejects link to directory as a anchorfile
 tlswrapper: fatal: unable to add anchor file 'testdirlink': not a regular file 
-100
-
-tlswrapper rejects relative directory as a certdir
-tlswrapper: fatal: unable to add certdir 'testdir': directory path must be absolute 
 100
 
 tlswrapper rejects bad min TLS version

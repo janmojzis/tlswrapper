@@ -15,6 +15,9 @@ alloc.o: alloc.c randombytes.h alloc.h log.h
 blocking.o: blocking.c blocking.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c blocking.c
 
+buf.o: buf.c buf.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
+
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
@@ -133,7 +136,8 @@ tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h
 tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
-tls_profile.o: tls_profile.c log.h randombytes.h e.h fixpath.h tls.h
+tls_profile.o: tls_profile.c log.h randombytes.h e.h buf.h fixpath.h \
+ tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
 tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h tls.h
@@ -159,6 +163,7 @@ writeall.o: writeall.c e.h jail.h writeall.h
 
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
+OBJECTS+=buf.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o

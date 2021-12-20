@@ -19,8 +19,8 @@ ln -s testfile testfilelink
 
 # certs
 echo 'tlswrapper rejects fifo as a certdir'
-(tlswrapper-test -qr tlswrappernojail -d `pwd`/testfifo 2>&1; echo $?;) | sed 's,/.*/,/.../,'
-echo
+tlswrapper-test -qr tlswrappernojail -d testfifo 2>&1
+echo $?; echo
 echo 'tlswrapper rejects fifo as a certfile'
 tlswrapper-test -qr tlswrappernojail -f testfifo 2>&1
 echo $?; echo
@@ -28,8 +28,8 @@ echo 'tlswrapper rejects fifo as a anchorfile'
 tlswrapper-test -qr tlswrappernojail -a testfifo 2>&1
 echo $?; echo
 echo 'tlswrapper rejects nonexistent file as a certdir'
-(tlswrapper-test -qr tlswrappernojail -d `pwd`/notexist 2>&1; echo $?;) | sed 's,/.*/,/.../,'
-echo
+tlswrapper-test -qr tlswrappernojail -d notexist 2>&1
+echo $?; echo
 echo 'tlswrapper rejects nonexistent file as a certfile'
 tlswrapper-test -qr tlswrappernojail -f notexist 2>&1
 echo $?; echo
@@ -37,8 +37,8 @@ echo 'tlswrapper rejects nonexistent file as a anchorfile'
 tlswrapper-test -qr tlswrappernojail -a notexist 2>&1
 echo $?; echo
 echo 'tlswrapper rejects regular file as a certdir'
-(tlswrapper-test -qr tlswrappernojail -d `pwd`/testfile 2>&1; echo $?;) | sed 's,/.*/,/.../,'
-echo
+tlswrapper-test -qr tlswrappernojail -d testfile 2>&1
+echo $?; echo
 echo 'tlswrapper rejects directory as a certfile'
 tlswrapper-test -qr tlswrappernojail -f testdir 2>&1
 echo $?; echo
@@ -53,9 +53,6 @@ tlswrapper-test -qr tlswrappernojail -f testdirlink 2>&1
 echo $?; echo
 echo 'tlswrapper rejects link to directory as a anchorfile'
 tlswrapper-test -qr tlswrappernojail -a testdirlink 2>&1
-echo $?; echo
-echo 'tlswrapper rejects relative directory as a certdir'
-tlswrapper-test -qr tlswrappernojail -d testdir 2>&1
 echo $?; echo
 
 # TLS version
