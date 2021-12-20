@@ -75,7 +75,7 @@ pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
-proxyprotocol.o: proxyprotocol.c strtoip.h iptostr.h porttostr.h \
+proxyprotocol.o: proxyprotocol.c strtoip.h buf.h iptostr.h porttostr.h \
  strtoport.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
@@ -230,6 +230,7 @@ install: tlswrapper tlswrapper-tcp
 
 test: bearssl $(BINARIES)
 	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)
+	sh test-proxyprotocol.sh > test-proxyprotocol.out; cmp test-proxyprotocol.exp test-proxyprotocol.out || (cat test-proxyprotocol.out; exit 1;)
 	sh test-badcert.sh > test-badcert.out; cmp test-badcert.exp test-badcert.out || (cat test-badcert.out; exit 1;)
 	sh test-badkey.sh > test-badkey.out; cmp test-badkey.exp test-badkey.out || (cat test-badkey.out; exit 1;)
 	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)
