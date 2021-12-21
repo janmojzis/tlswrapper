@@ -40,7 +40,7 @@ static unsigned char anchorkey[32] = {0};
 static struct tls_pem anchorpem = {0};
 static struct tls_pubcrt anchorcrt = {0};
 
-static const char *ppstring = 0;
+static char *ppstring = 0;
 
 static int numparse(unsigned long long *num, const char *x) {
 
@@ -232,6 +232,10 @@ int main_tlswrapper_test(int argc, char **argv) {
 
     /* write proxy-protocol string */
     if (ppstring) {
+        /* replace '_' -> ' ' */
+        long long i;
+        for (i = 0; i < ppstring[i]; ++i) if (ppstring[i] == '_') ppstring[i] = ' ';
+
         if (writeall(tochild[1], ppstring, strlen(ppstring)) == -1) {
             log_f1("unable to write output");
             die(111);
