@@ -233,6 +233,7 @@ test: bearssl $(BINARIES) tlswrapper-tcp
 	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)
 	sh test-pp1.sh > test-pp1.out; cmp test-pp1.exp test-pp1.out || (cat test-pp1.out; exit 1;)
 	sh test-pp2.sh > test-pp2.out; cmp test-pp2.exp test-pp2.out || (cat test-pp2.out; exit 1;)
+	sh test-pp1bad.sh > test-pp1bad.out; cmp test-pp1bad.exp test-pp1bad.out || (cat test-pp1bad.out; exit 1;)
 	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)
 
 clean:
