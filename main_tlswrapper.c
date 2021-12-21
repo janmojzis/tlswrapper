@@ -543,7 +543,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
     log_ip(iptostr(remoteipstr, remoteip));
 
-
     log_d1("start");
 
     /* TLS init */
