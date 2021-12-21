@@ -61,7 +61,6 @@ static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localpor
         memcpy(remoteport, &sin6->sin6_port, 2);
     }
     log_t8("connectioninfo_fromfd(): localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
-    connectioninfo_set(localip, localport, remoteip, remoteport);
     return 1;
 }
 

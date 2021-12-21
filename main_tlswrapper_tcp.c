@@ -246,11 +246,11 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         if (!ppin(0, localip, localport, remoteip, remoteport)) {
             die_ppin(ppoutver);
         }
-        connectioninfo_set(localip, localport, remoteip, remoteport);
     }
-
-    /* get connection info */
-    (void) connectioninfo_get(localip, localport, remoteip, remoteport);
+    else {
+        /* get connection info */
+        (void) connectioninfo_get(localip, localport, remoteip, remoteport);
+    }
     log_ip(iptostr(remoteipstr, remoteip));
 
     fd = conn(connecttimeout, ip, iplen, port);
