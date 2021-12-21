@@ -1,0 +1,14 @@
+PROXY UNKNOWN
+OK
+PROXY TCP4 1.2.3.4 1.2.3.4 1234 1234
+OK
+PROXY TCP6 abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd 1234 1234
+OK
+PROXY UNKNOWN
+OK
+PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535
+OK
+PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535
+OK
+PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535
+OK
