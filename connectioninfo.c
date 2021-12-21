@@ -61,10 +61,7 @@ static int connectioninfo_fromfd(unsigned char *localip, unsigned char *localpor
         memcpy(remoteport, &sin6->sin6_port, 2);
     }
     log_t8("connectioninfo_fromfd(): localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
-    (void) setenv("TCPREMOTEIP", iptostr(0, remoteip), 1);
-    (void) setenv("TCPREMOTEPORT", porttostr(0, remoteport), 1);
-    (void) setenv("TCPLOCALIP", iptostr(0, localip), 1);
-    (void) setenv("TCPLOCALPORT", porttostr(0, localport), 1);
+    connectioninfo_set(localip, localport, remoteip, remoteport);
     return 1;
 }
 
@@ -82,9 +79,17 @@ static int connectioninfo_fromenv(unsigned char *localip, unsigned char *localpo
     return 1;
 }
 
-int connectioninfo(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
+int connectioninfo_get(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
     if (connectioninfo_fromenv(localip, localport, remoteip, remoteport)) return 1;
     if (connectioninfo_fromfd(localip, localport, remoteip, remoteport)) return 1;
     log_w1("connectioninfo() failed");
     return 0;
+}
+
+void connectioninfo_set(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
+    (void) setenv("TCPREMOTEIP", iptostr(0, remoteip), 1);
+    (void) setenv("TCPREMOTEPORT", porttostr(0, remoteport), 1);
+    (void) setenv("TCPLOCALIP", iptostr(0, localip), 1);
+    (void) setenv("TCPLOCALPORT", porttostr(0, localport), 1);
+    log_t8("connectioninfo_set(): localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
 }

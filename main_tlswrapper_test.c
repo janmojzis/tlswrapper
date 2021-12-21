@@ -40,6 +40,8 @@ static unsigned char anchorkey[32] = {0};
 static struct tls_pem anchorpem = {0};
 static struct tls_pubcrt anchorcrt = {0};
 
+static const char *ppstring = 0;
+
 static int numparse(unsigned long long *num, const char *x) {
 
     char *endptr = 0;
@@ -147,6 +149,10 @@ int main_tlswrapper_test(int argc, char **argv) {
             if (*x == 'w') { flagoutput = 1; flaginput = 0; continue; }
             if (*x == 'f') { flagflush = 1; continue; }
             if (*x == 'F') { flagflush = 0; continue; }
+            if (*x == 'P') {
+                if (x[1]) { ppstring = (x + 1); break; }
+                if (argv[1]) { ppstring = (*++argv); break; }
+            }
             if (*x == 'a') {
                 if (x[1]) { anchorfn = (x + 1); break; }
                 if (argv[1]) { anchorfn = (*++argv); break; }
@@ -222,6 +228,18 @@ int main_tlswrapper_test(int argc, char **argv) {
         }
         log_t2("days = ", lognum(days));
         br_x509_minimal_set_time(&xc, days, 0);
+    }
+
+    /* write proxy-protocol string */
+    if (ppstring) {
+        if (writeall(tochild[1], ppstring, strlen(ppstring)) == -1) {
+            log_f1("unable to write output");
+            die(111);
+        }
+        if (writeall(tochild[1], "\r\n", 2) == -1) {
+            log_f1("unable to write output");
+            die(111);
+        }
     }
 
     /* set the I/O buffer */

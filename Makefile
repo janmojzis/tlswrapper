@@ -58,8 +58,9 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  writeall.h fixname.h fixpath.h tls.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
-main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h resolvehost.h \
- strtoport.h socket.h e.h log.h conn.h tls.h jail.h randommod.h main.h
+main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
+ proxyprotocol.h connectioninfo.h resolvehost.h strtoport.h socket.h e.h \
+ log.h conn.h tls.h jail.h randommod.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c log.h randombytes.h \
@@ -75,8 +76,8 @@ pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
-proxyprotocol.o: proxyprotocol.c strtoip.h buf.h iptostr.h porttostr.h \
- strtoport.h proxyprotocol.h
+proxyprotocol.o: proxyprotocol.c jail.h buf.h e.h log.h strtoip.h \
+ strtoport.h iptostr.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c log.h randombytes.h
