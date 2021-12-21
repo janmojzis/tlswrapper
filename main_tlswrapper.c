@@ -105,32 +105,49 @@ static void cleanup(void) {
 #define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
 #define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", (x), " from client certificate: object not found"); die(111); }
 #define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
-#define die_proxyprotocol(x) { log_f3("unable to create proxy-protocol v", (x), " string");; die(100); }
-#define die_connectioninfo() { log_f1("unable to get connection info"); die(100); }
+#define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
+#define die_ppin(x) { log_f3("unable to receive incomming proxy-protocol v", (x), " string");; die(100); }
 
 static int connectioninfoflag = 0;
 
 /* proxy-protocol */
-static char pp_buf[128];
-static long long pp_buflen = 0;
-static long long (*proxyprotocol)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
-static const char *pp_ver = 0;
-static void pp_add(const char *x) {
+static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static const char *ppoutver = 0;
+static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static const char *ppinver = 0;
+
+static void pp_incomming(const char *x) {
+
+    if (!strcmp("0", x)) {
+        /* disable incomming proxy protocol*/
+        return;
+    }
+    else if (!strcmp("1", x)) {
+        ppin = proxyprotocol_v1_get;
+        ppinver = x;
+    }
+    else {
+        log_f3("unable to parse incomming proxy-protocol version from the string '", x, "'");
+        log_f1("available: 1");
+        die(100);
+    }
+}
+static void pp_outgoing(const char *x) {
 
     if (!strcmp("0", x)) {
         /* disable proxy protocol*/
         return;
     }
     else if (!strcmp("1", x)) {
-        proxyprotocol = proxyprotocol_v1;
-        pp_ver = x;
+        ppout = proxyprotocol_v1;
+        ppoutver = x;
     }
     else if (!strcmp("2", x)) {
-        proxyprotocol = proxyprotocol_v2;
-        pp_ver = x;
+        ppout = proxyprotocol_v2;
+        ppoutver = x;
     }
     else {
-        log_f3("unable to parse proxy-protocol version from the string '", x, "'");
+        log_f3("unable to parse outgoing proxy-protocol version from the string '", x, "'");
         log_f1("available: 1");
         log_f1("available: 2");
         die(100);
@@ -308,8 +325,12 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
             /* proxy-protocol */
             if (*x == 'p') {
-                if (x[1]) { pp_add(x + 1); break; }
-                if (argv[1]) { pp_add(*++argv); break; }
+                if (x[1]) { pp_incomming(x + 1); break; }
+                if (argv[1]) { pp_incomming(*++argv); break; }
+            }
+            if (*x == 'P') {
+                if (x[1]) { pp_outgoing(x + 1); break; }
+                if (argv[1]) { pp_outgoing(*++argv); break; }
             }
 
             /* run child under user */
@@ -389,23 +410,11 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     timeout = timeout_parse(timeoutstr);
     hstimeout = timeout_parse(hstimeoutstr);
 
-    /* start */
-
     /* set flagnojail */
     ctx.flagnojail = flagnojail;
 
     /* get connection info */
-    connectioninfoflag = connectioninfo(localip, localport, remoteip, remoteport);
-    if (connectioninfoflag) {
-        log_ip(iptostr(remoteipstr, remoteip));
-    }
-
-    /* proxyprotocol */
-    if (proxyprotocol) {
-        if (!connectioninfoflag) die_connectioninfo();
-        pp_buflen = proxyprotocol(pp_buf, sizeof pp_buf, localip, localport, remoteip, remoteport);
-        if (pp_buflen <= 0) die_proxyprotocol(pp_ver);
-    }
+    connectioninfoflag = connectioninfo_get(localip, localport, remoteip, remoteport);
 
     /* non-blockning stdin/stdout */
     blocking_disable(0);
@@ -483,6 +492,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
             alarm(0);
+            log_ip(0);
             tls_keyjail(&ctx);
             die(0);
     }
@@ -501,9 +511,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     signal(SIGALRM, signalhandler);
     alarm(hstimeout);
 
-    log_name("tlswrapper net");
-    log_d1("start");
-
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
     if (!ctx.flagnojail) {
         if (jail(ctx.jailaccount, ctx.jaildir, 1) == -1) die_jail();
@@ -520,6 +527,22 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen, ctx.anchorfn)) die_parseanchorpem(ctx.anchorfn);
         alloc_free(pubpem);
     }
+
+    /* receive proxy-protocol string */
+    if (ppin) {
+        if (!ppin(0, localip, localport, remoteip, remoteport)) {
+            die_ppin(ppoutver);
+        }
+        connectioninfo_set(localip, localport, remoteip, remoteport);
+        connectioninfoflag = 1;
+    }
+    if (connectioninfoflag) {
+        log_ip(iptostr(remoteipstr, remoteip));
+    }
+    else {
+        log_ip("UNKNOWNIP");
+    }
+    log_d1("start");
 
     /* TLS init */
     tls_profile(&ctx);
@@ -572,8 +595,12 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
 
             /* write proxy-protocol string */
-            if (pp_buflen) {
-                if (writeall(tochild[1], pp_buf, pp_buflen) == -1) die_writetopipe();
+            if (ppout) {
+                char ppbuf[PROXYPROTOCOL_MAX];
+                long long ppbuflen = 0;
+                ppbuflen = ppout(ppbuf, sizeof ppbuf, localip, localport, remoteip, remoteport);
+                if (ppbuflen <= 0) die_ppout(ppoutver);
+                if (writeall(tochild[1], ppbuf, ppbuflen) == -1) die_writetopipe();
             }
 
             alarm(timeout);

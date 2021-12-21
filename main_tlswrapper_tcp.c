@@ -3,6 +3,9 @@
 #include <signal.h>
 #include <poll.h>
 #include "randombytes.h"
+#include "iptostr.h"
+#include "proxyprotocol.h"
+#include "connectioninfo.h"
 #include "resolvehost.h"
 #include "strtoport.h"
 #include "socket.h"
@@ -44,6 +47,8 @@ static int fd = -1;
 
 static int flagverbose = 1;
 
+static int connectioninfoflag = 0;
+
 static void cleanup(void) {
     randombytes(ip, sizeof ip);
     randombytes(inbuf, sizeof inbuf);
@@ -58,12 +63,64 @@ static void cleanup(void) {
 #define die(x) { cleanup(); _exit(x); }
 #define die_jail() { log_f1("unable to create jail"); die(111); }
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
+#define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
+#define die_ppin(x) { log_f3("unable to receive incomming proxy-protocol v", (x), " string");; die(100); }
 
 static void usage(void) {
     log_u1("tlswrapper-tcp [options] host port");
     die(100);
 }
 
+
+static unsigned char localip[16] = {0};
+static unsigned char localport[2] = {0};
+static unsigned char remoteip[16] = {0};
+static unsigned char remoteport[2] = {0};
+static char remoteipstr[IPTOSTR_LEN] = {0};
+
+/* proxy-protocol */
+static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static const char *ppoutver = 0;
+static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static const char *ppinver = 0;
+
+static void pp_incomming(const char *x) {
+
+    if (!strcmp("0", x)) {
+        /* disable incomming proxy protocol*/
+        return;
+    }
+    else if (!strcmp("1", x)) {
+        ppin = proxyprotocol_v1_get;
+        ppinver = x;
+    }
+    else {
+        log_f3("unable to parse incomming proxy-protocol version from the string '", x, "'");
+        log_f1("available: 1");
+        die(100);
+    }
+}
+static void pp_outgoing(const char *x) {
+
+    if (!strcmp("0", x)) {
+        /* disable proxy protocol*/
+        return;
+    }
+    else if (!strcmp("1", x)) {
+        ppout = proxyprotocol_v1;
+        ppoutver = x;
+    }
+    else if (!strcmp("2", x)) {
+        ppout = proxyprotocol_v2;
+        ppoutver = x;
+    }
+    else {
+        log_f3("unable to parse outgoing proxy-protocol version from the string '", x, "'");
+        log_f1("available: 1");
+        log_f1("available: 2");
+        die(100);
+    }
+}
 
 static long long timeout_parse(const char *x) {
     long long ret;
@@ -117,6 +174,15 @@ int main_tlswrapper_tcp(int argc, char **argv) {
                 if (x[1]) { timeoutstr =  x + 1; break; }
                 if (argv[1]) { timeoutstr = *++argv; break; }
             }
+            /* proxy-protocol */
+            if (*x == 'p') {
+                if (x[1]) { pp_incomming(x + 1); break; }
+                if (argv[1]) { pp_incomming(*++argv); break; }
+            }
+            if (*x == 'P') {
+                if (x[1]) { pp_outgoing(x + 1); break; }
+                if (argv[1]) { pp_outgoing(*++argv); break; }
+            }
             /* jail */
             if (*x == 'J') {
                 if (x[1]) { ctx.empty_dir = (x + 1); break; }
@@ -139,7 +205,8 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     timeout = timeout_parse(timeoutstr);
     connecttimeout = timeout_parse(connecttimeoutstr);
 
-    /* start */
+    /* get connection info */
+    connectioninfoflag = connectioninfo_get(localip, localport, remoteip, remoteport);
 
     /* initialize randombytes */
     {
@@ -178,10 +245,31 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
     if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_jail();
 
+    /* receive proxy-protocol string */
+    if (ppin) {
+        if (!ppin(0, localip, localport, remoteip, remoteport)) {
+            die_ppin(ppoutver);
+        }
+        connectioninfo_set(localip, localport, remoteip, remoteport);
+        connectioninfoflag = 1;
+    }
+    if (connectioninfoflag) {
+        log_ip(iptostr(remoteipstr, remoteip));
+    }
+    else {
+        log_ip("UNKNOWNIP");
+    }
+
     fd = conn(connecttimeout, ip, iplen, port);
     if (fd == -1) {
         log_f4("unable to connect to ", hoststr, ":", logport(port));
         die(111);
+    }
+
+    /* write proxy-protocol string */
+    if (ppout) {
+        outbuflen = ppout((char *)outbuf, sizeof outbuf, localip, localport, remoteip, remoteport);
+        if (outbuflen <= 0) die_ppout(ppoutver);
     }
 
     log_d4("connected to [", logip(ip), "]:", logport(port));

@@ -80,7 +80,7 @@ tlswrapper: fatal: available: secp521r1
 100
 
 tlswrapper rejects bad proxy protocol version
-tlswrapper: fatal: unable to parse proxy-protocol version from the string '9' 
+tlswrapper: fatal: unable to parse outgoing proxy-protocol version from the string '9' 
 tlswrapper: fatal: available: 1 
 tlswrapper: fatal: available: 2 
 100

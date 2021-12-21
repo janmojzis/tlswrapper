@@ -75,7 +75,7 @@ echo $?; echo
 
 # proxy protocol
 echo 'tlswrapper rejects bad proxy protocol version'
-tlswrapper-test -qr tlswrappernojail -f testfile -p 9 2>&1
+tlswrapper-test -qr tlswrappernojail -f testfile -P 9 2>&1
 echo $?; echo
 
 # user from client cert. 

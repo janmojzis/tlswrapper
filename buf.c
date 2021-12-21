@@ -1,11 +1,15 @@
 #include <string.h>
 #include "buf.h"
+#include "iptostr.h"
 
-long long buf_put(char *buf, long long buflen, long long pos, const unsigned char *x, long long xlen) {
+long long buf_put(void *bufv, long long buflen, long long pos, const void *xv, long long xlen) {
+    
+    char *buf = (char *) bufv;
+    const char *x = (char *) xv;
 
     if (!buf) return 0;
     if (buflen < 0) return 0;
-    if (!x) return 0;
+    if (!xv) return 0;
     if (xlen < 0) return 0;
     if (pos < 0) return 0;
     if (pos + xlen >= buflen) return 0;
@@ -14,6 +18,6 @@ long long buf_put(char *buf, long long buflen, long long pos, const unsigned cha
     return pos + xlen;
 }
 
-long long buf_puts(char *buf, long long buflen, long long pos, const char *x) {
-    return buf_put(buf, buflen, pos, (unsigned char *)x, strlen(x));
+long long buf_puts(void *buf, long long buflen, long long pos, const void *x) {
+    return buf_put(buf, buflen, pos, x, strlen(x));
 }

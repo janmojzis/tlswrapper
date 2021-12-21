@@ -74,8 +74,7 @@ void tls_keyjail(struct tls_context *ctx) {
     br_ssl_server_context *cc = &ctx->cc;
     struct tls_pem pem = {0};
 
-    log_name("tlswrapper key");
-    log_d1("start");
+    log_t1("start keyjail");
 
     for (;;) {
         size_t fn_len = sizeof ctx->certfn;
@@ -270,5 +269,5 @@ void tls_keyjail(struct tls_context *ctx) {
     }
 
 cleanup:
-    log_d1("finished");
+    log_t1("finished keyjail");
 }
