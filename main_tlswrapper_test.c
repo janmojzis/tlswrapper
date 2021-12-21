@@ -178,12 +178,13 @@ int main_tlswrapper_test(int argc, char **argv) {
     log_ip("0.0.0.0");
     log_d1("start");
 
+#if 0
     /* set fake env. variables */
     if (setenv("TCPREMOTEIP", "0.0.0.0", 1) == -1) die_setenv("TCPREMOTEIP");
     if (setenv("TCPREMOTEPORT", "0", 1) == -1) die_setenv("TCPREMOTEPORT");
     if (setenv("TCPLOCALIP", "0.0.0.0", 1) == -1) die_setenv("TCPLOCALIP");
     if (setenv("TCPLOCALPORT", "0", 1) == -1) die_setenv("TCPLOCALPORT");
-
+#endif
 
     /* run child process */
     if (pipe(fromchild) == -1) die_pipe();
@@ -234,7 +235,7 @@ int main_tlswrapper_test(int argc, char **argv) {
     if (ppstring) {
         /* replace '_' -> ' ' */
         long long i;
-        for (i = 0; i < ppstring[i]; ++i) if (ppstring[i] == '_') ppstring[i] = ' ';
+        for (i = 0; ppstring[i]; ++i) if (ppstring[i] == '_') ppstring[i] = ' ';
 
         if (writeall(tochild[1], ppstring, strlen(ppstring)) == -1) {
             log_f1("unable to write output");

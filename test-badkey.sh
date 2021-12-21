@@ -1,5 +1,10 @@
 #!/bin/sh
 
+TCPREMOTEIP=0.0.0.0; export TCPREMOTEIP
+TCPREMOTEPORT=0; export TCPREMOTEPORT
+TCPLOCALIP=0.0.0.0; export TCPLOCALIP
+TCPLOCALPORT=0; export TCPLOCALPORT
+
 cleanup() {
   ex=$?
   rm -rf tlswrappernojail testemptycert
