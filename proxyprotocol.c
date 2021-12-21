@@ -162,32 +162,9 @@ int proxyprotocol_v1_get(int fd, unsigned char *localip, unsigned char *localpor
     return proxyprotocol1_parse(buf, localip, localport, remoteip, remoteport);
 }
 
-
-static long long putip6(void *buf, long long buflen, long long pos, const unsigned char *ip) {
-
-    long long i;
-    char ch[2];
-
-    for (i = 0; i < 16; ++i) {
-        ch[0] = "0123456789abcdef"[(ip[i] >> 4) & 15];
-        ch[1] = "0123456789abcdef"[ip[i]        & 15];
-        pos = buf_put(buf, buflen, pos, ch, 2);
-        if (!pos) break;
-        if (i < 15 && i % 2) {
-            pos = buf_put(buf, buflen, pos, ":", 1);
-            if (!pos) break;
-        }
-    }
-    return pos;
-}
-
-static long long putip4(void *buf, long long buflen, long long pos, const unsigned char *ip) {
-    return buf_puts(buf, buflen, pos, iptostr(0, ip));
-}
 long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
     long long pos = 0;
-    long long (*putip)(void *, long long, long long, const unsigned char *);
 
     if (!buf || buflen < PROXYPROTOCOL_MAX) return 0;
 
@@ -200,20 +177,18 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, 
 
     if (!memcmp("\0\0\0\0\0\0\0\0\0\0\377\377", remoteip, 12)) {
         pos = buf_puts(buf, buflen, pos, "PROXY TCP4 ");
-        putip = putip4;
     }
     else {
         pos = buf_puts(buf, buflen, pos, "PROXY TCP6 ");
-        putip = putip6;
     }
     if (!pos) goto fail;
 
-    pos = putip(buf, buflen, pos, remoteip);
+    pos = buf_puts(buf, buflen, pos, iptostr(0, remoteip));
     if (!pos) goto fail;
     pos = buf_puts(buf, buflen, pos, " ");
     if (!pos) goto fail;
 
-    pos = putip(buf, buflen, pos, localip);
+    pos = buf_puts(buf, buflen, pos, iptostr(0, localip));
     if (!pos) goto fail;
     pos = buf_puts(buf, buflen, pos, " ");
     if (!pos) goto fail;
