@@ -298,6 +298,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     char *x;
     int handshakedone = 0;
 
+    errno = 0;
     signal(SIGPIPE, SIG_IGN);
     signal(SIGCHLD, signalhandler);
     signal(SIGTERM, signalhandler);
