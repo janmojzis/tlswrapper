@@ -154,6 +154,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localip, unsigned char *localpor
         if (!pos) return 0;
         if (ch == '\n') break;
     }
+    errno = 0;
     pos = buf_put(buf, sizeof buf, pos, "", 1);
     if (!pos) return 0;
     return proxyprotocol1_parse(buf, localip, localport, remoteip, remoteport);
