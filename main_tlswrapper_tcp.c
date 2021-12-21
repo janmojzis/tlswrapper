@@ -47,8 +47,6 @@ static int fd = -1;
 
 static int flagverbose = 1;
 
-static int connectioninfoflag = 0;
-
 static void cleanup(void) {
     randombytes(ip, sizeof ip);
     randombytes(inbuf, sizeof inbuf);
@@ -206,9 +204,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     timeout = timeout_parse(timeoutstr);
     connecttimeout = timeout_parse(connecttimeoutstr);
 
-    /* get connection info */
-    connectioninfoflag = connectioninfo_get(localip, localport, remoteip, remoteport);
-
     /* initialize randombytes */
     {
         char ch[1];
@@ -252,14 +247,11 @@ int main_tlswrapper_tcp(int argc, char **argv) {
             die_ppin(ppoutver);
         }
         connectioninfo_set(localip, localport, remoteip, remoteport);
-        connectioninfoflag = 1;
     }
-    if (connectioninfoflag) {
-        log_ip(iptostr(remoteipstr, remoteip));
-    }
-    else {
-        log_ip("UNKNOWNIP");
-    }
+
+    /* get connection info */
+    (void) connectioninfo_get(localip, localport, remoteip, remoteport);
+    log_ip(iptostr(remoteipstr, remoteip));
 
     fd = conn(connecttimeout, ip, iplen, port);
     if (fd == -1) {
