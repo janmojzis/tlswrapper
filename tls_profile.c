@@ -259,6 +259,7 @@ void tls_profile(struct tls_context *ctx) {
      * Reset
      */
     br_ssl_server_reset(cc);
+    errno = 0;
 
     log_t1("tls_profile() end");
 }
