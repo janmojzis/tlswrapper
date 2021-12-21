@@ -108,8 +108,6 @@ static void cleanup(void) {
 #define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
 #define die_ppin(x) { log_f3("unable to receive incomming proxy-protocol v", (x), " string");; die(100); }
 
-static int connectioninfoflag = 0;
-
 /* proxy-protocol */
 static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
 static const char *ppoutver = 0;
@@ -414,9 +412,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     /* set flagnojail */
     ctx.flagnojail = flagnojail;
 
-    /* get connection info */
-    connectioninfoflag = connectioninfo_get(localip, localport, remoteip, remoteport);
-
     /* non-blockning stdin/stdout */
     blocking_disable(0);
     blocking_disable(1);
@@ -535,14 +530,12 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             die_ppin(ppoutver);
         }
         connectioninfo_set(localip, localport, remoteip, remoteport);
-        connectioninfoflag = 1;
     }
-    if (connectioninfoflag) {
-        log_ip(iptostr(remoteipstr, remoteip));
-    }
-    else {
-        log_ip("UNKNOWNIP");
-    }
+
+    /* get connection info */
+    (void) connectioninfo_get(localip, localport, remoteip, remoteport);
+    log_ip(iptostr(remoteipstr, remoteip));
+
     log_d1("start");
 
     /* TLS init */
