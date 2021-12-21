@@ -1,125 +1,78 @@
 tlswrapper rejects fifo as a certdir
-tlswrapper: fatal: unable to add certdir 'testfifo' (not a directory)
 100
 
 tlswrapper rejects fifo as a certfile
-tlswrapper: fatal: unable to add certfile 'testfifo': not a regular file 
 100
 
 tlswrapper rejects fifo as a anchorfile
-tlswrapper: fatal: unable to add anchor file 'testfifo': not a regular file 
 100
 
 tlswrapper rejects nonexistent file as a certdir
-tlswrapper: fatal: unable to stat certdir 'notexist' (file does not exist)
 100
 
 tlswrapper rejects nonexistent file as a certfile
-tlswrapper: fatal: unable to stat certfile 'notexist' (file does not exist)
 100
 
 tlswrapper rejects nonexistent file as a anchorfile
-tlswrapper: fatal: unable to add anchor file 'notexist' (file does not exist)
 100
 
 tlswrapper rejects regular file as a certdir
-tlswrapper: fatal: unable to add certdir 'testfile' (not a directory)
 100
 
 tlswrapper rejects directory as a certfile
-tlswrapper: fatal: unable to add certfile 'testdir': not a regular file 
 100
 
 tlswrapper rejects directory as a anchor file
-tlswrapper: fatal: unable to add anchor file 'testdir': not a regular file 
 100
 
 tlswrapper rejects link to regular file as a certdir
-tlswrapper: fatal: unable to add certdir 'testfilelink' (not a directory)
 100
 
 tlswrapper rejects link to directory as a certfile
-tlswrapper: fatal: unable to add certfile 'testdirlink': not a regular file 
 100
 
 tlswrapper rejects link to directory as a anchorfile
-tlswrapper: fatal: unable to add anchor file 'testdirlink': not a regular file 
 100
 
 tlswrapper rejects bad min TLS version
-tlswrapper: fatal: unable to parse TLS min. version from the string 'xxx' 
-tlswrapper: fatal: available: tls10 
-tlswrapper: fatal: available: tls11 
-tlswrapper: fatal: available: tls12 
 100
 
 tlswrapper rejects bad max TLS version
-tlswrapper: fatal: unable to parse TLS max. version from the string 'xxx' 
-tlswrapper: fatal: available: tls10 
-tlswrapper: fatal: available: tls11 
-tlswrapper: fatal: available: tls12 
 100
 
 tlswrapper rejects bad ciphername
-tlswrapper: fatal: unable to parse cipher from the string 'xxx' 
-tlswrapper: fatal: available: CHACHA20_POLY1305_SHA256 
-tlswrapper: fatal: available: AES_256_GCM_SHA384 
-tlswrapper: fatal: available: AES_128_GCM_SHA256 
-tlswrapper: fatal: available: AES_256_CBC_SHA384 
-tlswrapper: fatal: available: AES_128_CBC_SHA256 
-tlswrapper: fatal: available: AES_256_CBC_SHA 
-tlswrapper: fatal: available: AES_128_CBC_SHA 
 100
 
 tlswrapper rejects bad ephemeral name
-tlswrapper: fatal: unable to parse ephemeral algorithm from the string 'xxx' 
-tlswrapper: fatal: available: x25519 
-tlswrapper: fatal: available: secp256r1 
-tlswrapper: fatal: available: secp384r1 
-tlswrapper: fatal: available: secp521r1 
 100
 
 tlswrapper rejects bad proxy protocol version
-tlswrapper: fatal: unable to parse outgoing proxy-protocol version from the string '9' 
-tlswrapper: fatal: available: 1 
-tlswrapper: fatal: available: 2 
 100
 
 tlswrapper rejects bad ASN.1 object
-tlswrapper: fatal: unable to parse ASN.1 object from the string 'xxx' 
-tlswrapper: fatal: available: commonName 
-tlswrapper: fatal: available: emailAddress 
 100
 
 tlswrapper rejects zero number as a network timeout
-tlswrapper: fatal: timeout must be a number > 0, not '0' 
 100
 
 tlswrapper rejects zero number as a handshake timeout
-tlswrapper: fatal: timeout must be a number > 0, not '0' 
 100
 
 tlswrapper rejects negative number as a network timeout
-tlswrapper: fatal: timeout must be a number > 0, not '-1' 
 100
 
 tlswrapper rejects nefative number as a handshake timeout
-tlswrapper: fatal: timeout must be a number > 0, not '-1' 
 100
 
 tlswrapper rejects bad number as a network timeout
-tlswrapper: fatal: unable to parse timeout from the string 'badtimeout' 
 100
 
 tlswrapper rejects bad numbern as a handshake timeout
-tlswrapper: fatal: unable to parse timeout from the string 'badtimeout' 
 100
 
 tlswrapper rejects too large number as a network timeout
-tlswrapper: fatal: timeout must be a number < 86400, not '86401' 
 100
 
 tlswrapper rejects too large numbern as a handshake timeout
-tlswrapper: fatal: timeout must be a number < 86400, not '86401' 
 100
 
