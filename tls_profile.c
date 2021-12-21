@@ -28,12 +28,6 @@ static int copyfn(char *buf, long long buflen, const char *a, const char *b) {
 
     if (!buf || !a || !b || buflen < 0) return 0;
 
-    /* if a has relative path, prepend './' */
-    if (a[0] != '/') {
-        pos = buf_puts(buf, buflen, pos, "./");
-        if (!pos) return 0;
-    }
-
     /* add a */
     pos = buf_puts(buf, buflen, pos, a);
     if (!pos) return 0;
@@ -48,7 +42,8 @@ static int copyfn(char *buf, long long buflen, const char *a, const char *b) {
         if (!pos) return 0;
     }
 
-
+   pos = buf_put(buf, buflen, pos, "", 1);
+   if (!pos) return 0;
     fixpath(buf);
     return 1;
 }

@@ -1,15 +1,15 @@
 badcert-ec-prime256v1-ec-prime256v1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-ec-prime256v1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-prime256v1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-prime256v1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-prime256v1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-prime256v1-ec-prime256v1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-prime256v1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-prime256v1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-prime256v1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-ec-prime256v1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-prime256v1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-prime256v1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -19,27 +19,27 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-secp384r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-ec-secp384r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp384r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp384r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-secp384r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-prime256v1-ec-secp384r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp384r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp384r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-secp384r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-ec-secp384r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp384r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp384r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-secp521r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-ec-secp521r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp521r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp521r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-ec-secp521r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-prime256v1-ec-secp521r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-ec-secp521r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-ec-secp521r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -49,12 +49,12 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-2048-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-2048-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-2048-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-2048-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-2048-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-2048-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-2048-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-2048-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -64,47 +64,47 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-3072-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-3072-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-3072-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-3072-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-3072-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-3072-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-3072-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-3072-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-3072-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-3072-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-3072-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-3072-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-4096-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-4096-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-4096-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-4096-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-4096-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-4096-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-4096-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-4096-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-prime256v1-rsa-4096-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-prime256v1-rsa-4096-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-prime256v1-rsa-4096-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-prime256v1-rsa-4096-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-prime256v1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-ec-prime256v1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-prime256v1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-prime256v1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-prime256v1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp384r1-ec-prime256v1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-prime256v1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-prime256v1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-prime256v1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-ec-prime256v1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-prime256v1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-prime256v1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -114,12 +114,12 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-secp384r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-ec-secp384r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-secp384r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp384r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-secp384r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp384r1-ec-secp384r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-secp384r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp384r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -129,12 +129,12 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-secp521r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-ec-secp521r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-secp521r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp521r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-ec-secp521r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp384r1-ec-secp521r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-ec-secp521r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-ec-secp521r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -144,12 +144,12 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-2048-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-2048-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-2048-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-2048-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-2048-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-2048-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-2048-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-2048-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -159,42 +159,42 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-3072-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-3072-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-3072-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-3072-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-3072-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-3072-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-3072-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-3072-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-3072-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-3072-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-3072-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-3072-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-4096-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-4096-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-4096-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-4096-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-4096-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-4096-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-4096-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-4096-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp384r1-rsa-4096-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp384r1-rsa-4096-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp384r1-rsa-4096-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp384r1-rsa-4096-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-prime256v1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-ec-prime256v1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-prime256v1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-prime256v1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-prime256v1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp521r1-ec-prime256v1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-prime256v1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-prime256v1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -209,27 +209,27 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-secp384r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-ec-secp384r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp384r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp384r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-secp384r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp521r1-ec-secp384r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp384r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp384r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-secp384r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-ec-secp384r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp384r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp384r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-secp521r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-ec-secp521r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp521r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp521r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-ec-secp521r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp521r1-ec-secp521r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-ec-secp521r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-ec-secp521r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -239,12 +239,12 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-2048-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-2048-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-2048-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-2048-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-2048-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-2048-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-2048-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-2048-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -254,47 +254,47 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-3072-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-3072-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-3072-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-3072-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-3072-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-3072-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-3072-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-3072-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-3072-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-3072-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-3072-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-3072-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-4096-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-4096-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-4096-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-4096-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-4096-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-4096-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-4096-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-4096-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-ec-secp521r1-rsa-4096-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-ec-secp521r1-rsa-4096-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-ec-secp521r1-rsa-4096-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-ec-secp521r1-rsa-4096-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-prime256v1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-ec-prime256v1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-ec-prime256v1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-prime256v1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-prime256v1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-2048-ec-prime256v1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-ec-prime256v1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-prime256v1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-prime256v1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-ec-prime256v1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-ec-prime256v1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-prime256v1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -304,92 +304,92 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-secp384r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-ec-secp384r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp384r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp384r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-secp384r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-2048-ec-secp384r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp384r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp384r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-secp384r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-ec-secp384r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp384r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp384r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-secp521r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-ec-secp521r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp521r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp521r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-secp521r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-2048-ec-secp521r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp521r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp521r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-ec-secp521r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-ec-secp521r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-ec-secp521r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-ec-secp521r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-2048-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-rsa-2048-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-rsa-2048-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-2048-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-2048-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-2048-rsa-2048-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-rsa-2048-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-2048-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-2048-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-rsa-2048-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-rsa-2048-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-2048-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-3072-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-rsa-3072-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-rsa-3072-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-3072-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-3072-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-2048-rsa-3072-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-rsa-3072-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-3072-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-3072-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-rsa-3072-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-rsa-3072-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-3072-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-4096-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-rsa-4096-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-rsa-4096-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-4096-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-4096-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-2048-rsa-4096-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-2048-rsa-4096-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-4096-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-2048-rsa-4096-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-2048-rsa-4096-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-2048-rsa-4096-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-2048-rsa-4096-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-prime256v1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-ec-prime256v1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-ec-prime256v1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-prime256v1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-prime256v1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-3072-ec-prime256v1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-ec-prime256v1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-prime256v1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-prime256v1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-ec-prime256v1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-ec-prime256v1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-prime256v1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -399,92 +399,92 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-secp384r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-ec-secp384r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp384r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp384r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-secp384r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-3072-ec-secp384r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp384r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp384r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-secp384r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-ec-secp384r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp384r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp384r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-secp521r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-ec-secp521r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp521r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp521r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-secp521r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-3072-ec-secp521r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp521r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp521r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-ec-secp521r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-ec-secp521r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-ec-secp521r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-ec-secp521r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-2048-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-rsa-2048-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-rsa-2048-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-2048-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-2048-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-3072-rsa-2048-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-rsa-2048-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-2048-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-2048-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-rsa-2048-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-rsa-2048-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-2048-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-3072-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-rsa-3072-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-rsa-3072-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-3072-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-3072-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-3072-rsa-3072-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-rsa-3072-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-3072-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-3072-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-rsa-3072-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-rsa-3072-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-3072-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-4096-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-rsa-4096-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-rsa-4096-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-4096-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-4096-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-3072-rsa-4096-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-3072-rsa-4096-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-4096-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-3072-rsa-4096-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-3072-rsa-4096-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-3072-rsa-4096-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-3072-rsa-4096-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-prime256v1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-ec-prime256v1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-ec-prime256v1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-prime256v1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-prime256v1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-4096-ec-prime256v1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-ec-prime256v1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-prime256v1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-prime256v1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-ec-prime256v1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-ec-prime256v1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-prime256v1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
@@ -494,77 +494,77 @@ tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 't
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-secp384r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-ec-secp384r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp384r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp384r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-secp384r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-4096-ec-secp384r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp384r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp384r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-secp384r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-ec-secp384r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp384r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp384r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-secp521r1-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-ec-secp521r1-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp521r1-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp521r1-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-secp521r1-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-4096-ec-secp521r1-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp521r1-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp521r1-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-ec-secp521r1-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-ec-secp521r1-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-ec-secp521r1-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-ec-secp521r1-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-2048-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-rsa-2048-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-rsa-2048-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-2048-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-2048-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-4096-rsa-2048-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-rsa-2048-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-2048-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-2048-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-rsa-2048-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-rsa-2048-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-2048-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-3072-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-rsa-3072-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-rsa-3072-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-3072-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-3072-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-4096-rsa-3072-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-rsa-3072-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-3072-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-3072-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-rsa-3072-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-rsa-3072-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-3072-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-4096-extrabegin.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-rsa-4096-extrabegin.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-rsa-4096-extrabegin.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-4096-extrabegin.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-4096-keyonly.pem
-tlswrapper: error: 0.0.0.0: no PEM public-object in './testcerts/badcert-rsa-4096-rsa-4096-keyonly.pem' 
+tlswrapper: error: 0.0.0.0: no PEM public-object in 'testcerts/badcert-rsa-4096-rsa-4096-keyonly.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-4096-keyonly.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
 badcert-rsa-4096-rsa-4096-malformed.pem
-tlswrapper: error: 0.0.0.0: malformed PEM public-object in './testcerts/badcert-rsa-4096-rsa-4096-malformed.pem' 
+tlswrapper: error: 0.0.0.0: malformed PEM public-object in 'testcerts/badcert-rsa-4096-rsa-4096-malformed.pem' 
 tlswrapper: fatal: 0.0.0.0: unable to obtain certificate(s) from the PEM file 'testcerts/badcert-rsa-4096-rsa-4096-malformed.pem' 
 tlswrapper: error: 0.0.0.0: SSL closed abnormally, sent alert: Decoding error: extraneous element. 
 0
