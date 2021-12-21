@@ -23,7 +23,7 @@
     done
     echo
 
-    echo "all: bearssl \$(BINARIES)"
+    echo "all: bearssl \$(BINARIES) tlswrapper-tcp"
     echo 
 
     for file in `ls *.c`; do
@@ -70,13 +70,13 @@
     echo "	ln -s tlswrapper tlswrapper-tcp"
     echo
 
-    echo "install: tlswrapper tlswrapper-tcp"
+    echo "install: \$(BINARIES) tlswrapper-tcp"
     echo "	install -D -m 0755 tlswrapper \$(DESTDIR)/usr/bin/tlswrapper"
     echo "	install -D -m 0755 tlswrapper-tcp \$(DESTDIR)/usr/bin/tlswrapper-tcp"
     echo "	install -d -m 0755 \$(DESTDIR)/\$(EMPTYDIR)"
     echo
 
-    echo "test: bearssl \$(BINARIES)"
+    echo "test: bearssl \$(BINARIES) tlswrapper-tcp"
     echo "	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)"
     echo "	sh test-proxyprotocol.sh > test-proxyprotocol.out; cmp test-proxyprotocol.exp test-proxyprotocol.out || (cat test-proxyprotocol.out; exit 1;)"
     echo "	sh test-badcert.sh > test-badcert.out; cmp test-badcert.exp test-badcert.out || (cat test-badcert.out; exit 1;)"

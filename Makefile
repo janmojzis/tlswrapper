@@ -7,7 +7,7 @@ DESTDIR?=
 BINARIES=tlswrapper
 BINARIES+=tlswrapper-test
 
-all: bearssl $(BINARIES)
+all: bearssl $(BINARIES) tlswrapper-tcp
 
 alloc.o: alloc.c randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
@@ -224,12 +224,12 @@ bearssl:
 tlswrapper-tcp: tlswrapper
 	ln -s tlswrapper tlswrapper-tcp
 
-install: tlswrapper tlswrapper-tcp
+install: $(BINARIES) tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
 	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
-test: bearssl $(BINARIES)
+test: bearssl $(BINARIES) tlswrapper-tcp
 	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)
 	sh test-proxyprotocol.sh > test-proxyprotocol.out; cmp test-proxyprotocol.exp test-proxyprotocol.out || (cat test-proxyprotocol.out; exit 1;)
 	sh test-badcert.sh > test-badcert.out; cmp test-badcert.exp test-badcert.out || (cat test-badcert.out; exit 1;)
