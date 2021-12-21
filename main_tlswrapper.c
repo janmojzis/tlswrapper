@@ -107,7 +107,6 @@ static void cleanup(void) {
 #define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
 #define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
 #define die_ppin(x) { log_f3("unable to receive incomming proxy-protocol v", (x), " string");; die(100); }
-#define die_connectioninfo() { log_f1("unable to get connection info"); die(100); }
 
 static int connectioninfoflag = 0;
 
@@ -540,6 +539,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (connectioninfoflag) {
         log_ip(iptostr(remoteipstr, remoteip));
     }
+    else {
+        log_ip("UNKNOWNIP");
+    }
     log_d1("start");
 
     /* TLS init */
@@ -596,7 +598,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (ppout) {
                 char ppbuf[PROXYPROTOCOL_MAX];
                 long long ppbuflen = 0;
-                if (!connectioninfoflag) die_connectioninfo();
                 ppbuflen = ppout(ppbuf, sizeof ppbuf, localip, localport, remoteip, remoteport);
                 if (ppbuflen <= 0) die_ppout(ppoutver);
                 if (writeall(tochild[1], ppbuf, ppbuflen) == -1) die_writetopipe();

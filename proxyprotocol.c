@@ -64,10 +64,10 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned
     char bufspace[PROXYPROTOCOL_MAX];
     char *buf = bufspace;
     int (*strtoipop)(unsigned char *, const char *);
-    unsigned char localip[16];
-    unsigned char localport[2];
-    unsigned char remoteip[16];
-    unsigned char remoteport[2];
+    unsigned char localip[16] = {0};
+    unsigned char localport[2] = {0};
+    unsigned char remoteip[16] = {0};
+    unsigned char remoteport[2] = {0};
 
     log_t3("proxyprotocol1_parse = ('", buforig, "')");
 
@@ -79,7 +79,7 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned
 
     /* header */
     if (str_start(buf, "PROXY UNKNOWN")) {
-        log_e3("proxy-protocol string unknown '", buforig, "'");
+        ret = 1;
         goto cleanup;
     }
     else if (str_start(buf, "PROXY TCP4 ")) {
@@ -129,13 +129,15 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned
         goto cleanup;
     }
 
-    memcpy(localipx, localip, 16);
-    memcpy(remoteipx, remoteip, 16);
-    memcpy(localportx, localport, 2);
-    memcpy(remoteportx, remoteport, 2);
     ret = 1;
 
 cleanup:
+    if (ret) {
+        memcpy(localipx, localip, 16);
+        memcpy(remoteipx, remoteip, 16);
+        memcpy(localportx, localport, 2);
+        memcpy(remoteportx, remoteport, 2);
+    }
     log_t4("proxyprotocol1_parse = ('", buforig, "') = ", lognum(ret));
     return ret;
 }
@@ -161,26 +163,57 @@ int proxyprotocol_v1_get(int fd, unsigned char *localip, unsigned char *localpor
 }
 
 
+static long long putip6(void *buf, long long buflen, long long pos, const unsigned char *ip) {
+
+    long long i;
+    char ch[2];
+
+    for (i = 0; i < 16; ++i) {
+        ch[0] = "0123456789abcdef"[(ip[i] >> 4) & 15];
+        ch[1] = "0123456789abcdef"[ip[i]        & 15];
+        pos = buf_put(buf, buflen, pos, ch, 2);
+        if (!pos) break;
+        if (i < 15 && i % 2) {
+            pos = buf_put(buf, buflen, pos, ":", 1);
+            if (!pos) break;
+        }
+    }
+    return pos;
+}
+
+static long long putip4(void *buf, long long buflen, long long pos, const unsigned char *ip) {
+    return buf_puts(buf, buflen, pos, iptostr(0, ip));
+}
 long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
 
     long long pos = 0;
+    long long (*putip)(void *, long long, long long, const unsigned char *);
 
     if (!buf || buflen < PROXYPROTOCOL_MAX) return 0;
 
+    if (!memcmp(localip, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) &&
+        !memcmp(remoteip, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) &&
+        !memcmp(localport, "\0\0", 2) &&
+        !memcmp(remoteport, "\0\0", 2)) {
+        goto fail;
+    }
+
     if (!memcmp("\0\0\0\0\0\0\0\0\0\0\377\377", remoteip, 12)) {
         pos = buf_puts(buf, buflen, pos, "PROXY TCP4 ");
+        putip = putip4;
     }
     else {
         pos = buf_puts(buf, buflen, pos, "PROXY TCP6 ");
+        putip = putip6;
     }
     if (!pos) goto fail;
 
-    pos = buf_puts(buf, buflen, pos, iptostr(0, remoteip));
+    pos = putip(buf, buflen, pos, remoteip);
     if (!pos) goto fail;
     pos = buf_puts(buf, buflen, pos, " ");
     if (!pos) goto fail;
 
-    pos = buf_puts(buf, buflen, pos, iptostr(0, localip));
+    pos = putip(buf, buflen, pos, localip);
     if (!pos) goto fail;
     pos = buf_puts(buf, buflen, pos, " ");
     if (!pos) goto fail;
@@ -202,7 +235,6 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, 
     return pos - 1;
 
 fail:
-    /* can't happen if buflen >= PROXYPROTOCOL_MAX */
     pos = 0;
     pos = buf_puts(buf, buflen, pos, "PROXY UNKNOWN\r\n");
     pos = buf_put(buf, buflen, pos, "", 1);

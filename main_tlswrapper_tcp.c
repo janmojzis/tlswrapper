@@ -65,7 +65,6 @@ static void cleanup(void) {
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
 #define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
 #define die_ppin(x) { log_f3("unable to receive incomming proxy-protocol v", (x), " string");; die(100); }
-#define die_connectioninfo() { log_f1("unable to get connection info"); die(100); }
 
 static void usage(void) {
     log_u1("tlswrapper-tcp [options] host port");
@@ -257,6 +256,9 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     if (connectioninfoflag) {
         log_ip(iptostr(remoteipstr, remoteip));
     }
+    else {
+        log_ip("UNKNOWNIP");
+    }
 
     fd = conn(connecttimeout, ip, iplen, port);
     if (fd == -1) {
@@ -266,7 +268,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
 
     /* write proxy-protocol string */
     if (ppout) {
-        if (!connectioninfoflag) die_connectioninfo();
         outbuflen = ppout((char *)outbuf, sizeof outbuf, localip, localport, remoteip, remoteport);
         if (outbuflen <= 0) die_ppout(ppoutver);
     }

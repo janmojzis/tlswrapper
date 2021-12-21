@@ -15,7 +15,7 @@ alloc.o: alloc.c randombytes.h alloc.h log.h
 blocking.o: blocking.c blocking.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c blocking.c
 
-buf.o: buf.c buf.h
+buf.o: buf.c buf.h iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
 
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h

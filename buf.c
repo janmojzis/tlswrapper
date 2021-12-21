@@ -1,5 +1,6 @@
 #include <string.h>
 #include "buf.h"
+#include "iptostr.h"
 
 long long buf_put(void *bufv, long long buflen, long long pos, const void *xv, long long xlen) {
     
