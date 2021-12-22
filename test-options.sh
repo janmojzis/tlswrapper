@@ -91,7 +91,7 @@ echo 'tlswrapper rejects zero number as a handshake timeout'
 tlswrappernojail -Q -f testfile -T0 true </dev/null 2>&1 | sed 's/ (.*)/ /'
 echo $?; echo
 echo 'tlswrapper rejects negative number as a network timeout'
-tlswrappernojail -Q -f testfile -t -1 true </dev/null 2>&1
+tlswrappernojail -Q -f testfile -t -1 true </dev/null 2>&1 | sed 's/ (.*)/ /'
 echo $?; echo
 echo 'tlswrapper rejects nefative number as a handshake timeout'
 tlswrappernojail -Q -f testfile -T -1 true </dev/null 2>&1 | sed 's/ (.*)/ /'

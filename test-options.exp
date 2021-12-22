@@ -101,7 +101,7 @@ tlswrapper: fatal: timeout must be a number > 0, not '0'
 
 tlswrapper rejects negative number as a network timeout
 tlswrapper: fatal: timeout must be a number > 0, not '-1' 
-100
+0
 
 tlswrapper rejects nefative number as a handshake timeout
 tlswrapper: fatal: timeout must be a number > 0, not '-1' 
