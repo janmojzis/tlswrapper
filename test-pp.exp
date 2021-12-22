@@ -1,62 +1,31 @@
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   !   !  \0   $
-0000020  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
-*
-0000060  \0  \0  \0  \0   O   K  \n  \n
-0000070
-::
-PROXY UNKNOWN
-OK
-
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   ! 021  \0  \f
-0000020 001 002 003 004 001 002 003 004 004 322 004 322   O   K  \n  \n
-0000040
-1.2.3.4
-PROXY TCP4 1.2.3.4 1.2.3.4 1234 1234
-OK
-
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   !   !  \0   $
-0000020 253 315 253 315 253 315 253 315 253 315 253 315 253 315 253 315
-*
-0000060 004 322 004 322   O   K  \n  \n
-0000070
-abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd
-PROXY TCP6 abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd 1234 1234
-OK
-
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   !   !  \0   $
-0000020  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
-*
-0000060  \0  \0  \0  \0   O   K  \n  \n
-0000070
-::
-PROXY UNKNOWN
-OK
-
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   !   !  \0   $
-0000020 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377
-*
-0000060 377 377 377 377   O   K  \n  \n
-0000070
-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535
-OK
-
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   !   !  \0   $
-0000020 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377
-*
-0000060 377 377 377 377   O   K  \n  \n
-0000070
-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535
-OK
-
-0000000  \r  \n  \r  \n  \0  \r  \n   Q   U   I   T  \n   ! 021  \0  \f
-0000020 377 377 377 377 377 377 377 377 377 377 377 377   O   K  \n  \n
-0000040
-255.255.255.255
-PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535
-OK
-
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!!\0$\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0OK\n\n
+escape: info: start 
+PROXY UNKNOWN\r\nOK\n\n
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!\x11\0\x0c\x01\x02\x03\x04\x01\x02\x03\x04\x04\xd2\x04\xd2OK\n\n
+escape: info: start 
+PROXY TCP4 1.2.3.4 1.2.3.4 1234 1234\r\nOK\n\n
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!!\0$\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\x04\xd2\x04\xd2OK\n\n
+escape: info: start 
+PROXY TCP6 abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd 1234 1234\r\nOK\n\n
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!!\0$\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0OK\n\n
+escape: info: start 
+PROXY UNKNOWN\r\nOK\n\n
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!!\0$\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffOK\n\n
+escape: info: start 
+PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535\r\nOK\n\n
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!!\0$\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffOK\n\n
+escape: info: start 
+PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535\r\nOK\n\n
+escape: info: start 
+\r\n\r\n\0\r\nQUIT\n!\x11\0\x0c\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffOK\n\n
+escape: info: start 
+PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535\r\nOK\n\n
 tlswrapper: error: unable to parse proxy-protocol string 'PROXY\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
 tlswrapper: error: unable to parse proxy-protocol string 'PROXY TCP6\r\n' 
