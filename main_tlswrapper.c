@@ -81,8 +81,13 @@ static unsigned char remoteport[2] = {0};
 static char remoteipstr[IPTOSTR_LEN] = {0};
 
 static void signalhandler(int signum) {
-    if (signum == SIGCHLD) alarm(1);
-    else write(selfpipe[1], "", 1);
+    int w;
+    if (signum == SIGCHLD) {
+        alarm(1);
+        return;
+    }
+    w = write(selfpipe[1], "", 1);
+    (void) w;
 }
 
 static void cleanup(void) {

@@ -144,8 +144,10 @@ static long long timeout_parse(const char *x) {
 static int selfpipe[2] = {-1, -1};
 
 static void signalhandler(int signum) {
+    int w;
     if (signum == SIGCHLD) return;
-    write(selfpipe[1], "", 1);
+    w = write(selfpipe[1], "", 1);
+    (void) w;
 }
 
 int main_tlswrapper_tcp(int argc, char **argv) {
