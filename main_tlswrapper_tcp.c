@@ -62,7 +62,7 @@ static void cleanup(void) {
 #define die_jail() { log_f1("unable to create jail"); die(111); }
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
 #define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
-#define die_ppin(x) { log_f3("unable to receive incomming proxy-protocol v", (x), " string");; die(100); }
+#define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
 
 static void usage(void) {
     log_u1("tlswrapper-tcp [options] host port");
@@ -82,10 +82,10 @@ static const char *ppoutver = 0;
 static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
 static const char *ppinver = 0;
 
-static void pp_incomming(const char *x) {
+static void pp_incoming(const char *x) {
 
     if (!strcmp("0", x)) {
-        /* disable incomming proxy protocol*/
+        /* disable incoming proxy-protocol */
         return;
     }
     else if (!strcmp("1", x)) {
@@ -93,7 +93,7 @@ static void pp_incomming(const char *x) {
         ppinver = x;
     }
     else {
-        log_f3("unable to parse incomming proxy-protocol version from the string '", x, "'");
+        log_f3("unable to parse incoming proxy-protocol version from the string '", x, "'");
         log_f1("available: 1");
         die(100);
     }
@@ -101,7 +101,7 @@ static void pp_incomming(const char *x) {
 static void pp_outgoing(const char *x) {
 
     if (!strcmp("0", x)) {
-        /* disable proxy protocol*/
+        /* disable outgoing proxy-protocol */
         return;
     }
     else if (!strcmp("1", x)) {
@@ -175,8 +175,8 @@ int main_tlswrapper_tcp(int argc, char **argv) {
             }
             /* proxy-protocol */
             if (*x == 'p') {
-                if (x[1]) { pp_incomming(x + 1); break; }
-                if (argv[1]) { pp_incomming(*++argv); break; }
+                if (x[1]) { pp_incoming(x + 1); break; }
+                if (argv[1]) { pp_incoming(*++argv); break; }
             }
             if (*x == 'P') {
                 if (x[1]) { pp_outgoing(x + 1); break; }
@@ -244,7 +244,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     /* receive proxy-protocol string */
     if (ppin) {
         if (!ppin(0, localip, localport, remoteip, remoteport)) {
-            die_ppin(ppoutver);
+            die_ppin(ppinver);
         }
     }
     else {
