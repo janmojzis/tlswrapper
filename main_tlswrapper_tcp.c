@@ -45,12 +45,26 @@ static long long iplen;
 static unsigned char port[2];
 static int fd = -1;
 
+static unsigned char localip[16] = {0};
+static unsigned char localport[2] = {0};
+static unsigned char remoteip[16] = {0};
+static unsigned char remoteport[2] = {0};
+static char remoteipstr[IPTOSTR_LEN] = {0};
+
+
 static int flagverbose = 1;
 
 static void cleanup(void) {
+    resolvehost_close();
     randombytes(ip, sizeof ip);
+    randombytes(port, sizeof port);
     randombytes(inbuf, sizeof inbuf);
     randombytes(outbuf, sizeof outbuf);
+    randombytes(localip, sizeof localip);
+    randombytes(localport, sizeof localport);
+    randombytes(remoteip, sizeof remoteip);
+    randombytes(remoteip, sizeof remoteip);
+    randombytes(remoteipstr, sizeof remoteipstr);
     randombytes(&ctx, sizeof ctx);
     {
         unsigned char stack[4096];
@@ -68,13 +82,6 @@ static void usage(void) {
     log_u1("tlswrapper-tcp [options] host port");
     die(100);
 }
-
-
-static unsigned char localip[16] = {0};
-static unsigned char localport[2] = {0};
-static unsigned char remoteip[16] = {0};
-static unsigned char remoteport[2] = {0};
-static char remoteipstr[IPTOSTR_LEN] = {0};
 
 /* proxy-protocol */
 static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
@@ -137,7 +144,7 @@ static long long timeout_parse(const char *x) {
 static int selfpipe[2] = {-1, -1};
 
 static void signalhandler(int signum) {
-    (void) signum;
+    if (signum == SIGCHLD) return;
     write(selfpipe[1], "", 1);
 }
 
@@ -227,6 +234,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     for (i = 0; i < iplen; i += 16) {
         log_d3(hoststr, ": ", logip(ip + i));
     }
+    resolvehost_close();
 
     /* create selfpipe */
     if (pipe(selfpipe) == -1) die_pipe();

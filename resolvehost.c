@@ -8,6 +8,8 @@ Public domain.
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+#include <signal.h>
 #include <netdb.h>
 #include "e.h"
 #include "blocking.h"
@@ -136,7 +138,7 @@ int resolvehost_init(void) {
             jail_poll(p, 1, 1000);
             if (p[0].revents) {
                 r = recv(sockets[0], buf, sizeof buf, 0);
-                if (r == sizeof buf) _exit(111);
+                if (r == sizeof buf) break;
                 if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
                 if (r == -1) _exit(111);
                 if (r == 0) break;
@@ -196,5 +198,12 @@ long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
 }
 
 void resolvehost_close(void) {
-    if (resolvehost_fd != -1) close(resolvehost_fd);
+    unsigned char buf[257];
+    int status;
+    if (resolvehost_fd != -1) {
+        (void) send(resolvehost_fd, buf, sizeof buf, 0);
+        close(resolvehost_fd);
+        resolvehost_fd = -1;
+        while (waitpid(resolvehost_pid, &status, 0) != resolvehost_pid) {};
+    }
 }
