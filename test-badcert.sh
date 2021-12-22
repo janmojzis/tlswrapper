@@ -22,7 +22,7 @@ touch testemptycert
 ls testcerts | grep '^badcert-' |\
 while read name; do
   echo $name
-  tlswrapper-test -qr tlswrappernojail -vf "testcerts/${name}" true 2>&1
+  tlswrapper-test -qr tlswrappernojail -vf "testcerts/${name}" true 2>&1 | sed 's/ (.*)/ /'
   echo $?
 done
 
