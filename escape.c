@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include "e.h"
+#include "log.h"
 #include "writeall.h"
 
 static char ibuf[1024];
@@ -7,10 +8,16 @@ static long long ibuflen = 0;
 static char obuf[4 * sizeof ibuf + 1];
 static long long obuflen = 0;
 
+
 int main(void) {
 
     long long i;
     char x;
+
+    log_name("escape");
+    log_level(2);
+
+    log_i1("start");
 
     for (;;) {
         ibuflen = read(0, ibuf, sizeof ibuf);
@@ -19,6 +26,7 @@ int main(void) {
             if (errno == EINTR) continue;
             if (errno == EAGAIN) continue;
             if (errno == EWOULDBLOCK) continue;
+            log_f1("unable to read from input");
             _exit(111);
         }
         for (i = 0; i < ibuflen; ++i) {
@@ -45,10 +53,16 @@ int main(void) {
                 obuf[obuflen++] = ibuf[i];
             }
         }
-        if (writeall(1, obuf, obuflen) == -1) _exit(111);
+        if (writeall(1, obuf, obuflen) == -1) {
+            log_f1("unable write to output");
+            _exit(111);
+        }
         obuflen = 0;
         ibuflen = 0;
     }
-    if (writeall(1, "\n", 1) == -1) _exit(111);
+    if (writeall(1, "\n", 1) == -1) {
+        log_f1("unable write to output");
+        _exit(111);
+    }
     _exit(0);
 }
