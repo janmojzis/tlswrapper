@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 #include "blocking.h"
@@ -82,6 +83,7 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
 
 static void signalhandler(int signum) {
     int w;
+    log_t3("signal ", lognum(signum), " received");
     if (signum == SIGCHLD) {
         alarm(1);
         return;
@@ -463,6 +465,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
             alarm(0);
+            log_t3("running '", argv[0], "'");
             execvp(*argv, argv);
             log_f2("unable to run ", *argv);
             die(111);
@@ -700,6 +703,19 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             log_d1("signal received");
             break;
         }
+    }
+
+    {
+        int status;
+        signal(SIGCHLD, SIG_DFL);
+        signal(SIGALRM, SIG_DFL);
+        alarm(1);
+        close(fromsecchild[0]);
+        close(tosecchild[1]);
+        while (waitpid(secchild, &status, 0) != secchild) {};
+        close(fromchild[0]);
+        close(tochild[1]);
+        while (waitpid(child, &status, 0) != child) {};
     }
 
     log_d1("finished");
