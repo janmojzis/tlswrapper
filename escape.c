@@ -45,11 +45,10 @@ int main(void) {
                 obuf[obuflen++] = ibuf[i];
             }
         }
-
-        obuf[obuflen++] = '\n';
         if (writeall(1, obuf, obuflen) == -1) _exit(111);
         obuflen = 0;
         ibuflen = 0;
     }
+    if (writeall(1, "\n", 1) == -1) _exit(111);
     _exit(0);
 }
