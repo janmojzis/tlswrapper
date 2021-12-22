@@ -87,10 +87,10 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
 
             if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfn)) {
                 if (errno != ENOENT || ctx->certfiles_len == i + 1) {
-                    log_f5("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "/", server_name, "'");
+                    log_f3("unable to obtain certificate(s) from the PEM file '", ctx->certfn, "'");
                     goto bad;
                 }
-                log_w5("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "/", server_name, "', trying next");
+                log_w3("unable to obtain certificate(s) from the PEM file '", ctx->certfn, "', trying next");
                 continue;
             }
         }
@@ -102,7 +102,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
                 continue;
             }
             if (!tls_pipe_getcert(ctx->chain, &ctx->chain_len, &ctx->key_type, ctx->certfn)) {
-                log_f3("unable to obtain certificate(s) from the PEM file '", ctx->certfiles[i].name, "'");
+                log_f3("unable to obtain certificate(s) from the PEM file '", ctx->certfn, "'");
                 goto bad;
             }
         }
