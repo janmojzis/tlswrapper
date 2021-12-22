@@ -265,8 +265,8 @@ int main_tlswrapper_tcp(int argc, char **argv) {
 
     /* write proxy-protocol string */
     if (ppout) {
-        outbuflen = ppout((char *)outbuf, sizeof outbuf, localip, localport, remoteip, remoteport);
-        if (outbuflen <= 0) die_ppout(ppoutver);
+        inbuflen = ppout((char *)inbuf, sizeof outbuf, localip, localport, remoteip, remoteport);
+        if (inbuflen <= 0) die_ppout(ppoutver);
     }
 
     log_d4("connected to [", logip(ip), "]:", logport(port));
