@@ -42,11 +42,11 @@ while read name; do
 
   randdata
   CMD="${CMD} -a ${caname} -h "${name}""
-  ${CMD} -w tlswrappernojail -v -d "`pwd`/testcerts" sh -c 'exec cat > data.out' < data.in  2>log
+  ${CMD} -w tlswrappernojail -v -d "testcerts" sh -c 'exec cat > data.out' < data.in  2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), upload"
 
   randdata
-  ${CMD} -r tlswrappernojail -v -d "`pwd`/testcerts" cat data.in > data.out 2>log
+  ${CMD} -r tlswrappernojail -v -d "testcerts" cat data.in > data.out 2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), download"
 
   randdata
