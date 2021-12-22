@@ -159,7 +159,9 @@ int proxyprotocol_v1_get(int fd, unsigned char *localip, unsigned char *localpor
     errno = 0;
     pos = buf_put(buf, sizeof buf, pos, "", 1);
     if (!pos) return 0;
-    return proxyprotocol1_parse(buf, localip, localport, remoteip, remoteport);
+    r = proxyprotocol1_parse(buf, localip, localport, remoteip, remoteport);
+    if (r) log_d8("received proxy-protocol: localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
+    return r;
 }
 
 long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {

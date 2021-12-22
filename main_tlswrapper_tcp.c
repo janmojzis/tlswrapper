@@ -216,7 +216,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         die(111);
     }
     iplen = resolvehost_do(ip, sizeof ip, hoststr);
-    log_d2("iplen: ", lognum(iplen));
     if (iplen < 0) {
         log_f5("unable to resolve host '", hoststr, "' or port '", portstr, "'");
         die(111);
