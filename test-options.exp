@@ -111,7 +111,7 @@ tlswrapper rejects bad number as a network timeout
 tlswrapper: fatal: unable to parse timeout from the string 'badtimeout' 
 0
 
-tlswrapper rejects bad numbern as a handshake timeout
+tlswrapper rejects bad number as a handshake timeout
 tlswrapper: fatal: unable to parse timeout from the string 'badtimeout' 
 0
 
@@ -119,7 +119,7 @@ tlswrapper rejects too large number as a network timeout
 tlswrapper: fatal: timeout must be a number < 86400, not '86401' 
 0
 
-tlswrapper rejects too large numbern as a handshake timeout
+tlswrapper rejects too large number as a handshake timeout
 tlswrapper: fatal: timeout must be a number < 86400, not '86401' 
 0
 

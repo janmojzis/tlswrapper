@@ -99,12 +99,12 @@ echo $?; echo
 echo 'tlswrapper rejects bad number as a network timeout'
 tlswrappernojail -Q -f testfile -t badtimeout true </dev/null 2>&1 | sed 's/ (.*)/ /'
 echo $?; echo
-echo 'tlswrapper rejects bad numbern as a handshake timeout'
+echo 'tlswrapper rejects bad number as a handshake timeout'
 tlswrappernojail -Q -f testfile -T badtimeout true </dev/null 2>&1 | sed 's/ (.*)/ /'
 echo $?; echo
 echo 'tlswrapper rejects too large number as a network timeout'
 tlswrappernojail -Q -f testfile -t 86401 true </dev/null 2>&1 | sed 's/ (.*)/ /'
 echo $?; echo
-echo 'tlswrapper rejects too large numbern as a handshake timeout'
+echo 'tlswrapper rejects too large number as a handshake timeout'
 tlswrappernojail -Q -f testfile -T 86401 true </dev/null 2>&1 | sed 's/ (.*)/ /'
 echo $?; echo
