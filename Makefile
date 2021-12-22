@@ -236,7 +236,7 @@ install: $(BINARIES) tlswrapper-tcp
 	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
-test: bearssl $(BINARIES) tlswrapper-tcp
+test: bearssl $(BINARIES) tlswrapper-tcp escape
 	sh runtest.sh test-options.sh test-options.out test-options.exp
 	sh runtest.sh test-pp.sh test-pp.out test-pp.exp
 	sh runtest.sh test-badcert.sh test-badcert.out test-badcert.exp
