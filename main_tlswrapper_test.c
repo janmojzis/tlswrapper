@@ -288,7 +288,11 @@ int main_tlswrapper_test(int argc, char **argv) {
         if (br_sslio_flush(&ioc) == -1) {
             log_f1("unable to write to child");
         }
-        if (flagflush) br_sslio_close(&ioc);
+        if (flagflush) {
+            if (br_sslio_close(&ioc) == -1) {
+                log_f1("unable to close ssl connection");
+            }
+        }
     }
 
     close(fromchild[0]);
