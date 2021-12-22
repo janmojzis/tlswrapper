@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
-#include <poll.h>
 #include "randombytes.h"
 #include "iptostr.h"
 #include "proxyprotocol.h"
