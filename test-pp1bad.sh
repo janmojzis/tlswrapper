@@ -37,5 +37,5 @@ CMD="${CMD} -h okcert-ec-prime256v1-ec-prime256v1-ok.pem"
   echo "PROXY_TCP4_255.255.255.255_255.255.255.255_65536_65535"
   echo "PROXY_TCP4_255.255.255.255_255.255.255.255_65535_65536"
 ) | while read line; do
-  ${CMD} -P "${line}" -w tlswrappernojail -p1 -P1 -v -d "`pwd`/testcerts" sh -c 'exec printenv >&9' <data.in 9>&1 2>&1 | sed 's/v1 string.*/v1 string/' | sed "s/n'.*/n'/"
+  ${CMD} -P "${line}" -w tlswrappernojail -p1 -P1 -v -d "`pwd`/testcerts" sh -c 'exec printenv >&9' <data.in 9>&1 2>&1 | sed 's/ (.*)/ /'
 done

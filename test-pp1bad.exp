@@ -1,34 +1,34 @@
-tlswrapper: error: unable to parse proxy-protocol string 'PROXY\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse proxy-protocol string 'PROXY TCP6\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 \r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 2\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.255.255.255\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 \r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 \r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse localport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535 \r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.255.256.255 255.255.255.255 65535 \r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.256.255.255 255.255.255.255 65535 65535\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.256.255.255 65535 65535\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65536 65535\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
-tlswrapper: error: unable to parse localport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535 65536\r\n'
-tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string
+tlswrapper: error: unable to parse proxy-protocol string 'PROXY\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse proxy-protocol string 'PROXY TCP6\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 \r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 2\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.255.255.255\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 \r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 \r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse localport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535 \r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.255.256.255 255.255.255.255 65535 \r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TCP4 255.256.255.255 255.255.255.255 65535 65535\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.256.255.255 65535 65535\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65536 65535\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
+tlswrapper: error: unable to parse localport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535 65536\r\n' 
+tlswrapper: fatal: unable to receive incomming proxy-protocol v1 string 
