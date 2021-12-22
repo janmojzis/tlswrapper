@@ -321,6 +321,4 @@ int main_tlswrapper_test(int argc, char **argv) {
     while (waitpid(child, &childstatus, 0) != child) {};
     log_d1("finished");
     die(WEXITSTATUS(childstatus));
-
-    die(0);
 }

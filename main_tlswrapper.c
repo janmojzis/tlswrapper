@@ -709,7 +709,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         int status;
         signal(SIGCHLD, SIG_DFL);
         signal(SIGALRM, SIG_DFL);
-        alarm(1);
         close(fromsecchild[0]);
         close(tosecchild[1]);
         while (waitpid(secchild, &status, 0) != secchild) {};
