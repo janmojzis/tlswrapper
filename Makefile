@@ -4,7 +4,8 @@ CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc -DEMPTYDIR=\"$(EMPT
 LDFLAGS+=-L./bearssl/build -lbearssl
 DESTDIR?=
 
-BINARIES=tlswrapper
+BINARIES=escape
+BINARIES+=tlswrapper
 BINARIES+=tlswrapper-test
 
 all: bearssl $(BINARIES) tlswrapper-tcp
@@ -31,6 +32,9 @@ crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
 
 e.o: e.c e.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c e.c
+
+escape.o: escape.c e.h writeall.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c escape.c
 
 fixname.o: fixname.c fixname.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fixname.c
@@ -207,6 +211,9 @@ OBJECTS+=tls_seccrt.o
 OBJECTS+=tls_timeout.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
+
+escape: escape.o $(OBJECTS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o escape escape.o $(OBJECTS) $(LDFLAGS)
 
 tlswrapper: tlswrapper.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
