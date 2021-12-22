@@ -198,7 +198,7 @@ long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
 }
 
 void resolvehost_close(void) {
-    unsigned char buf[257];
+    unsigned char buf[257] = {0};
     int status;
     if (resolvehost_fd != -1) {
         (void) send(resolvehost_fd, buf, sizeof buf, 0);
