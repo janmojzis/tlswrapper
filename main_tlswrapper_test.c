@@ -285,8 +285,10 @@ int main_tlswrapper_test(int argc, char **argv) {
                 break;
             }
         }
+        if (br_sslio_flush(&ioc) == -1) {
+            log_f1("unable to write to child");
+        }
         if (flagflush) br_sslio_close(&ioc);
-        br_sslio_flush(&ioc);
     }
 
     close(fromchild[0]);
@@ -313,6 +315,7 @@ int main_tlswrapper_test(int argc, char **argv) {
     }
 
     while (waitpid(child, &childstatus, 0) != child) {};
+    log_d1("finished");
     die(WEXITSTATUS(childstatus));
 
     die(0);
