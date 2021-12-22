@@ -230,11 +230,11 @@ install: $(BINARIES) tlswrapper-tcp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES) tlswrapper-tcp
-	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)
-	sh test-pp.sh > test-pp.out; cmp test-pp.exp test-pp.out || (cat test-pp.out; exit 1;)
-	sh test-badcert.sh > test-badcert.out; cmp test-badcert.exp test-badcert.out || (cat test-badcert.out; exit 1;)
-	sh test-badkey.sh > test-badkey.out; cmp test-badkey.exp test-badkey.out || (cat test-badkey.out; exit 1;)
-	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)
+	sh runtest.sh test-options.sh test-options.out test-options.exp
+	sh runtest.sh test-pp.sh test-pp.out test-pp.exp
+	sh runtest.sh test-badcert.sh test-badcert.out test-badcert.exp
+	sh runtest.sh test-badkey.sh test-badkey.out test-badkey.exp
+	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:
 	rm -f *.o *.out $(BINARIES) tlswrapper-tcp
