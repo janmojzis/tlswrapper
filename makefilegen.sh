@@ -78,9 +78,7 @@
 
     echo "test: bearssl \$(BINARIES) tlswrapper-tcp"
     echo "	sh test-options.sh > test-options.out; cmp test-options.exp test-options.out || (cat test-options.out; exit 1;)"
-    echo "	sh test-pp1.sh > test-pp1.out; cmp test-pp1.exp test-pp1.out || (cat test-pp1.out; exit 1;)"
-    echo "	sh test-pp2.sh > test-pp2.out; cmp test-pp2.exp test-pp2.out || (cat test-pp2.out; exit 1;)"
-    echo "	sh test-pp1bad.sh > test-pp1bad.out; cmp test-pp1bad.exp test-pp1bad.out || (cat test-pp1bad.out; exit 1;)"
+    echo "	sh test-pp.sh > test-pp.out; cmp test-pp.exp test-pp.out || (cat test-pp.out; exit 1;)"
     echo "	sh test-badcert.sh > test-badcert.out; cmp test-badcert.exp test-badcert.out || (cat test-badcert.out; exit 1;)"
     echo "	sh test-badkey.sh > test-badkey.out; cmp test-badkey.exp test-badkey.out || (cat test-badkey.out; exit 1;)"
     echo "	sh test-okcert.sh > test-okcert.out; cmp test-okcert.exp test-okcert.out || (cat test-okcert.out; exit 1;)"
