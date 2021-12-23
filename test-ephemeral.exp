@@ -1,0 +1,24 @@
+tests default ephemeral ciphers
+x25519
+OK
+0
+secp256r1
+OK
+0
+secp384r1
+111
+secp521r1
+111
+tests all ephemeral ciphers
+x25519
+OK
+0
+secp256r1
+OK
+0
+secp384r1
+OK
+0
+secp521r1
+OK
+0

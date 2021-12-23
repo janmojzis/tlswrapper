@@ -238,6 +238,7 @@ install: $(BINARIES) tlswrapper-tcp
 
 test: bearssl $(BINARIES) tlswrapper-tcp escape
 	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp
+	sh runtest.sh test-ephemeral.sh test-ephemeral.out test-ephemeral.exp
 	sh runtest.sh test-options.sh test-options.out test-options.exp
 	sh runtest.sh test-pp.sh test-pp.out test-pp.exp
 	sh runtest.sh test-badcert.sh test-badcert.out test-badcert.exp

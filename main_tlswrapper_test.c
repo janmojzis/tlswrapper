@@ -43,6 +43,8 @@ static struct tls_pubcrt anchorcrt = {0};
 static char *ppstring = 0;
 
 static uint16_t ciphersuite = 0;
+static uint32_t ecdhecurves = 0;
+static br_ec_impl ecdhe;
 
 static int numparse(unsigned long long *num, const char *x) {
 
@@ -211,6 +213,30 @@ static void cipher_get(const char *x) {
     die(100);
 }
 
+struct {
+    const char *name;
+    uint16_t suite;
+} ecdhes[] = {
+    { "x25519", tls_ecdhe_X25519 },
+    { "secp256r1", tls_ecdhe_SECP256R1 },
+    { "secp384r1", tls_ecdhe_SECP384R1 },
+    { "secp521r1", tls_ecdhe_SECP521R1 },
+    { 0, 0 }
+};
+
+static void ecdhe_add(const char *x) {
+
+    long long i;
+
+    for (i = 0; ecdhes[i].name; ++i) {
+        if (strcmp(x, ecdhes[i].name)) continue;
+        ecdhecurves |= 1 << ecdhes[i].suite;
+        return;
+    }
+    log_f3("unable to parse ecdhe from the string '", x, "'");
+    die(100);
+}
+
 int main_tlswrapper_test(int argc, char **argv) {
 
     char *x;
@@ -255,6 +281,10 @@ int main_tlswrapper_test(int argc, char **argv) {
             if (*x == 'c') {
                 if (x[1]) { cipher_get(x + 1); break; }
                 if (argv[1]) { cipher_get(*++argv); break; }
+            }
+            if (*x == 'e') {
+                if (x[1]) { ecdhe_add(x + 1); break; }
+                if (argv[1]) { ecdhe_add(*++argv); break; }
             }
             usage();
         }
@@ -323,6 +353,11 @@ int main_tlswrapper_test(int argc, char **argv) {
     }
     if (ciphersuite) {
         br_ssl_engine_set_suites(&cc->eng, &ciphersuite, 1);
+    }
+    if (ecdhecurves) {
+        memcpy(&ecdhe, br_ec_get_default(), sizeof(br_ec_impl));
+        ecdhe.supported_curves = ecdhecurves;
+        br_ssl_engine_set_ec(&cc->eng, &ecdhe);
     }
 
     /* write proxy-protocol string */
