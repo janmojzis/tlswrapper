@@ -95,6 +95,11 @@ static void signalhandler(int signum) {
 
 static void cleanup(void) {
     randombytes(&ctx, sizeof ctx);
+    randombytes(localip, sizeof localip);
+    randombytes(localport, sizeof localport);
+    randombytes(remoteip, sizeof remoteip);
+    randombytes(remoteip, sizeof remoteip);
+    randombytes(remoteipstr, sizeof remoteipstr);
     alloc_freeall();
     {
         unsigned char stack[4096];
