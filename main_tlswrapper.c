@@ -68,10 +68,11 @@ static int flagverbose = 1;
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
 static pid_t child = -1;
+static int status;
 
-static int fromsecchild[2] = {-1, -1};
-static int tosecchild[2] = {-1, -1};
-static pid_t secchild = -1;
+static int fromkeyjail[2] = {-1, -1};
+static int tokeyjail[2] = {-1, -1};
+static pid_t keyjail = -1;
 
 static int selfpipe[2] = {-1, -1};
 
@@ -302,6 +303,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     char *x;
     int handshakedone = 0;
+    long long r;
 
     errno = 0;
     signal(SIGPIPE, SIG_IGN);
@@ -482,21 +484,21 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
 
     /* run service process for loading keys and secret-key operations */
-    if (pipe(fromsecchild) == -1) die_pipe();
-    if (pipe(tosecchild) == -1) die_pipe();
-    secchild = fork();
-    switch (secchild) {
+    if (pipe(fromkeyjail) == -1) die_pipe();
+    if (pipe(tokeyjail) == -1) die_pipe();
+    keyjail = fork();
+    switch (keyjail) {
         case -1:
             die_fork();
         case 0:
-            close(fromsecchild[0]);
-            close(tosecchild[1]);
+            close(fromkeyjail[0]);
+            close(tokeyjail[1]);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
-            if (dup(tosecchild[0]) != 0) die_dup();
+            if (dup(tokeyjail[0]) != 0) die_dup();
             close(1);
-            if (dup(fromsecchild[1]) != 1) die_dup();
+            if (dup(fromkeyjail[1]) != 1) die_dup();
             blocking_enable(0);
             blocking_enable(1);
             signal(SIGPIPE, SIG_IGN);
@@ -507,12 +509,12 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             tls_keyjail(&ctx);
             die(0);
     }
-    close(fromsecchild[1]);
-    close(tosecchild[0]);
-    blocking_enable(fromsecchild[0]);
-    blocking_enable(tosecchild[1]);
-    tls_pipe_fromchild = fromsecchild[0];
-    tls_pipe_tochild = tosecchild[1];
+    close(fromkeyjail[1]);
+    close(tokeyjail[0]);
+    blocking_enable(fromkeyjail[0]);
+    blocking_enable(tokeyjail[1]);
+    tls_pipe_fromchild = fromkeyjail[0];
+    tls_pipe_tochild = tokeyjail[1];
     tls_pipe_eng = &ctx.cc.eng;
 
     /* create selfpipe */
@@ -568,7 +570,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         struct pollfd *watchfromselfpipe;
         unsigned char *buf;
         size_t len;
-        long long r;
 
         st = br_ssl_engine_current_state(&ctx.cc.eng);
         if (st & BR_SSL_CLOSED) {
@@ -705,19 +706,33 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         }
     }
 
-    {
-        int status;
-        signal(SIGCHLD, SIG_DFL);
-        signal(SIGALRM, SIG_DFL);
-        close(fromsecchild[0]);
-        close(tosecchild[1]);
-        while (waitpid(secchild, &status, 0) != secchild) {};
-        close(fromchild[0]);
-        close(tochild[1]);
-        while (waitpid(child, &status, 0) != child) {};
-    }
+    signal(SIGCHLD, SIG_DFL);
+    signal(SIGALRM, SIG_DFL);
 
-    log_d1("finished");
-    die(0);
+    /* wait for keyjail child */
+    close(fromkeyjail[0]);
+    close(tokeyjail[1]);
+    do {
+        r = waitpid(keyjail, &status, 0);
+    } while (r == -1 && errno == EINTR);
+  	if (!WIFEXITED(status)) {
+        log_t2("keyjail process killed by signal ", lognum(WTERMSIG(status)));
+    }
+    log_t2("keyjail exited with status ", lognum(WEXITSTATUS(status)));
+
+    /* wait for child */
+    close(fromchild[0]);
+    close(tochild[1]);
+    do {
+        r = waitpid(child, &status, 0);
+    } while (r == -1 && errno == EINTR);
+    errno = 0;
+  	if (!WIFEXITED(status)) {
+        log_f2("child process killed by signal ", lognum(WTERMSIG(status)));
+        die(111);
+    }
+    r = WEXITSTATUS(status);
+    log_d2("child exited with status ", lognum(WEXITSTATUS(status)));
+    die(WEXITSTATUS(status));
 }
 /* clang-format on */
