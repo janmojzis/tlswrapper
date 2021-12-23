@@ -33,7 +33,7 @@ crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
 e.o: e.c e.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c e.c
 
-escape.o: escape.c e.h writeall.h
+escape.o: escape.c e.h log.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c escape.c
 
 fixname.o: fixname.c fixname.h
@@ -241,6 +241,7 @@ test: bearssl $(BINARIES) tlswrapper-tcp escape
 	sh runtest.sh test-pp.sh test-pp.out test-pp.exp
 	sh runtest.sh test-badcert.sh test-badcert.out test-badcert.exp
 	sh runtest.sh test-badkey.sh test-badkey.out test-badkey.exp
+	sh runtest.sh test-childexit.sh test-childexit.out test-childexit.exp
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:

@@ -1,0 +1,524 @@
+child killed by SIGHUP
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 1 
+111
+child killed by SIGINT
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 2 
+111
+child killed by SIGKILL
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 9 
+111
+child killed by SIGTERM
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 15 
+111
+child exited with status 0
+0
+child exited with status 1
+1
+child exited with status 2
+2
+child exited with status 3
+3
+child exited with status 4
+4
+child exited with status 5
+5
+child exited with status 6
+6
+child exited with status 7
+7
+child exited with status 8
+8
+child exited with status 9
+9
+child exited with status 10
+10
+child exited with status 11
+11
+child exited with status 12
+12
+child exited with status 13
+13
+child exited with status 14
+14
+child exited with status 15
+15
+child exited with status 16
+16
+child exited with status 17
+17
+child exited with status 18
+18
+child exited with status 19
+19
+child exited with status 20
+20
+child exited with status 21
+21
+child exited with status 22
+22
+child exited with status 23
+23
+child exited with status 24
+24
+child exited with status 25
+25
+child exited with status 26
+26
+child exited with status 27
+27
+child exited with status 28
+28
+child exited with status 29
+29
+child exited with status 30
+30
+child exited with status 31
+31
+child exited with status 32
+32
+child exited with status 33
+33
+child exited with status 34
+34
+child exited with status 35
+35
+child exited with status 36
+36
+child exited with status 37
+37
+child exited with status 38
+38
+child exited with status 39
+39
+child exited with status 40
+40
+child exited with status 41
+41
+child exited with status 42
+42
+child exited with status 43
+43
+child exited with status 44
+44
+child exited with status 45
+45
+child exited with status 46
+46
+child exited with status 47
+47
+child exited with status 48
+48
+child exited with status 49
+49
+child exited with status 50
+50
+child exited with status 51
+51
+child exited with status 52
+52
+child exited with status 53
+53
+child exited with status 54
+54
+child exited with status 55
+55
+child exited with status 56
+56
+child exited with status 57
+57
+child exited with status 58
+58
+child exited with status 59
+59
+child exited with status 60
+60
+child exited with status 61
+61
+child exited with status 62
+62
+child exited with status 63
+63
+child exited with status 64
+64
+child exited with status 65
+65
+child exited with status 66
+66
+child exited with status 67
+67
+child exited with status 68
+68
+child exited with status 69
+69
+child exited with status 70
+70
+child exited with status 71
+71
+child exited with status 72
+72
+child exited with status 73
+73
+child exited with status 74
+74
+child exited with status 75
+75
+child exited with status 76
+76
+child exited with status 77
+77
+child exited with status 78
+78
+child exited with status 79
+79
+child exited with status 80
+80
+child exited with status 81
+81
+child exited with status 82
+82
+child exited with status 83
+83
+child exited with status 84
+84
+child exited with status 85
+85
+child exited with status 86
+86
+child exited with status 87
+87
+child exited with status 88
+88
+child exited with status 89
+89
+child exited with status 90
+90
+child exited with status 91
+91
+child exited with status 92
+92
+child exited with status 93
+93
+child exited with status 94
+94
+child exited with status 95
+95
+child exited with status 96
+96
+child exited with status 97
+97
+child exited with status 98
+98
+child exited with status 99
+99
+child exited with status 100
+100
+child exited with status 101
+101
+child exited with status 102
+102
+child exited with status 103
+103
+child exited with status 104
+104
+child exited with status 105
+105
+child exited with status 106
+106
+child exited with status 107
+107
+child exited with status 108
+108
+child exited with status 109
+109
+child exited with status 110
+110
+child exited with status 111
+111
+child exited with status 112
+112
+child exited with status 113
+113
+child exited with status 114
+114
+child exited with status 115
+115
+child exited with status 116
+116
+child exited with status 117
+117
+child exited with status 118
+118
+child exited with status 119
+119
+child exited with status 120
+120
+child exited with status 121
+121
+child exited with status 122
+122
+child exited with status 123
+123
+child exited with status 124
+124
+child exited with status 125
+125
+child exited with status 126
+126
+child exited with status 127
+127
+child exited with status 128
+128
+child exited with status 129
+129
+child exited with status 130
+130
+child exited with status 131
+131
+child exited with status 132
+132
+child exited with status 133
+133
+child exited with status 134
+134
+child exited with status 135
+135
+child exited with status 136
+136
+child exited with status 137
+137
+child exited with status 138
+138
+child exited with status 139
+139
+child exited with status 140
+140
+child exited with status 141
+141
+child exited with status 142
+142
+child exited with status 143
+143
+child exited with status 144
+144
+child exited with status 145
+145
+child exited with status 146
+146
+child exited with status 147
+147
+child exited with status 148
+148
+child exited with status 149
+149
+child exited with status 150
+150
+child exited with status 151
+151
+child exited with status 152
+152
+child exited with status 153
+153
+child exited with status 154
+154
+child exited with status 155
+155
+child exited with status 156
+156
+child exited with status 157
+157
+child exited with status 158
+158
+child exited with status 159
+159
+child exited with status 160
+160
+child exited with status 161
+161
+child exited with status 162
+162
+child exited with status 163
+163
+child exited with status 164
+164
+child exited with status 165
+165
+child exited with status 166
+166
+child exited with status 167
+167
+child exited with status 168
+168
+child exited with status 169
+169
+child exited with status 170
+170
+child exited with status 171
+171
+child exited with status 172
+172
+child exited with status 173
+173
+child exited with status 174
+174
+child exited with status 175
+175
+child exited with status 176
+176
+child exited with status 177
+177
+child exited with status 178
+178
+child exited with status 179
+179
+child exited with status 180
+180
+child exited with status 181
+181
+child exited with status 182
+182
+child exited with status 183
+183
+child exited with status 184
+184
+child exited with status 185
+185
+child exited with status 186
+186
+child exited with status 187
+187
+child exited with status 188
+188
+child exited with status 189
+189
+child exited with status 190
+190
+child exited with status 191
+191
+child exited with status 192
+192
+child exited with status 193
+193
+child exited with status 194
+194
+child exited with status 195
+195
+child exited with status 196
+196
+child exited with status 197
+197
+child exited with status 198
+198
+child exited with status 199
+199
+child exited with status 200
+200
+child exited with status 201
+201
+child exited with status 202
+202
+child exited with status 203
+203
+child exited with status 204
+204
+child exited with status 205
+205
+child exited with status 206
+206
+child exited with status 207
+207
+child exited with status 208
+208
+child exited with status 209
+209
+child exited with status 210
+210
+child exited with status 211
+211
+child exited with status 212
+212
+child exited with status 213
+213
+child exited with status 214
+214
+child exited with status 215
+215
+child exited with status 216
+216
+child exited with status 217
+217
+child exited with status 218
+218
+child exited with status 219
+219
+child exited with status 220
+220
+child exited with status 221
+221
+child exited with status 222
+222
+child exited with status 223
+223
+child exited with status 224
+224
+child exited with status 225
+225
+child exited with status 226
+226
+child exited with status 227
+227
+child exited with status 228
+228
+child exited with status 229
+229
+child exited with status 230
+230
+child exited with status 231
+231
+child exited with status 232
+232
+child exited with status 233
+233
+child exited with status 234
+234
+child exited with status 235
+235
+child exited with status 236
+236
+child exited with status 237
+237
+child exited with status 238
+238
+child exited with status 239
+239
+child exited with status 240
+240
+child exited with status 241
+241
+child exited with status 242
+242
+child exited with status 243
+243
+child exited with status 244
+244
+child exited with status 245
+245
+child exited with status 246
+246
+child exited with status 247
+247
+child exited with status 248
+248
+child exited with status 249
+249
+child exited with status 250
+250
+child exited with status 251
+251
+child exited with status 252
+252
+child exited with status 253
+253
+child exited with status 254
+254
+child exited with status 255
+255

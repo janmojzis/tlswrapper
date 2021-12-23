@@ -81,6 +81,7 @@
     echo "	sh runtest.sh test-pp.sh test-pp.out test-pp.exp"
     echo "	sh runtest.sh test-badcert.sh test-badcert.out test-badcert.exp"
     echo "	sh runtest.sh test-badkey.sh test-badkey.out test-badkey.exp"
+    echo "	sh runtest.sh test-childexit.sh test-childexit.out test-childexit.exp"
     echo "	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp"
     echo
 
