@@ -42,6 +42,8 @@ static struct tls_pubcrt anchorcrt = {0};
 
 static char *ppstring = 0;
 
+static uint16_t ciphersuite = 0;
+
 static int numparse(unsigned long long *num, const char *x) {
 
     char *endptr = 0;
@@ -102,6 +104,7 @@ static const br_x509_class *getvtable(void) {
     return &my509vtable;
 }
 
+
 static void cleanup(void) {
     {
         unsigned char stack[4096];
@@ -121,6 +124,90 @@ static void cleanup(void) {
 
 static void usage(void) {
     log_u1("tlswrapper-test [options] prog");
+    die(100);
+}
+
+struct {
+    const char *name;
+    uint16_t suite;
+} ciphers[] = {
+	{
+		"ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
+		BR_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+	},
+	{
+		"ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+		BR_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+	},
+	{
+		"ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+		BR_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	},
+	{
+		"ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+		BR_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	},
+	{
+		"ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+		BR_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	},
+	{
+		"ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+		BR_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	},
+	{
+		"ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+		BR_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+	},
+	{
+		"ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+		BR_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+	},
+	{
+		"ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
+		BR_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
+	},
+	{
+		"ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+		BR_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+	},
+	{
+		"ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+		BR_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	},
+	{
+		"ECDHE_RSA_WITH_AES_128_CBC_SHA",
+		BR_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	},
+	{
+		"ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+		BR_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	},
+	{
+		"ECDHE_RSA_WITH_AES_256_CBC_SHA",
+		BR_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+	},
+	{
+		"ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA",
+		BR_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+	},
+	{
+		"ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
+		BR_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	},
+	{ 0, 0 }
+};
+
+static void cipher_get(const char *x) {
+
+    long long i;
+
+    for (i = 0; ciphers[i].name; ++i) {
+        if (strcmp(x, ciphers[i].name)) continue;
+        ciphersuite = ciphers[i].suite;
+        return;
+    }
+    log_f3("unable to parse cipher from the string '", x, "'");
     die(100);
 }
 
@@ -164,6 +251,10 @@ int main_tlswrapper_test(int argc, char **argv) {
             if (*x == 'd') {
                 if (x[1]) { daysstr = x + 1; break; }
                 if (argv[1]) { daysstr = *++argv; break; }
+            }
+            if (*x == 'c') {
+                if (x[1]) { cipher_get(x + 1); break; }
+                if (argv[1]) { cipher_get(*++argv); break; }
             }
             usage();
         }
@@ -229,6 +320,9 @@ int main_tlswrapper_test(int argc, char **argv) {
         }
         log_t2("days = ", lognum(days));
         br_x509_minimal_set_time(&xc, days, 0);
+    }
+    if (ciphersuite) {
+        br_ssl_engine_set_suites(&cc->eng, &ciphersuite, 1);
     }
 
     /* write proxy-protocol string */
@@ -322,3 +416,4 @@ int main_tlswrapper_test(int argc, char **argv) {
     log_d1("finished");
     die(WEXITSTATUS(childstatus));
 }
+

@@ -77,6 +77,7 @@
     echo
 
     echo "test: bearssl \$(BINARIES) tlswrapper-tcp escape"
+    echo "	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp"
     echo "	sh runtest.sh test-options.sh test-options.out test-options.exp"
     echo "	sh runtest.sh test-pp.sh test-pp.out test-pp.exp"
     echo "	sh runtest.sh test-badcert.sh test-badcert.out test-badcert.exp"
