@@ -70,8 +70,8 @@ static int tls_choose(const br_ssl_server_policy_class **pctx, const br_ssl_serv
         if (curves & 1 << u) log_d2("clients ECDHE ", tls_ecdhe_str(u));
     }
 
-    log_d2("client tls_version=", tls_version_str(br_ssl_engine_get_version(&cc->eng)));
-    log_d3("client server_name='", br_ssl_engine_get_server_name(&cc->eng), "'");
+    log_d2("clients tls_version=", tls_version_str(br_ssl_engine_get_version(&cc->eng)));
+    log_d3("clients server_name='", br_ssl_engine_get_server_name(&cc->eng), "'");
 
 
     for (i = 0; i < ctx->certfiles_len; ++i) {

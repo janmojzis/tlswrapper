@@ -627,8 +627,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             alarm(timeout);
             handshakedone = 1;
 
-            log_i6("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
-            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)));
+            log_i9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
+            ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
         }
 
         watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = 0;
