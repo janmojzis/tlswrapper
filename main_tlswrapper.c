@@ -724,7 +724,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
   	if (!WIFEXITED(status)) {
         log_t2("keyjail process killed by signal ", lognum(WTERMSIG(status)));
     }
-    log_t2("keyjail exited with status ", lognum(WEXITSTATUS(status)));
+    else {
+        log_t2("keyjail exited with status ", lognum(WEXITSTATUS(status)));
+    }
 
     /* wait for child */
     close(fromchild[0]);
@@ -737,7 +739,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         log_f2("child process killed by signal ", lognum(WTERMSIG(status)));
         die(111);
     }
-    r = WEXITSTATUS(status);
     log_d2("child exited with status ", lognum(WEXITSTATUS(status)));
     die(WEXITSTATUS(status));
 }
