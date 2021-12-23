@@ -100,7 +100,7 @@ int jail(const char *account, const char *dir, int limits) {
             log_e2("unable to chroot to ", dir);
             goto cleanup;
         }
-        log_d2("chrooted into ", dir);
+        log_t2("chrooted into ", dir);
     }
 
     /* set uid */
@@ -144,7 +144,7 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
-    log_d4("running under uid = ", lognum(gid), ", gid = ", lognum(gid));
+    log_t4("running under uid = ", lognum(gid), ", gid = ", lognum(gid));
 
     ret = 0;
 
