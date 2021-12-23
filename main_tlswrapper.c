@@ -121,6 +121,7 @@ static void cleanup(void) {
 #define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
 #define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
 
+
 /* proxy-protocol */
 static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
 static const char *ppoutver = 0;
@@ -581,18 +582,40 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             int err;
             err = br_ssl_engine_last_error(&ctx.cc.eng);
             if (err == BR_ERR_OK) {
-                log_d1("SSL closed normally");
+                if (handshakedone) {
+                    log_i9("SSL closed normally: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+                    tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
+                    ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
+                }
+                else {
+                    log_d1("SSL closed normally");
+                }
             }
             else {
                 if (err >= BR_ERR_SEND_FATAL_ALERT) {
                     err -= BR_ERR_SEND_FATAL_ALERT;
-                    log_e2("SSL closed abnormally, sent alert: ", tls_error_str(err));
+                    if (handshakedone) {
+                        log_e2("SSL closed abnormally, sent alert: ", tls_error_str(err));
+                    }
+                    else {
+                        log_d2("SSL closed abnormally, sent alert: ", tls_error_str(err));
+                    }
                 } else if (err >= BR_ERR_RECV_FATAL_ALERT) {
                     err -= BR_ERR_RECV_FATAL_ALERT;
-                    log_e2("SSL closed abnormally, received alert: ", tls_error_str(err));
+                    if (handshakedone) {
+                        log_e2("SSL closed abnormally, received alert: ", tls_error_str(err));
+                    }
+                    else {
+                        log_d2("SSL closed abnormally, received alert: ", tls_error_str(err));
+                    }
                 }
                 else {
-                    log_e2("SSL closed abnormally: ", tls_error_str(err));
+                    if (handshakedone) {
+                        log_e2("SSL closed abnormally: ", tls_error_str(err));
+                    }
+                    else {
+                        log_d2("SSL closed abnormally: ", tls_error_str(err));
+                    }
                 }
             }
             break;
@@ -627,7 +650,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             alarm(timeout);
             handshakedone = 1;
 
-            log_i9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+            log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
             tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
             ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
         }
