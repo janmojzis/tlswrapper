@@ -22,7 +22,7 @@ Normal mode (default). The \fBtlswrapper\fR prints only fatal messages, which me
 Verbose mode. The \fBtlswrapper\fR prints also information/warnings/errors about TLS connection, but after TLS handshake is successfully done. In this mode TLS errors before the complete TLS handshake are suppressed.
 .TP
 .B \-vv
-Debug mode. The \fBtlswrapper\fR prints also debug informations about TLS connection, including all TLS connection warnings/errors.
+Debug mode. The \fBtlswrapper\fR prints also debug information about TLS connection, including all TLS connection warnings/errors.
 .TP
 .B \-vvv
 Tracing mode. The \fBtlswrapper\fR prints also tracing messages, useful for bug hunting.
@@ -112,7 +112,7 @@ Then the network\-process assemble the PEM filename and sends the name to the se
 Secret\-key\-process loads the PEM file and immediately is jailed and drops it's privileges.
 Since here both processes runs jailed (see JAIL above).
 Note that PEM files are loaded under root privileges, but parsed in jailed unpriviledged process.
-It ensures that a vulnerability in the parsing code can't be used to gain root privileges/informations.
+It ensures that a vulnerability in the parsing code can't be used to gain root privileges/information.
 Warning: For security reasons \fBtlswrapper\fR does not allow dots immediately after slashes in file names. It changes these dots to colons before attempting to open the PEM file.
 .PP
 .B TLS library
