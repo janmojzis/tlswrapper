@@ -13,10 +13,19 @@ Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-
 .SH OPTIONS
 .TP
 .B \-q
-Quiet mode. No error messages. See LOGGING LEVELS.
+Quiet mode. No error messages.
+.TP
+.B \-Q
+Normal mode (default). The \fBtlswrapper\fR prints only fatal messages, which means system errors (e.g. memory allocation problems), configuration errors (e.g. syntax errors) and problems with PEM certificates (missing files, etc... ). In this mode the \fBtlswrapper\fR doesn't print any information about TLS connections.
 .TP
 .B \-v
-Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3. See LOGGING LEVELS.
+Verbose mode. The \fBtlswrapper\fR prints also information/warnings/errors about TLS connection, but after TLS handshake is successfully done. In this mode TLS errors before the complete TLS handshake are suppressed.
+.TP
+.B \-vv
+Debug mode. The \fBtlswrapper\fR prints also debug informations about TLS connection, including all TLS connection warnings/errors.
+.TP
+.B \-vvv
+Tracing mode. The \fBtlswrapper\fR prints also tracing messages, useful for bug hunting.
 .TP
 .B \-f \fIcertfile\fR
 Add a file containing key+certificate(s) in PEM format.
@@ -54,13 +63,13 @@ Set the TLS handshake timeout to seconds \fIseconds\fR. (default 30).
 Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
 .TP
 .B \-U \fIASN.1 object\fR
-Extract the user from \fIASN.1 object\fR from the client certificate and run program \fIprog\fR under user's uid and gid. Supported \fIASN.1 object\fR objects are commonName and emailAddress.
+Extract the user from \fIASN.1 object\fR from the client certificate and run program \fIprog\fR under user's uid and gid. Supported \fIASN.1 object\fR objects are 'commonName' and 'emailAddress'.
 .TP
 .B \-p \fIversion\fR
-Enable incoming proxy-protocol version \fIversion\fR string.
+Enable incoming proxy\-protocol version \fIversion\fR string. The \fBtlswrapper\fR receives the 
 .TP
 .B \-P \fIversion\fR
-Enable outgoing proxy-protocol version \fIversion\fR string.
+Enable outgoing proxy\-protocol version \fIversion\fR string.
 .TP
 .B \-s
 Enforce TLS server preferences. (default).
@@ -69,10 +78,10 @@ Enforce TLS server preferences. (default).
 Don't enforce TLS server preferences.
 .TP
 .B \-J \fIjaildir\fR
-Chroot network-process and key-process into a specified \fIjaildir\fR (default: /var/lib/tlswraper/empty).
+Chroot network\-process and key\-process into a specified \fIjaildir\fR (default: /var/lib/tlswraper/empty).
 .TP
 .B \-j \fIjailuser\fR
-Run network-process and key-process under a specified \fIjailuser\fR's uid and gid. If unset run network-process and key-process under random uid and gid.
+Run network\-process and key\-process under a specified \fIjailuser\fR's uid and gid. If unset run network\-process and key\-process under random uid and gid.
 .TP
 .I prog
 program
@@ -82,25 +91,25 @@ program
 The \fBtlswrapper\fR is executed from systemd.socket/inetd/tcpserver/... which runs separate instance of \fBtlswrapper\fR for each TLS connection.
 It ensures that a vulnerability in the code (e.g. bug in the TLS library) can't be used to compromise the memory of another connection.
 .PP
-.B Separate process for network connection and separate process for secret-key operation
+.B Separate process for network connection and separate process for secret\-key operation
 .PP
-To protect against secret-information leaks to the network connection (such Heartbleed) \fBtlswrapper\fR  runs two independent processes for every TLS connection.
-One process holds secret-keys and runs secret-keys operations and second talks to the network. Processes communicate with each other through UNIX pipes.
+To protect against secret\-information leaks to the network connection (such Heartbleed) \fBtlswrapper\fR  runs two independent processes for every TLS connection.
+One process holds secret\-keys and runs secret\-keys operations and second talks to the network. Processes communicate with each other through UNIX pipes.
 .PP
-.B JAIL - Privilege separation, filesystem isolation, limits
+.B JAIL \- Privilege separation, filesystem isolation, limits
 .PP
-The \fBtlswrapper\fR processes run under dedicated non-zero uid to prohibit kill, ptrace, etc.
+The \fBtlswrapper\fR processes run under dedicated non\-zero uid to prohibit kill, ptrace, etc.
 Is chrooted into an empty, unwritable directory to prohibit filesystem access.
 Sets ulimits to prohibit new files, sockets, etc. Sets ulimits to prohibit forks.
 .PP
 .B PEM files
 .PP
-The \fBtlswrapper\fR uses for simplicity both secret-key and certificates in one PEM file.
-When the server starts, runs two independent UNIX processes, one for network communication, second for secret-key operations.
-The network-process is immediately jailed and starts TLS handshake.
-Secret-key-process starts under root privileges, waits when network-process receives SNI extension from client-hello packet.
-Then the network-process assemble the PEM filename and sends the name to the secret-key-process.
-Secret-key-process loads the PEM file and immediately is jailed and drops it's privileges.
+The \fBtlswrapper\fR uses for simplicity both secret\-key and certificates in one PEM file.
+When the server starts, runs two independent UNIX processes, one for network communication, second for secret\-key operations.
+The network\-process is immediately jailed and starts TLS handshake.
+Secret\-key\-process starts under root privileges, waits when network\-process receives SNI extension from client\-hello packet.
+Then the network\-process assemble the PEM filename and sends the name to the secret\-key\-process.
+Secret\-key\-process loads the PEM file and immediately is jailed and drops it's privileges.
 Since here both processes runs jailed (see JAIL above).
 Note that PEM files are loaded under root privileges, but parsed in jailed unpriviledged process.
 It ensures that a vulnerability in the parsing code can't be used to gain root privileges/informations.
@@ -109,17 +118,17 @@ Warning: For security reasons \fBtlswrapper\fR does not allow dots immediately a
 .B TLS library
 .PP
 The \fBtlswrapper\fR uses BearSSL. BearSSL is an implementation of the SSL/TLS protocol (RFC 5246) written in C. It aims at offering the following features:
- \- Be correct and secure. In particular, insecure protocol versions and choices of algorithms are not supported, by design; cryptographic algorithm implementations are constant-time by default.
+ \- Be correct and secure. In particular, insecure protocol versions and choices of algorithms are not supported, by design; cryptographic algorithm implementations are constant\-time by default.
  \- Be small, both in RAM and code footprint. For instance, a minimal server implementation may fit in about 20 kilobytes of compiled code and 25 kilobytes of RAM.
  \- Be highly portable. BearSSL targets not only big operating systems like Linux and Windows, but also small embedded systems and even special contexts like bootstrap code.
- \- Be feature-rich and extensible. SSL/TLS has many defined cipher suites and extensions; BearSSL should implement most of them, and allow extra algorithm implementations to be added afterwards, possibly from third parties.
+ \- Be feature\-rich and extensible. SSL/TLS has many defined cipher suites and extensions; BearSSL should implement most of them, and allow extra algorithm implementations to be added afterwards, possibly from third parties.
 .PP
 .SH ALGORITHMS
 .TS
 allbox;
 c s s
 l l l.
-TLS version (\-m option -M option)
+TLS version (\-m option \-M option)
 tls10	TLS 1.0	optional
 tls11	TLS 1.1	optional
 tls12	TLS 1.2	default
@@ -131,12 +140,12 @@ c s s
 l l l.
 ciphers (\-c option)
 CHACHA20_POLY1305_SHA256	ChaCha20+Poly1305 encryption (TLS 1.2+)	default
-AES_256_GCM_SHA384	AES-256/GCM encryption (TLS 1.2+)	default
-AES_128_GCM_SHA256	AES-128/GCM encryption (TLS 1.2+)	default
-AES_256_CBC_SHA384	AES-256/CBC + SHA-384 (TLS 1.2+)	optional
-AES_128_CBC_SHA256	AES-128/CBC + SHA-384 (TLS 1.2+)	optional
-AES_256_CBC_SHA	AES-256/CBC + SHA-1	optional
-AES_128_CBC_SHA	AES-128/CBC + SHA-1	optional
+AES_256_GCM_SHA384	AES\-256/GCM encryption (TLS 1.2+)	default
+AES_128_GCM_SHA256	AES\-128/GCM encryption (TLS 1.2+)	default
+AES_256_CBC_SHA384	AES\-256/CBC + SHA\-384 (TLS 1.2+)	optional
+AES_128_CBC_SHA256	AES\-128/CBC + SHA\-384 (TLS 1.2+)	optional
+AES_256_CBC_SHA	AES\-256/CBC + SHA\-1	optional
+AES_128_CBC_SHA	AES\-128/CBC + SHA\-1	optional
 .TE
 .TS
 allbox;
@@ -144,29 +153,16 @@ c s s
 l l l.
 ephemeral (\-e option)
 x25519	ECDHE using X25519	default
-secp256r1	ECDHE using NIST P-256	default
-secp384r1	ECDHE using NIST P-384	optional
-secp521r1	ECDHE using NIST P-521	optional
-.TE
-.SH LOGGING LEVELS
-.TS
-allbox;
-c s s
-l l l.
-levels
-level	option	notes
-usage	-q	Quiet mode. No error messages. Prints only usage.
-fatal	-Q	Prints only fatal error messages (default).
-info	-v	Prints info/warning/error messages.
-debug	-vv	Prints debug messages.
-tracing	-vvv	Prints tracing information.
+secp256r1	ECDHE using NIST P\-256	default
+secp384r1	ECDHE using NIST P\-384	optional
+secp521r1	ECDHE using NIST P\-521	optional
 .TE
 .SH EXAMPLES
 .PP
 Run tlswrapper using tcpserver/busybox/inetd on port 443.
 .RS 4
 .nf
-tcpserver -HRDl0 0 443 tlswrapper [ options ] prog
+tcpserver \-HRDl0 0 443 tlswrapper [ options ] prog
 busybox tcpsvd 0 443 tlswrapper [ options ] prog
 inetd.conf line: https stream tcp nowait root /usr/bin/tlswrapper tlswrapper [ options ] prog
 .fi
@@ -179,10 +175,10 @@ Simple usage, use one '/etc/.../rsa.pem' certificate:
 .fi
 .RE
 .PP
-Use '/etc/.../ecdsa.pem' certificate and fall-back to '/etc/.../rsa.pem' certificate, if the client doesn't support previous one.
+Use '/etc/.../ecdsa.pem' certificate and fall\-back to '/etc/.../rsa.pem' certificate, if the client doesn't support previous one.
 .RS 4
 .nf
- ... tlswrapper \-f '/etc/.../ecdsa.pem' -f '/etc/.../rsa.pem' ...
+ ... tlswrapper \-f '/etc/.../ecdsa.pem' \-f '/etc/.../rsa.pem' ...
 .fi
 .RE
 .PP
@@ -193,21 +189,21 @@ Use certificate '/etc/.../rsa.d/{hostname}' where {hostname} is extracted from t
 .fi
 .RE
 .PP
-Use certificate '/etc/.../ecdsa.d/{hostname}' where {hostname} is extracted from the SNI extension, and fall-back to '/etc/.../rsa.d/{hostname}', if the client doesn't support previous one.
+Use certificate '/etc/.../ecdsa.d/{hostname}' where {hostname} is extracted from the SNI extension, and fall\-back to '/etc/.../rsa.d/{hostname}', if the client doesn't support previous one.
 .RS 4
 .nf
  ... tlswrapper \-d '/etc/.../ecdsa.d/' \-d '/etc/.../rsa.d/' ...
 .fi
 .RE
 .PP
-Use certificate '/etc/.../ecdsa.d/{hostname}' where {hostname} is extracted from the SNI extension, and fall-back to '/etc/.../rsa.pem', if the client doesn't support previous one.
+Use certificate '/etc/.../ecdsa.d/{hostname}' where {hostname} is extracted from the SNI extension, and fall\-back to '/etc/.../rsa.pem', if the client doesn't support previous one.
 .RS 4
 .nf
  ... tlswrapper \-d '/etc/.../ecdsa.d/' \-f '/etc/.../rsa.pem' ...
 .fi
 .RE
 .PP
-Enable TLS 1.0 - TLS 1.2 and all supported algorithms:
+Enable TLS 1.0 \- TLS 1.2 and all supported algorithms:
 .RS 4
 .nf
  ... tlswrapper \-m tls10 \\
@@ -227,7 +223,7 @@ Enable TLS 1.0 - TLS 1.2 and all supported algorithms:
 .fi
 .RE
 .PP
-Enable TLS 1.0 - TLS 1.2 and all supported algorithms, but different order (prefer AES128):
+Enable TLS 1.0 \- TLS 1.2 and all supported algorithms, but different order (prefer AES128):
 .RS 4
 .nf
  ... tlswrapper \-m tls10 \\
@@ -247,7 +243,7 @@ Enable TLS 1.0 - TLS 1.2 and all supported algorithms, but different order (pref
 .fi
 .RE
 .PP
-Enable only 256-bit symmetric ciphers:
+Enable only 256\-bit symmetric ciphers:
 .RS 4
 .nf
  ... tlswrapper \-c CHACHA20_POLY1305_SHA256 \\
@@ -279,7 +275,7 @@ Enable client certificate authentication, and run program under user extracted f
 .fi
 .RE
 .SH SEE ALSO
-.BR tlswrapper-tcp (1),
+.BR tlswrapper\-tcp (1),
 .BR systemd.socket (5),
 .BR inetd (8),
 .BR tcpserver (1)
