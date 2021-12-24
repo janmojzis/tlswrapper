@@ -1,4 +1,3 @@
-#include <poll.h>
 #include <unistd.h>
 #include "e.h"
 #include "jail.h"
