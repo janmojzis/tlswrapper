@@ -2,9 +2,9 @@
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "e.h"
 #include "log.h"
 #include "randombytes.h"
 #include "bearssl.h"
