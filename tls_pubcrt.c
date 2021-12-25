@@ -50,7 +50,7 @@ static void sa_append(void *sav, const void *bufv, size_t buflen) {
         }
         newp = alloc(sa->alloc);
         if (!newp) {
-            sa->error= 1;
+            sa->error = 1;
             return;
         }
         if (sa->p) {

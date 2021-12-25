@@ -744,7 +744,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     do {
         r = waitpid(keyjail, &status, 0);
     } while (r == -1 && errno == EINTR);
-  	if (!WIFEXITED(status)) {
+    if (!WIFEXITED(status)) {
         log_t2("keyjail process killed by signal ", lognum(WTERMSIG(status)));
     }
     else {
@@ -758,7 +758,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         r = waitpid(child, &status, 0);
     } while (r == -1 && errno == EINTR);
     errno = 0;
-  	if (!WIFEXITED(status)) {
+    if (!WIFEXITED(status)) {
         log_f2("child process killed by signal ", lognum(WTERMSIG(status)));
         die(111);
     }
