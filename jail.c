@@ -144,6 +144,24 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
+/* if memory limit is greater than 128MB */
+/* set memory limit to 128MB             */
+#define DATAMAX 134217728
+#ifdef RLIMIT_DATA
+    if (getrlimit(RLIMIT_DATA, &r) == -1) {
+        log_e1("unable to get RLIMIT_DATA");
+        goto cleanup;
+    }
+    if (r.rlim_cur > DATAMAX) {
+        r.rlim_cur = r.rlim_max = DATAMAX;
+        if (setrlimit(RLIMIT_DATA, &r) == -1) {
+            log_e1("unable to set RLIMIT_DATA to 0");
+            goto cleanup;
+        }
+        log_t2("setrlimit RLIMIT_DATA set to ", lognum(DATAMAX));
+    }
+#endif
+
     log_t4("running under uid = ", lognum(gid), ", gid = ", lognum(gid));
 
     ret = 0;
