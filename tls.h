@@ -164,10 +164,10 @@ extern int tls_certfile_add_file(struct tls_context *, const char *);
 struct tls_pem {
     unsigned long long alloc;
     /* public part - CERTIFICATE */
-    size_t publen;
+    unsigned long long publen;
     char *pub;
     /* secret part - KEY */
-    size_t seclen;
+    unsigned long long seclen;
     char *sec;
 };
 extern void tls_pem_free(struct tls_pem *);

@@ -21,9 +21,11 @@ void tls_pem_free(struct tls_pem *ctx) {
     memset(ctx, 0, sizeof *ctx);
 }
 
-static size_t lineparser(const char *buf, size_t len, size_t pos, char *out, size_t *outlen, size_t outmax) {
+typedef unsigned long long ull;
 
-    size_t i;
+static ull lineparser(const char *buf, ull len, ull pos, char *out, ull *outlen, ull outmax) {
+
+    ull i;
 
     *outlen = 0;
     for (i = pos; i < len; ++i) {
@@ -41,12 +43,12 @@ static size_t lineparser(const char *buf, size_t len, size_t pos, char *out, siz
 
 static void pemparse(struct tls_pem *ctx) {
 
-    size_t  pos = 0;
+    unsigned long long  pos = 0;
     int flagpub = 0;
     char line[65];
-    size_t linelen;
-    size_t seclen = 0;
-    size_t publen = 0;
+    unsigned long long linelen;
+    unsigned long long seclen = 0;
+    unsigned long long publen = 0;
 
     while (ctx->seclen > pos) {
         pos = lineparser(ctx->sec, ctx->seclen, pos, line, &linelen, sizeof line - 1);
