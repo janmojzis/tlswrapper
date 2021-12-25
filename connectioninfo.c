@@ -81,7 +81,7 @@ static int connectioninfo_fromenv(unsigned char *localip, unsigned char *localpo
 int connectioninfo_get(unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
     if (connectioninfo_fromenv(localip, localport, remoteip, remoteport)) return 1;
     if (connectioninfo_fromfd(localip, localport, remoteip, remoteport)) return 1;
-    log_w1("connectioninfo() failed");
+    log_w1("connectioninfo_get() failed");
     return 0;
 }
 
