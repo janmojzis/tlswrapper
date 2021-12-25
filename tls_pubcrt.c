@@ -9,6 +9,7 @@ Public domain.
 #include "randombytes.h"
 #include "alloc.h"
 #include "log.h"
+#include "sa.h"
 #include "tls.h"
 
 static void parsedummy(void *yv, const void *x, size_t xlen) {
@@ -26,42 +27,13 @@ static void *xmemdup(const void *src, size_t len) {
     return buf;
 }
 
+static void append(void *sa, const void *buf, size_t buflen) {
+    sa_append(sa, buf, buflen);
+}
+
 #define XMEMDUP(dst, src, len) { \
     dst = xmemdup(src, len); \
     if (!dst) goto cleanup; \
-}
-
-struct sa {
-    unsigned char *p;
-    size_t len;
-    size_t alloc;
-    int error;
-};
-
-static void sa_append(void *sav, const void *bufv, size_t buflen) {
-
-    struct sa *sa = sav;
-    const unsigned char *buf = bufv;
-    unsigned char *newp;
-
-    if (sa->alloc <= sa->len + buflen) {
-        while (sa->alloc <= sa->len + buflen) {
-            sa->alloc = 2 * sa->alloc + 1;
-        }
-        newp = alloc(sa->alloc);
-        if (!newp) {
-            sa->error = 1;
-            return;
-        }
-        if (sa->p) {
-            memcpy(newp, sa->p, sa->len);
-            alloc_free(sa->p);
-        }
-        sa->p = newp;
-    }
-
-    memcpy(sa->p + sa->len, buf, buflen);
-    sa->len += buflen;
 }
 
 int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, const char *fn) {
@@ -107,7 +79,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
                         goto cleanup;
                     }
                     sa.len = 0;
-                    br_pem_decoder_setdest(&pc, sa_append, &sa);
+                    br_pem_decoder_setdest(&pc, append, &sa);
                 }
                 break;
             case BR_PEM_END_OBJ:
@@ -123,7 +95,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
                     crt->crt[crt->crtlen].data_len = sa.len;
 
                     sa.len = 0;
-                    br_x509_decoder_init(&dc5, sa_append, &sa);
+                    br_x509_decoder_init(&dc5, append, &sa);
                     br_x509_decoder_push(&dc5, crt->crt[crt->crtlen].data, crt->crt[crt->crtlen].data_len);
                     if (sa.error) {
                         log_e3("br_x509_decoder_push(len = ", lognum( crt->crt[crt->crtlen].data_len), "), failed");

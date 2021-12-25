@@ -97,6 +97,9 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
  resolvehost.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c resolvehost.c
 
+sa.o: sa.c alloc.h sa.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c sa.c
+
 socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
 
@@ -145,7 +148,7 @@ tls_profile.o: tls_profile.c log.h randombytes.h e.h buf.h fixpath.h \
  tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
-tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h tls.h
+tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h sa.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pubcrt.c
 
 tls_seccrt.o: tls_seccrt.c log.h randombytes.h tls.h
@@ -191,6 +194,7 @@ OBJECTS+=randombytes.o
 OBJECTS+=randommod.o
 OBJECTS+=readall.o
 OBJECTS+=resolvehost.o
+OBJECTS+=sa.o
 OBJECTS+=socket.o
 OBJECTS+=strtoip.o
 OBJECTS+=strtoport.o
