@@ -7,7 +7,6 @@
 #include "e.h"
 #include "log.h"
 #include "randombytes.h"
-#include "bearssl.h"
 #include "fsyncfile.h"
 #include "writeall.h"
 #include "tls.h"
