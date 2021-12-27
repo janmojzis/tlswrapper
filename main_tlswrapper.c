@@ -72,7 +72,7 @@ static int status;
 
 static int fromkeyjail[2] = {-1, -1};
 static int tokeyjail[2] = {-1, -1};
-static pid_t keyjail = -1;
+static pid_t keyjailchild = -1;
 
 static int selfpipe[2] = {-1, -1};
 
@@ -492,8 +492,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     /* run service process for loading keys and secret-key operations */
     if (pipe(fromkeyjail) == -1) die_pipe();
     if (pipe(tokeyjail) == -1) die_pipe();
-    keyjail = fork();
-    switch (keyjail) {
+    keyjailchild = fork();
+    switch (keyjailchild) {
         case -1:
             die_fork();
         case 0:
