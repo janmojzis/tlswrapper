@@ -11,7 +11,7 @@
 struct tls_pubcrt {
 
     /* crt */
-    char key_type;  /* BR_KEYTYPE_RSA or BR_KEYTYPE_EC */
+    char key_type; /* BR_KEYTYPE_RSA or BR_KEYTYPE_EC */
     br_x509_certificate crt[tls_MAXCERTFILES];
     size_t crtlen;
 
@@ -23,7 +23,7 @@ struct tls_pubcrt {
 struct tls_seccrt {
 
     const void *key;
-    char key_type;  /* BR_KEYTYPE_RSA or BR_KEYTYPE_EC */
+    char key_type; /* BR_KEYTYPE_RSA or BR_KEYTYPE_EC */
     br_skey_decoder_context keydc;
 };
 
@@ -107,8 +107,8 @@ typedef struct {
     uint32_t curve;
 } tls_ecdhe;
 extern const tls_ecdhe tls_ecdhes[];
-#define tls_ecdhe_X25519    BR_EC_curve25519
-#define tls_ecdhe_X448      BR_EC_curve448
+#define tls_ecdhe_X25519 BR_EC_curve25519
+#define tls_ecdhe_X448 BR_EC_curve448
 #define tls_ecdhe_SECP256R1 BR_EC_secp256r1
 #define tls_ecdhe_SECP384R1 BR_EC_secp384r1
 #define tls_ecdhe_SECP521R1 BR_EC_secp521r1
@@ -131,8 +131,10 @@ extern const char *tls_cipher_str(uint16_t);
 /* tls_crypto_scalarmult.c */
 #define tls_crypto_scalarmult_MAXSCALARBYTES 66
 #define tls_crypto_scalarmult_MAXBYTES 133
-extern int tls_crypto_scalarmult_base(int, unsigned char *, size_t *, unsigned char *);
-extern int tls_crypto_scalarmult(int, unsigned char *, size_t *, unsigned char *);
+extern int tls_crypto_scalarmult_base(int, unsigned char *, size_t *,
+                                      unsigned char *);
+extern int tls_crypto_scalarmult(int, unsigned char *, size_t *,
+                                 unsigned char *);
 
 /* tls_keyjail.c */
 extern void tls_keyjail(struct tls_context *);
@@ -141,11 +143,16 @@ extern void tls_keyjail(struct tls_context *);
 extern int tls_pipe_fromchild;
 extern int tls_pipe_tochild;
 extern br_ssl_engine_context *tls_pipe_eng;
-extern int tls_pipe_getcert(br_x509_certificate *, size_t *, char *, const char *);
-extern size_t tls_pipe_dosign(const br_ssl_server_policy_class **, unsigned int, unsigned char *, size_t, size_t);
-extern size_t tls_pipe_mulgen(unsigned char *, const unsigned char *, size_t, int);
-extern uint32_t tls_pipe_mul(unsigned char *, size_t, const unsigned char *, size_t, int);
-extern void tls_pipe_prf(void *, size_t, const void *, size_t, const char *, size_t, const br_tls_prf_seed_chunk *);
+extern int tls_pipe_getcert(br_x509_certificate *, size_t *, char *,
+                            const char *);
+extern size_t tls_pipe_dosign(const br_ssl_server_policy_class **, unsigned int,
+                              unsigned char *, size_t, size_t);
+extern size_t tls_pipe_mulgen(unsigned char *, const unsigned char *, size_t,
+                              int);
+extern uint32_t tls_pipe_mul(unsigned char *, size_t, const unsigned char *,
+                             size_t, int);
+extern void tls_pipe_prf(void *, size_t, const void *, size_t, const char *,
+                         size_t, const br_tls_prf_seed_chunk *);
 #define tls_pipe_PRF 0
 #define tls_pipe_DECRYPT 1
 #define tls_pipe_ENCRYPT 2
@@ -176,13 +183,17 @@ extern void tls_pem_encrypt(struct tls_pem *, const unsigned char *);
 #define tls_pem_decrypt tls_pem_encrypt
 
 /* tls_pubcrt.c */
-extern int tls_pubcrt_parse(struct tls_pubcrt *, const char *, size_t, const char *);
+extern int tls_pubcrt_parse(struct tls_pubcrt *, const char *, size_t,
+                            const char *);
 
 /* tls_seccrt.c */
-extern int tls_seccrt_parse(struct tls_seccrt *, const char *, size_t, const char *);
+extern int tls_seccrt_parse(struct tls_seccrt *, const char *, size_t,
+                            const char *);
 
 /* tls_ecdsa.c */
-extern uint32_t tls_ecdsa_vrfy_asn1(const br_ec_impl *, const void *, size_t, const br_ec_public_key *, const void *, size_t);
+extern uint32_t tls_ecdsa_vrfy_asn1(const br_ec_impl *, const void *, size_t,
+                                    const br_ec_public_key *, const void *,
+                                    size_t);
 
 /* tls_timeout.c */
 extern int tls_timeout_parse(long long *, const char *);

@@ -25,7 +25,6 @@ static void swap(unsigned char *x, unsigned char *y) {
     memcpy(t, x, 16);
     memcpy(x, y, 16);
     memcpy(y, t, 16);
-
 }
 
 static void sortip(unsigned char *s, long long nn) {
@@ -71,14 +70,15 @@ long long resolvehost(unsigned char *ip, long long iplen, const char *host) {
     err = getaddrinfo(host, 0, &hints, &res0);
     if (err) {
         len = -1;
-        log_t6("getaddrinfo(host = ", host, ") = ", gai_strerror(err), ", errno = ", e_str(errno));
+        log_t6("getaddrinfo(host = ", host, ") = ", gai_strerror(err),
+               ", errno = ", e_str(errno));
         /* XXX, getaddrinfo error handling is funny */
         if (err == EAI_NONAME && errno == EMFILE) err = EAI_SYSTEM;
         if (err != EAI_SYSTEM) errno = 0;
         if (err == EAI_NONAME) len = 0;
-    #ifdef EAI_NODATA
+#ifdef EAI_NODATA
         if (err == EAI_NODATA) len = 0;
-    #endif
+#endif
         goto done;
     }
 
@@ -87,13 +87,15 @@ long long resolvehost(unsigned char *ip, long long iplen, const char *host) {
         if (res->ai_addrlen == sizeof(struct sockaddr_in)) {
             if (len + 16 <= iplen) {
                 memcpy(ip + len, "\0\0\0\0\0\0\0\0\0\0\377\377", 12);
-                memcpy(ip + len + 12, &((struct sockaddr_in *)res->ai_addr)->sin_addr, 4);
+                memcpy(ip + len + 12,
+                       &((struct sockaddr_in *) res->ai_addr)->sin_addr, 4);
                 len += 16;
             }
         }
         if (res->ai_addrlen == sizeof(struct sockaddr_in6)) {
             if (len + 16 <= iplen) {
-                memcpy(ip + len, &((struct sockaddr_in6 *)res->ai_addr)->sin6_addr, 16);
+                memcpy(ip + len,
+                       &((struct sockaddr_in6 *) res->ai_addr)->sin6_addr, 16);
                 len += 16;
             }
         }
@@ -139,12 +141,16 @@ int resolvehost_init(void) {
             if (p[0].revents) {
                 r = recv(sockets[0], buf, sizeof buf, 0);
                 if (r == sizeof buf) break;
-                if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+                if (r == -1) {
+                    if (errno == EINTR) continue;
+                    if (errno == EAGAIN) continue;
+                    if (errno == EWOULDBLOCK) continue;
+                }
                 if (r == -1) _exit(111);
                 if (r == 0) break;
 
                 buf[255] = 0;
-                iplen = resolvehost(ip + 1, sizeof ip - 1, (char *)buf);
+                iplen = resolvehost(ip + 1, sizeof ip - 1, (char *) buf);
                 ip[0] = iplen;
                 if (iplen == -1) iplen = 0;
                 iplen += 1;
@@ -193,7 +199,7 @@ long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
     len = r - 1;
     if (iplen < len) len = iplen;
 
-    for (i = 0; i < len; ++i) ip[i] = (unsigned char)buf[i + 1];
+    for (i = 0; i < len; ++i) ip[i] = (unsigned char) buf[i + 1];
     return len;
 }
 

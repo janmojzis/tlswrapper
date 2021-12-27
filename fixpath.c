@@ -3,7 +3,7 @@
 void fixpath(char *s) {
 
     char ch;
-    unsigned long long  i, j;
+    unsigned long long i, j;
 
     j = 0;
     for (i = 0; s[i]; ++i) {

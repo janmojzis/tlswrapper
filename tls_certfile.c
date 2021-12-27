@@ -8,7 +8,8 @@ Public domain.
 
 int tls_certfile_add_dir(struct tls_context *ctx, const char *fn) {
 
-    if ((sizeof ctx->certfiles / sizeof ctx->certfiles[0]) <= ctx->certfiles_len) {
+    if ((sizeof ctx->certfiles / sizeof ctx->certfiles[0]) <=
+        ctx->certfiles_len) {
         return 0;
     }
 
@@ -20,7 +21,8 @@ int tls_certfile_add_dir(struct tls_context *ctx, const char *fn) {
 
 int tls_certfile_add_file(struct tls_context *ctx, const char *fn) {
 
-    if ((sizeof ctx->certfiles / sizeof ctx->certfiles[0]) <= ctx->certfiles_len) {
+    if ((sizeof ctx->certfiles / sizeof ctx->certfiles[0]) <=
+        ctx->certfiles_len) {
         return 0;
     }
 

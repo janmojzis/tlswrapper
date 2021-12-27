@@ -11,7 +11,11 @@ static void uint64_pack(unsigned char *y, long long xll) {
 
     long long i;
     unsigned long long x = (unsigned long long) xll;
-    for (i = 0; i < 8; ++i) { y[i] = x; x >>= 8; }
+
+    for (i = 0; i < 8; ++i) {
+        y[i] = x;
+        x >>= 8;
+    }
 }
 
 static long long uint64_unpack(const unsigned char *x) {

@@ -2,7 +2,6 @@
 #include "log.h"
 #include "tls.h"
 
-
 const tls_cipher tls_ciphers[] = {
     {
         "CHACHA20_POLY1305_SHA256",
@@ -53,17 +52,15 @@ const tls_cipher tls_ciphers[] = {
         "ECDSA + ECDHE + AES128/CBC + SHA1",
         "RSA + ECDHE + AES128/CBC + SHA1",
     },
-    { 0, 0, 0, 0, 0 }
-};
+    {0, 0, 0, 0, 0}};
 
-
-const char *tls_cipher_str(uint16_t suite) {
+const char *tls_cipher_str(uint16_t s) {
 
     long long i;
 
     for (i = 0; tls_ciphers[i].name; ++i) {
-        if ((tls_ciphers[i].ecsuite) == suite) return tls_ciphers[i].eccomment;
-        if ((tls_ciphers[i].rsasuite) == suite) return tls_ciphers[i].rsacomment;
+        if ((tls_ciphers[i].ecsuite) == s) return tls_ciphers[i].eccomment;
+        if ((tls_ciphers[i].rsasuite) == s) return tls_ciphers[i].rsacomment;
     }
     return "unknown cipher";
 }
@@ -93,18 +90,19 @@ ok:
 
     if (ecsuite && rsasuite) {
         for (i = 0; i < ctx->cipher_enabled_len; ++i) {
-            if (ctx->cipher_enabled[i] == ecsuite) {
-                log_w3("unable to add cipher '", x, "': cipher is already added");
+            if (ctx->cipher_enabled[i] == ecsuite ||
+                ctx->cipher_enabled[i] == rsasuite) {
+                log_w3("unable to add cipher '", x,
+                       "': cipher is already added");
                 ecsuite = 0;
-            }
-            if (ctx->cipher_enabled[i] == rsasuite) {
                 rsasuite = 0;
             }
         }
     }
 
     if (ecsuite && rsasuite) {
-        if ((sizeof ctx->cipher_enabled / sizeof ctx->cipher_enabled[0]) < ctx->cipher_enabled_len + 2) {
+        if ((sizeof ctx->cipher_enabled / sizeof ctx->cipher_enabled[0]) <
+            ctx->cipher_enabled_len + 2) {
             log_e3("unable to add cipher '", x, "': too many enabled ciphers");
             return 0;
         }

@@ -41,7 +41,8 @@ static long long str_chr(const char *s, int c) {
     long long i;
     char ch = c;
 
-    for (i = 0; s[i]; ++i) if (s[i] == ch) break;
+    for (i = 0; s[i]; ++i)
+        if (s[i] == ch) break;
     return i;
 }
 
@@ -56,7 +57,10 @@ static int str_start(const char *s, const char *t) {
     }
 }
 
-static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned char *localportx, unsigned char *remoteipx, unsigned char *remoteportx) {
+static int proxyprotocol1_parse(char *buforig, unsigned char *localipx,
+                                unsigned char *localportx,
+                                unsigned char *remoteipx,
+                                unsigned char *remoteportx) {
 
     int ret = 0;
     long long pos;
@@ -94,20 +98,22 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned
     }
     buf += 11;
 
-    /* remote ip */ 
+    /* remote ip */
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoipop(remoteip, buf)) {
-        log_e3("unable to parse remoteip from proxy-protocol string '", buforig, "'");
+        log_e3("unable to parse remoteip from proxy-protocol string '", buforig,
+               "'");
         goto cleanup;
     }
     buf += pos + 1;
 
-    /* localip ip */ 
+    /* localip ip */
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoipop(localip, buf)) {
-        log_e3("unable to parse localip from proxy-protocol string '", buforig, "'");
+        log_e3("unable to parse localip from proxy-protocol string '", buforig,
+               "'");
         goto cleanup;
     }
     buf += pos + 1;
@@ -116,7 +122,8 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoport(remoteport, buf)) {
-        log_e3("unable to parse repoteport from proxy-protocol string '", buforig, "'");
+        log_e3("unable to parse repoteport from proxy-protocol string '",
+               buforig, "'");
         goto cleanup;
     }
     buf += pos + 1;
@@ -125,7 +132,8 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx, unsigned
     buf[str_chr(buf, '\n')] = 0;
     buf[str_chr(buf, '\r')] = 0;
     if (!strtoport(localport, buf)) {
-        log_e3("unable to parse localport from proxy-protocol string '", buforig, "'");
+        log_e3("unable to parse localport from proxy-protocol string '",
+               buforig, "'");
         goto cleanup;
     }
 
@@ -142,8 +150,9 @@ cleanup:
     return ret;
 }
 
-
-int proxyprotocol_v1_get(int fd, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
+int proxyprotocol_v1_get(int fd, unsigned char *localip,
+                         unsigned char *localport, unsigned char *remoteip,
+                         unsigned char *remoteport) {
 
     char ch, buf[PROXYPROTOCOL_MAX];
     int r;
@@ -160,11 +169,16 @@ int proxyprotocol_v1_get(int fd, unsigned char *localip, unsigned char *localpor
     pos = buf_put(buf, sizeof buf, pos, "", 1);
     if (!pos) return 0;
     r = proxyprotocol1_parse(buf, localip, localport, remoteip, remoteport);
-    if (r) log_d8("received proxy-protocol: localip=", logip(localip), ", localport=", logport(localport), ", remote=", logip(remoteip), ", remoteport=",  logport(remoteport));
+    if (r)
+        log_d8("received proxy-protocol: localip=", logip(localip),
+               ", localport=", logport(localport), ", remote=", logip(remoteip),
+               ", remoteport=", logport(remoteport));
     return r;
 }
 
-long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
+long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip,
+                           unsigned char *localport, unsigned char *remoteip,
+                           unsigned char *remoteport) {
 
     long long pos = 0;
 
@@ -172,8 +186,7 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip, 
 
     if (!memcmp(localip, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) &&
         !memcmp(remoteip, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) &&
-        !memcmp(localport, "\0\0", 2) &&
-        !memcmp(remoteport, "\0\0", 2)) {
+        !memcmp(localport, "\0\0", 2) && !memcmp(remoteport, "\0\0", 2)) {
         goto fail;
     }
 
@@ -218,8 +231,9 @@ fail:
     return pos - 1;
 }
 
-
-long long proxyprotocol_v2(char *buf, long long buflen, unsigned char *localip, unsigned char *localport, unsigned char *remoteip, unsigned char *remoteport) {
+long long proxyprotocol_v2(char *buf, long long buflen, unsigned char *localip,
+                           unsigned char *localport, unsigned char *remoteip,
+                           unsigned char *remoteport) {
 
     long long pos = 0;
     unsigned char ch;
@@ -230,12 +244,13 @@ long long proxyprotocol_v2(char *buf, long long buflen, unsigned char *localip, 
     if (!buf || buflen <= 0) goto fail;
 
     /* header */
-    pos = buf_put(buf, buflen, pos, "\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A", 12);
+    pos = buf_put(buf, buflen, pos,
+                  "\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A", 12);
     if (!pos) goto fail;
 
     /* version + local/proxy  */
     ch = (2 << 4); /* version 2 */
-    ch += 1; /* proxy */
+    ch += 1;       /* proxy */
     pos = buf_put(buf, buflen, pos, &ch, 1);
     if (!pos) goto fail;
 

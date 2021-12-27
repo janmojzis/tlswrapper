@@ -4,7 +4,6 @@ Jan Mojzis
 Public domain.
 */
 
-
 #include <string.h>
 #include "randombytes.h"
 #include "alloc.h"
@@ -21,9 +20,7 @@ static void parsedummy(void *yv, const void *x, size_t xlen) {
 static void *xmemdup(const void *src, size_t len) {
 
     void *buf = alloc(len);
-    if (buf) {
-        memcpy(buf, src, len);
-    }
+    if (buf) { memcpy(buf, src, len); }
     return buf;
 }
 
@@ -31,12 +28,14 @@ static void append(void *sa, const void *buf, size_t buflen) {
     sa_append(sa, buf, buflen);
 }
 
-#define XMEMDUP(dst, src, len) { \
-    dst = xmemdup(src, len); \
-    if (!dst) goto cleanup; \
-}
+#define XMEMDUP(dst, src, len)                                                 \
+    {                                                                          \
+        dst = xmemdup(src, len);                                               \
+        if (!dst) goto cleanup;                                                \
+    }
 
-int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, const char *fn) {
+int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen,
+                     const char *fn) {
 
     long long tlen;
     int inobj = 0;
@@ -56,10 +55,12 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
     while (buflen > 0) {
         tlen = br_pem_decoder_push(&pc, buf, buflen);
         if (sa.error) {
-            log_e5("br_pem_decoder_push(len = ", lognum(buflen), "), failed in '", fn, "'");
+            log_e5("br_pem_decoder_push(len = ", lognum(buflen),
+                   "), failed in '", fn, "'");
             goto cleanup;
         }
-        log_t4("br_pem_decoder_push(len = ", lognum(buflen), ") = ", lognum(tlen));
+        log_t4("br_pem_decoder_push(len = ", lognum(buflen),
+               ") = ", lognum(tlen));
         buf += tlen;
         buflen -= tlen;
 
@@ -67,7 +68,8 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
             case BR_PEM_BEGIN_OBJ:
                 log_t2("PEM public-object begin: ", br_pem_decoder_name(&pc));
                 if (inobj) {
-                    log_e3("malformed PEM public-object in '", fn, "', extra BEGIN line");
+                    log_e3("malformed PEM public-object in '", fn,
+                           "', extra BEGIN line");
                     goto cleanup;
                 }
                 inobj = 1;
@@ -75,7 +77,8 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
                 if (!strcmp(br_pem_decoder_name(&pc), "CERTIFICATE") ||
                     !strcmp(br_pem_decoder_name(&pc), "X509 CERTIFICATE")) {
                     if (crt->crtlen >= sizeof crt->crt / sizeof crt->crt[0]) {
-                        log_e3("too many public PEM certificates in '", fn, "'");
+                        log_e3("too many public PEM certificates in '", fn,
+                               "'");
                         goto cleanup;
                     }
                     sa.len = 0;
@@ -85,7 +88,8 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
             case BR_PEM_END_OBJ:
                 log_t2("PEM public-object end: ", br_pem_decoder_name(&pc));
                 if (!inobj) {
-                    log_e3("malformed PEM public-object in '", fn, "', extra END line");
+                    log_e3("malformed PEM public-object in '", fn,
+                           "', extra END line");
                     goto cleanup;
                 }
                 inobj = 0;
@@ -96,21 +100,26 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
 
                     sa.len = 0;
                     br_x509_decoder_init(&dc5, append, &sa);
-                    br_x509_decoder_push(&dc5, crt->crt[crt->crtlen].data, crt->crt[crt->crtlen].data_len);
+                    br_x509_decoder_push(&dc5, crt->crt[crt->crtlen].data,
+                                         crt->crt[crt->crtlen].data_len);
                     if (sa.error) {
-                        log_e3("br_x509_decoder_push(len = ", lognum( crt->crt[crt->crtlen].data_len), "), failed");
+                        log_e3("br_x509_decoder_push(len = ",
+                               lognum(crt->crt[crt->crtlen].data_len),
+                               "), failed");
                         goto cleanup;
                     }
 
                     err = br_x509_decoder_last_error(&dc5);
                     if (err != 0) {
-                        log_e2("unable to decode public-key, err=", tls_error_str(err));
+                        log_e2("unable to decode public-key, err=",
+                               tls_error_str(err));
                         goto cleanup;
                     }
 
                     pk = br_x509_decoder_get_pkey(&dc5);
                     if (!pk) {
-                        log_e1("br_x509_decoder_get_pkey no public-key in PEM public-object");
+                        log_e1("br_x509_decoder_get_pkey no public-key in PEM "
+                               "public-object");
                         goto cleanup;
                     }
                     XMEMDUP(crt->ta[crt->talen].dn.data, sa.p, sa.len);
@@ -123,29 +132,41 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
                     switch (pk->key_type) {
                         case BR_KEYTYPE_EC:
                             crt->ta[crt->talen].pkey.key_type = BR_KEYTYPE_EC;
-                            crt->ta[crt->talen].pkey.key.ec.curve = pk->key.ec.curve;
-                            XMEMDUP(crt->ta[crt->talen].pkey.key.ec.q, pk->key.ec.q, pk->key.ec.qlen);
-                            crt->ta[crt->talen].pkey.key.ec.qlen = pk->key.ec.qlen;
+                            crt->ta[crt->talen].pkey.key.ec.curve =
+                                pk->key.ec.curve;
+                            XMEMDUP(crt->ta[crt->talen].pkey.key.ec.q,
+                                    pk->key.ec.q, pk->key.ec.qlen);
+                            crt->ta[crt->talen].pkey.key.ec.qlen =
+                                pk->key.ec.qlen;
                             if (crt->crtlen == 0) crt->key_type = BR_KEYTYPE_EC;
                             break;
                         case BR_KEYTYPE_RSA:
                             crt->ta[crt->talen].pkey.key_type = BR_KEYTYPE_RSA;
-                            XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.n, pk->key.rsa.n, pk->key.rsa.nlen);
-                            crt->ta[crt->talen].pkey.key.rsa.nlen = pk->key.rsa.nlen;
-                            XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.e, pk->key.rsa.e, pk->key.rsa.elen);
-                            crt->ta[crt->talen].pkey.key.rsa.elen = pk->key.rsa.elen;
-                            if (crt->crtlen == 0) crt->key_type = BR_KEYTYPE_RSA;
+                            XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.n,
+                                    pk->key.rsa.n, pk->key.rsa.nlen);
+                            crt->ta[crt->talen].pkey.key.rsa.nlen =
+                                pk->key.rsa.nlen;
+                            XMEMDUP(crt->ta[crt->talen].pkey.key.rsa.e,
+                                    pk->key.rsa.e, pk->key.rsa.elen);
+                            crt->ta[crt->talen].pkey.key.rsa.elen =
+                                pk->key.rsa.elen;
+                            if (crt->crtlen == 0)
+                                crt->key_type = BR_KEYTYPE_RSA;
                             break;
                         default:
-                            log_e5("br_x509_decoder_get_pkey unsupported public-key type id=", lognum(pk->key_type), " in '", fn, "'");
+                            log_e5("br_x509_decoder_get_pkey unsupported "
+                                   "public-key type id=",
+                                   lognum(pk->key_type), " in '", fn, "'");
                             goto cleanup;
                     }
                     {
-                        const char *sigtype = tls_keytype_str(br_x509_decoder_get_signer_key_type(&dc5));
+                        const char *sigtype = tls_keytype_str(
+                            br_x509_decoder_get_signer_key_type(&dc5));
                         const char *pktype = tls_keytype_str(pk->key_type);
                         const char *strca = "0";
                         if (br_x509_decoder_isCA(&dc5)) strca = "1";
-                        log_t8("crt=", lognum(crt->crtlen), ", pk=", pktype, ", sig=", sigtype, ", ca=", strca);
+                        log_t8("crt=", lognum(crt->crtlen), ", pk=", pktype,
+                               ", sig=", sigtype, ", ca=", strca);
                     }
                     crt->crtlen += 1;
                     crt->talen += 1;
@@ -171,6 +192,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen, con
 cleanup:
     randombytes(&pc, sizeof pc);
     randombytes(&dc5, sizeof dc5);
-    log_t4("tls_pubcrt_parse(buflen = ", lognum(buflenorig), ") = ", lognum(ret));
+    log_t4("tls_pubcrt_parse(buflen = ", lognum(buflenorig),
+           ") = ", lognum(ret));
     return ret;
 }

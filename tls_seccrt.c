@@ -16,10 +16,11 @@ static void parsedummy(void *yv, const void *x, size_t xlen) {
 }
 
 static void parsekey(void *ctx, const void *x, size_t xlen) {
-    br_skey_decoder_push((br_skey_decoder_context *)ctx, x, xlen);
+    br_skey_decoder_push((br_skey_decoder_context *) ctx, x, xlen);
 }
 
-int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, const char *fn) {
+int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
+                     const char *fn) {
 
     br_pem_decoder_context pc;
     long long tlen;
@@ -35,7 +36,8 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
 
     while (buflen > 0) {
         tlen = br_pem_decoder_push(&pc, buf, buflen);
-        log_t4("br_pem_decoder_push(len = ", lognum(buflen), ") = ", lognum(tlen));
+        log_t4("br_pem_decoder_push(len = ", lognum(buflen),
+               ") = ", lognum(tlen));
         buf += tlen;
         buflen -= tlen;
 
@@ -75,7 +77,8 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
                     const br_ec_private_key *eckey;
                     err = br_skey_decoder_last_error(&crt->keydc);
                     if (err != 0) {
-                        log_e5("unable to decode secret-key, err=", tls_error_str(err), " in '", fn, "'");
+                        log_e5("unable to decode secret-key, err=",
+                               tls_error_str(err), " in '", fn, "'");
                         goto cleanup;
                     }
                     crt->key_type = br_skey_decoder_key_type(&crt->keydc);
@@ -83,7 +86,8 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
                         case BR_KEYTYPE_RSA:
                             crt->key = br_skey_decoder_get_rsa(&crt->keydc);
                             rsakey = crt->key;
-                            log_t2("key=0, sk=RSA, bits=", lognum(rsakey->n_bitlen));
+                            log_t2("key=0, sk=RSA, bits=",
+                                   lognum(rsakey->n_bitlen));
                             break;
                         case BR_KEYTYPE_EC:
                             crt->key = br_skey_decoder_get_ec(&crt->keydc);
@@ -92,7 +96,8 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
                             break;
 
                         default:
-                            log_e5("unknown secret-key type ", lognum(crt->key_type), " in '", fn, "'");
+                            log_e5("unknown secret-key type ",
+                                   lognum(crt->key_type), " in '", fn, "'");
                     }
                 }
                 break;
@@ -115,6 +120,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen, con
     ret = 1;
 cleanup:
     randombytes(&pc, sizeof pc);
-    log_t4("tls_seccrt_parse(buflen = ", lognum(buflenorig), ") = ", lognum(ret));
+    log_t4("tls_seccrt_parse(buflen = ", lognum(buflenorig),
+           ") = ", lognum(ret));
     return ret;
 }

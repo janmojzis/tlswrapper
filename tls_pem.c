@@ -14,7 +14,6 @@ Public domain.
 #include "log.h"
 #include "tls.h"
 
-
 void tls_pem_free(struct tls_pem *ctx) {
     if (ctx->sec) alloc_free(ctx->sec);
     if (ctx->pub) alloc_free(ctx->pub);
@@ -23,7 +22,8 @@ void tls_pem_free(struct tls_pem *ctx) {
 
 typedef unsigned long long ull;
 
-static ull lineparser(const char *buf, ull len, ull pos, char *out, ull *outlen, ull outmax) {
+static ull lineparser(const char *buf, ull len, ull pos, char *out, ull *outlen,
+                      ull outmax) {
 
     ull i;
 
@@ -43,7 +43,7 @@ static ull lineparser(const char *buf, ull len, ull pos, char *out, ull *outlen,
 
 static void pemparse(struct tls_pem *ctx) {
 
-    unsigned long long  pos = 0;
+    unsigned long long pos = 0;
     int flagpub = 0;
     char line[65];
     unsigned long long linelen;
@@ -51,11 +51,16 @@ static void pemparse(struct tls_pem *ctx) {
     unsigned long long publen = 0;
 
     while (ctx->seclen > pos) {
-        pos = lineparser(ctx->sec, ctx->seclen, pos, line, &linelen, sizeof line - 1);
+        pos = lineparser(ctx->sec, ctx->seclen, pos, line, &linelen,
+                         sizeof line - 1);
         if (linelen == 0) continue;
         line[linelen++] = '\n';
-        if (linelen == 28 && !memcmp(line, "-----BEGIN CERTIFICATE-----", linelen - 1)) flagpub = 1;
-        if (linelen == 33 && !memcmp(line, "-----BEGIN X509 CERTIFICATE-----", linelen - 1)) flagpub = 1;
+        if (linelen == 28 &&
+            !memcmp(line, "-----BEGIN CERTIFICATE-----", linelen - 1))
+            flagpub = 1;
+        if (linelen == 33 &&
+            !memcmp(line, "-----BEGIN X509 CERTIFICATE-----", linelen - 1))
+            flagpub = 1;
         if (flagpub) {
             memcpy(ctx->pub + publen, line, linelen);
             publen += linelen;
@@ -64,8 +69,12 @@ static void pemparse(struct tls_pem *ctx) {
             memcpy(ctx->sec + seclen, line, linelen);
             seclen += linelen;
         }
-        if (linelen == 26 && !memcmp(line, "-----END CERTIFICATE-----", linelen - 1)) flagpub = 0;
-        if (linelen == 31 && !memcmp(line, "-----END X509 CERTIFICATE-----", linelen - 1)) flagpub = 0;
+        if (linelen == 26 &&
+            !memcmp(line, "-----END CERTIFICATE-----", linelen - 1))
+            flagpub = 0;
+        if (linelen == 31 &&
+            !memcmp(line, "-----END X509 CERTIFICATE-----", linelen - 1))
+            flagpub = 0;
     }
     randombytes(line, sizeof line);
     randombytes(ctx->sec + seclen, ctx->alloc - seclen);
@@ -73,7 +82,6 @@ static void pemparse(struct tls_pem *ctx) {
     ctx->seclen = seclen;
     ctx->publen = publen;
 }
-
 
 static unsigned char nonce[12];
 static int initialized = 0;
@@ -93,7 +101,8 @@ The 'tls_pem_load' loads secret PEM part and public PEM part
 from the file fn to the memory and immediately encrypts secret part.
 */
 
-int tls_pem_load(struct tls_pem *ctx, const char *fn, const unsigned char *key) {
+int tls_pem_load(struct tls_pem *ctx, const char *fn,
+                 const unsigned char *key) {
 
     int fd = -1;
     int ret = 0;

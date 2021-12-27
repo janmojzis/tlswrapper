@@ -16,6 +16,8 @@
 #include "randommod.h"
 #include "main.h"
 
+/* clang-format off */
+
 static struct context {
     const char *account;
     const char *empty_dir;
@@ -372,3 +374,5 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     log_d1("finished");
     die(0);
 }
+
+/* clang-format on */

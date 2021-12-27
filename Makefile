@@ -67,7 +67,7 @@ main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
  log.h conn.h tls.h jail.h randommod.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
-main_tlswrapper_test.o: main_tlswrapper_test.c log.h randombytes.h \
+main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
  fsyncfile.h writeall.h tls.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
 

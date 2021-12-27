@@ -20,13 +20,18 @@ char *porttostr(char *strbuf, const unsigned char *port) {
 
     if (!strbuf) strbuf = staticbuf; /* not thread-safe */
 
-    num = port[0]; num <<= 8; num |= port[1];
+    num = port[0];
+    num <<= 8;
+    num |= port[1];
     do {
-        num /= 10; ++len;
+        num /= 10;
+        ++len;
     } while (num);
     strbuf += len;
 
-    num = port[0]; num <<= 8; num |= port[1];
+    num = port[0];
+    num <<= 8;
+    num |= port[1];
     do {
         *--strbuf = '0' + (num % 10);
         num /= 10;

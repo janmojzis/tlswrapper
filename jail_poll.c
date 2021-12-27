@@ -10,7 +10,6 @@ warning: poll() handle EBADF in different way
 #include "log.h"
 #include "jail.h"
 
-
 int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
 
     struct timeval *tvp = 0;
@@ -21,7 +20,8 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     int fd, r;
     nfds_t i;
 
-    log_t5("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs), ")");
+    log_t5("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs),
+           ")");
 
     for (i = 0; i < len; ++i) x[i].revents = 0;
 
@@ -35,7 +35,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
         if (fd >= (int) (8 * sizeof(fd_set))) continue;
         if ((unsigned int) fd >= nfds) nfds = fd + 1;
         if (x[i].events & POLLIN) FD_SET(fd, &rfds);
-        if (x[i].events & POLLOUT) FD_SET(fd ,&wfds);
+        if (x[i].events & POLLOUT) FD_SET(fd, &wfds);
     }
 
     if (millisecs >= 0) {
@@ -64,6 +64,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     }
 
 cleanup:
-    log_t6("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs), ") = ", lognum(r));
+    log_t6("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs),
+           ") = ", lognum(r));
     return r;
 }

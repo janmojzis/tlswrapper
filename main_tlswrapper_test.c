@@ -12,6 +12,8 @@
 #include "tls.h"
 #include "main.h"
 
+/* clang-format off */
+
 static int flagverbose = 1;
 static int flaginput = 0;
 static int flagoutput = 0;
@@ -451,3 +453,4 @@ int main_tlswrapper_test(int argc, char **argv) {
     die(WEXITSTATUS(childstatus));
 }
 
+/* clang-format on */

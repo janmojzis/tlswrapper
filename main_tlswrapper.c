@@ -765,4 +765,5 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     log_d2("child exited with status ", lognum(WEXITSTATUS(status)));
     die(WEXITSTATUS(status));
 }
+
 /* clang-format on */

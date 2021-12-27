@@ -5,7 +5,7 @@
 int readall(int fd, void *xv, long long xlen) {
 
     long long r;
-    unsigned char *x = (unsigned char *)xv;
+    unsigned char *x = (unsigned char *) xv;
 
     while (xlen > 0) {
         r = xlen;
@@ -13,7 +13,9 @@ int readall(int fd, void *xv, long long xlen) {
         r = read(fd, x, r);
         if (r == 0) errno = EPIPE;
         if (r <= 0) {
-            if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (errno == EINTR) continue;
+            if (errno == EAGAIN) continue;
+            if (errno == EWOULDBLOCK) continue;
             return -1;
         }
         x += r;

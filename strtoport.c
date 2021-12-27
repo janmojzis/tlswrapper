@@ -4,7 +4,7 @@ int strtoport(unsigned char *y, const char *x) {
 
     long long j, d = 0;
 
-    if (!x) return 0; 
+    if (!x) return 0;
     for (j = 0; j < 5 && x[j] >= '0' && x[j] <= '9'; ++j) {
         d = d * 10 + (x[j] - '0');
     }

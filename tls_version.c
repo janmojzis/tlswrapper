@@ -1,12 +1,14 @@
 #include <string.h>
 #include "tls.h"
 
+/* clang-format off */
 const tls_version tls_versions[] = {
     { "tls10", BR_TLS10, "TLS 1.0" },
     { "tls11", BR_TLS11, "TLS 1.1" },
     { "tls12", BR_TLS12, "TLS 1.2" },
     { 0, 0, 0 }
 };
+/* clang-format on */
 
 const char *tls_version_str(unsigned int version) {
 

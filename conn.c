@@ -10,15 +10,13 @@
 
 #define MAXIP 8
 
-static int fds[MAXIP] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+static int fds[MAXIP] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
 static unsigned char *conn_getip(int fd, unsigned char *ip, long long iplen) {
     long long i;
     if (iplen > MAXIP * 16) iplen = MAXIP * 16;
     for (i = 0; i < iplen / 16; ++i) {
-        if (fd == fds[i]) {
-            return ip + 16 * i;
-        }
+        if (fd == fds[i]) { return ip + 16 * i; }
     }
     return 0;
 }
@@ -28,9 +26,7 @@ static void conn_copyip(int fd, unsigned char *ip, long long iplen) {
     if (iplen > MAXIP * 16) iplen = MAXIP * 16;
 
     for (i = 0; i < iplen / 16; ++i) {
-        if (fd == fds[i]) {
-            memcpy(ip, ip + 16 * i, 16);
-        }
+        if (fd == fds[i]) { memcpy(ip, ip + 16 * i, 16); }
         else {
             if (fds[i] != -1) {
                 close(fds[i]);
@@ -51,7 +47,6 @@ static void conn_closefd(int fd) {
             fds[i] = -1;
         }
     }
-
 }
 
 int conn_init(long long num) {
@@ -62,12 +57,13 @@ int conn_init(long long num) {
 
     for (i = 0; i < MAXIP; ++i) {
         fds[i] = socket_tcp();
-        if (fds[i] == -1)  return -1;
+        if (fds[i] == -1) return -1;
     }
     return 0;
 }
 
-int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *port) {
+int conn(long long timeout, unsigned char *ip, long long iplen,
+         unsigned char *port) {
 
     long long i;
     struct pollfd p[MAXIP];
@@ -88,7 +84,8 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
             return fds[i];
         }
         if (errno != EINPROGRESS && errno != EWOULDBLOCK) {
-            log_w4("unable to connect to [", logip(ip + 16 * i), "]:", logport(port));
+            log_w4("unable to connect to [", logip(ip + 16 * i),
+                   "]:", logport(port));
             close(fds[i]);
             fds[i] = -1;
         }
@@ -111,7 +108,9 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
         if (tm <= 0) {
             errno = ETIMEDOUT;
             for (i = 0; i < plen; ++i) {
-                log_w4("unable to connect to [", logip(conn_getip(p[i].fd, ip, iplen)), "]:", logport(port));
+                log_w4("unable to connect to [",
+                       logip(conn_getip(p[i].fd, ip, iplen)),
+                       "]:", logport(port));
             }
             return -1;
         }
@@ -123,10 +122,11 @@ int conn(long long timeout, unsigned char *ip, long long iplen, unsigned char *p
                     conn_copyip(p[i].fd, ip, iplen);
                     return p[i].fd;
                 }
-                log_w4("unable to connect to [", logip(conn_getip(p[i].fd, ip, iplen)), "]:", logport(port));
+                log_w4("unable to connect to [",
+                       logip(conn_getip(p[i].fd, ip, iplen)),
+                       "]:", logport(port));
                 conn_closefd(p[i].fd);
             }
-
         }
     }
 }

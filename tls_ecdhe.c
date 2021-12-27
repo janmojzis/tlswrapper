@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "tls.h"
 
+/* clang-format off */
 const tls_ecdhe tls_ecdhes[] = {
     { "x25519", tls_ecdhe_X25519 },
     { "secp256r1", tls_ecdhe_SECP256R1 },
@@ -12,6 +13,7 @@ const tls_ecdhe tls_ecdhes[] = {
 #endif
     { 0, 0 }
 };
+/* clang-format on */
 
 const char *tls_ecdhe_str(unsigned char curve) {
 
@@ -80,7 +82,7 @@ static const unsigned char *order(int curve, size_t *len) {
 }
 
 const br_ec_impl *tls_ecdhe_get_default(struct tls_context *ctx) {
-    br_ec_impl *ecdhe_copy_p = (br_ec_impl *)&ctx->ecdhe_copy;
+    br_ec_impl *ecdhe_copy_p = (br_ec_impl *) &ctx->ecdhe_copy;
     ecdhe_orig = br_ec_get_default();
     memcpy(ecdhe_copy_p, br_ec_get_default(), sizeof(br_ec_impl));
     ecdhe_copy_p->supported_curves = ctx->ecdhe_enabled;

@@ -21,9 +21,9 @@ Public domain.
 /*
 The 'jail' function has 3 purposes:
 1. drops root priviledges to unpriviledged uid/gid
-  - if the 'account' is 0, then uid/gid is derived from process id and randomized.
-  - if the 'account' is string and the account exist, then uid/gid
-    is retrieved from the system user database.
+- if the 'account' is 0, then uid/gid is derived from process id and randomized.
+- if the 'account' is string and the account exist, then uid/gid
+  is retrieved from the system user database.
 2. chroots into an empty directory
 3. sets resource limits
 */
@@ -72,7 +72,7 @@ int jail(const char *account, const char *dir, int limits) {
 
     /* set gid */
     if (setgid(gid) == -1 || getgid() != gid) {
-        log_e3("setgid(", lognum(gid),") failed");
+        log_e3("setgid(", lognum(gid), ") failed");
         goto cleanup;
     }
 
@@ -140,7 +140,7 @@ int jail(const char *account, const char *dir, int limits) {
         if (prctl(PR_SET_DUMPABLE, 0) == -1) {
             log_e1("unable to set prctl(PR_SET_DUMPABLE, 0)");
             goto cleanup;
-         }
+        }
     }
 #endif
 

@@ -2,8 +2,9 @@
 #include "buf.h"
 #include "iptostr.h"
 
-long long buf_put(void *bufv, long long buflen, long long pos, const void *xv, long long xlen) {
-    
+long long buf_put(void *bufv, long long buflen, long long pos, const void *xv,
+                  long long xlen) {
+
     char *buf = (char *) bufv;
     const char *x = (char *) xv;
 

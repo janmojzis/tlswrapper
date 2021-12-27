@@ -9,9 +9,7 @@ void sa_append(void *sav, const void *bufv, unsigned long long buflen) {
     unsigned char *newp;
 
     if (sa->alloc <= sa->len + buflen) {
-        while (sa->alloc <= sa->len + buflen) {
-            sa->alloc = 2 * sa->alloc + 1;
-        }
+        while (sa->alloc <= sa->len + buflen) { sa->alloc = 2 * sa->alloc + 1; }
         newp = alloc(sa->alloc);
         if (!newp) {
             sa->error = 1;

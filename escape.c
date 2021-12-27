@@ -8,7 +8,6 @@ static long long ibuflen = 0;
 static char obuf[4 * sizeof ibuf + 1];
 static long long obuflen = 0;
 
-
 int main(void) {
 
     long long i;
@@ -47,7 +46,7 @@ int main(void) {
                 obuf[obuflen++] = '\\';
                 obuf[obuflen++] = 'x';
                 obuf[obuflen++] = "0123456789abcdef"[(x >> 4) & 15];
-                obuf[obuflen++] = "0123456789abcdef"[(x     ) & 15];
+                obuf[obuflen++] = "0123456789abcdef"[(x >> 0) & 15];
             }
             else {
                 obuf[obuflen++] = ibuf[i];

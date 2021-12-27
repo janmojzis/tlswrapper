@@ -1,6 +1,6 @@
 #include "tls.h"
 
-#define X(k, s)             \
+#define X(k, s)                                                                \
     if ((i) == (k)) return s;
 
 const char *tls_keytype_str(int i) {

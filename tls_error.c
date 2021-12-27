@@ -1,5 +1,6 @@
 #include "tls.h"
 
+/* clang-format off */
 static struct {
     int err;
     const char *comment;
@@ -235,15 +236,14 @@ static struct {
     },
     { 0, 0 }
 };
+/* clang-format on */
 
 const char *tls_error_str(int err) {
 
     size_t u;
 
     for (u = 0; errors[u].comment; ++u) {
-        if (errors[u].err == err) {
-            return errors[u].comment;
-        }
+        if (errors[u].err == err) return errors[u].comment;
     }
     return "unknown";
 }
