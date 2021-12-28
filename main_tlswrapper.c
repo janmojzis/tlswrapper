@@ -439,6 +439,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         case -1:
             die_fork();
         case 0:
+            alarm(0);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
@@ -472,7 +473,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             signal(SIGPIPE, SIG_DFL);
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
-            alarm(0);
             log_t3("running '", argv[0], "'");
             execvp(*argv, argv);
             log_f2("unable to run ", *argv);
@@ -497,6 +497,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         case -1:
             die_fork();
         case 0:
+            alarm(0);
             close(fromkeyjail[0]);
             close(tokeyjail[1]);
             close(fromchild[0]);
@@ -510,7 +511,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             signal(SIGPIPE, SIG_IGN);
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
-            alarm(0);
             log_ip(0);
             tls_keyjail(&ctx);
             die(0);
