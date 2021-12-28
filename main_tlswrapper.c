@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -65,6 +66,7 @@ static long long timeout;
 
 static int flagverbose = 1;
 
+static int fromchildflag[2] = {-1, -1};
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
 static pid_t child = -1;
@@ -432,6 +434,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_disable(1);
 
     /* run child process */
+    if (pipe(fromchildflag) == -1) die_pipe();
     if (pipe(fromchild) == -1) die_pipe();
     if (pipe(tochild) == -1) die_pipe();
     child = fork();
@@ -440,6 +443,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             die_fork();
         case 0:
             alarm(0);
+            close(fromchildflag[0]);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
@@ -448,6 +452,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (dup(fromchild[1]) != 1) die_dup();
             blocking_enable(0);
             blocking_enable(1);
+            fcntl(fromchildflag[1], F_SETFD, 1);
 
             /* drop root to account from client certificate ASN.1 object */
             do {
@@ -478,6 +483,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             log_f2("unable to run ", *argv);
             die(111);
     }
+    close(fromchildflag[1]);
     close(fromchild[1]);
     close(tochild[0]);
     blocking_disable(fromchild[0]);
@@ -640,6 +646,13 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (pipe_write(tochild[1], localport, sizeof localport) == -1) die_writetopipe();
             if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
             if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
+
+            /* wait when child starts */
+            {
+                char ch;
+                (void) read(fromchildflag[0], &ch, 1);
+                close(fromchildflag[0]);
+            }
 
             /* write proxy-protocol string */
             if (ppout) {
