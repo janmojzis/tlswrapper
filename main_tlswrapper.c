@@ -742,7 +742,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     close(fromkeyjail[0]);
     close(tokeyjail[1]);
     do {
-        r = waitpid(keyjail, &status, 0);
+        r = waitpid(keyjailchild, &status, 0);
     } while (r == -1 && errno == EINTR);
     if (!WIFEXITED(status)) {
         log_t2("keyjail process killed by signal ", lognum(WTERMSIG(status)));
