@@ -263,10 +263,6 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     }
     log_ip(iptostr(remoteipstr, remoteip));
 
-    /* get connection info */
-    (void) connectioninfo_get(localip, localport, remoteip, remoteport);
-    log_ip(iptostr(remoteipstr, remoteip));
-
     fd = conn(connecttimeout, ip, iplen, port);
     if (fd == -1) {
         log_f4("unable to connect to ", hoststr, ":", logport(port));
