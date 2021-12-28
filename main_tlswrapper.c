@@ -449,13 +449,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             blocking_enable(0);
             blocking_enable(1);
 
-            /* read connection info from net-process */
-            if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
-            if (pipe_readall(0, localport, sizeof localport) == -1) die(111);
-            if (pipe_readall(0, remoteip, sizeof remoteip) == -1) die(111);
-            if (pipe_readall(0, remoteport, sizeof remoteport) == -1) die(111);
-            connectioninfo_set(localip, localport, remoteip, remoteport);
-
             /* drop root to account from client certificate ASN.1 object */
             do {
                 char account[256];
@@ -469,6 +462,13 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
             /* drop root */
             if (user) if (jail_droppriv(user) == -1) die_droppriv(user);
+
+            /* read connection info from net-process */
+            if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
+            if (pipe_readall(0, localport, sizeof localport) == -1) die(111);
+            if (pipe_readall(0, remoteip, sizeof remoteip) == -1) die(111);
+            if (pipe_readall(0, remoteport, sizeof remoteport) == -1) die(111);
+            connectioninfo_set(localip, localport, remoteip, remoteport);
 
             signal(SIGPIPE, SIG_DFL);
             signal(SIGCHLD, SIG_DFL);
@@ -623,11 +623,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
         if ((st & BR_SSL_SENDAPP) && !handshakedone) {
 
-            /* write connection info to the child */
-            if (pipe_write(tochild[1], localip, sizeof localip) == -1) die_writetopipe();
-            if (pipe_write(tochild[1], localport, sizeof localport) == -1) die_writetopipe();
-            if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
-            if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
+            handshakedone = 1;
+            alarm(timeout);
 
             /* CN from anchor certificate */
             ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
@@ -638,6 +635,12 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             }
             if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
 
+            /* write connection info to the child */
+            if (pipe_write(tochild[1], localip, sizeof localip) == -1) die_writetopipe();
+            if (pipe_write(tochild[1], localport, sizeof localport) == -1) die_writetopipe();
+            if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
+            if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
+
             /* write proxy-protocol string */
             if (ppout) {
                 char ppbuf[PROXYPROTOCOL_MAX];
@@ -646,9 +649,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 if (ppbuflen <= 0) die_ppout(ppoutver);
                 if (writeall(tochild[1], ppbuf, ppbuflen) == -1) die_writetopipe();
             }
-
-            alarm(timeout);
-            handshakedone = 1;
 
             log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
             tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
