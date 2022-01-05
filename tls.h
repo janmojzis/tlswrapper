@@ -201,4 +201,16 @@ extern int tls_timeout_parse(long long *, const char *);
 /* tls_anchor.c */
 extern int tls_anchor_add(struct tls_context *, char *);
 
+/* tls_engine.c */
+extern unsigned char *tls_engine_sendapp_buf(struct tls_context *, size_t *);
+extern unsigned char *tls_engine_recvapp_buf(struct tls_context *, size_t *);
+extern unsigned char *tls_engine_sendrec_buf(struct tls_context *, size_t *);
+extern unsigned char *tls_engine_recvrec_buf(struct tls_context *, size_t *);
+extern void tls_engine_sendapp_ack(struct tls_context *, size_t);
+extern void tls_engine_recvapp_ack(struct tls_context *, size_t);
+extern void tls_engine_sendrec_ack(struct tls_context *, size_t);
+extern void tls_engine_recvrec_ack(struct tls_context *, size_t);
+extern void tls_engine_flush(struct tls_context *, int);
+extern void tls_engine_close(struct tls_context *);
+
 #endif

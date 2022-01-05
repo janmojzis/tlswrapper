@@ -128,6 +128,9 @@ tls_ecdhe.o: tls_ecdhe.c tls.h
 tls_ecdsa.o: tls_ecdsa.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdsa.c
 
+tls_engine.o: tls_engine.c tls.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_engine.c
+
 tls_error.o: tls_error.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_error.c
 
@@ -204,6 +207,7 @@ OBJECTS+=tls_cipher.o
 OBJECTS+=tls_crypto_scalarmult.o
 OBJECTS+=tls_ecdhe.o
 OBJECTS+=tls_ecdsa.o
+OBJECTS+=tls_engine.o
 OBJECTS+=tls_error.o
 OBJECTS+=tls_keyjail.o
 OBJECTS+=tls_keytype.o

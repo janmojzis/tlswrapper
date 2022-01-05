@@ -690,27 +690,27 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
         /* recvapp */
         if (watchtochild) {
-            buf = br_ssl_engine_recvapp_buf(&ctx.cc.eng, &len);
+            buf = tls_engine_recvapp_buf(&ctx, &len);
             r = write(tochild[1], buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to child failed"); break; }
-            br_ssl_engine_recvapp_ack(&ctx.cc.eng, r);
+            tls_engine_recvapp_ack(&ctx, r);
             continue;
         }
 
         /* sendrec */
         if (watch1) {
-            buf = br_ssl_engine_sendrec_buf(&ctx.cc.eng, &len);
+            buf = tls_engine_sendrec_buf(&ctx, &len);
             r = write(1, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to standard output failed"); break; }
-            br_ssl_engine_sendrec_ack(&ctx.cc.eng, r);
+            tls_engine_sendrec_ack(&ctx, r);
             continue;
         }
 
         /* recvrec */
         if (watch0) {
-            buf = br_ssl_engine_recvrec_buf(&ctx.cc.eng, &len);
+            buf = tls_engine_recvrec_buf(&ctx, &len);
             r = read(0, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
@@ -718,25 +718,25 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 if (r == 0) log_t1("read from standard input failed, connection closed");
                 break;
             }
-            br_ssl_engine_recvrec_ack(&ctx.cc.eng, r);
+            tls_engine_recvrec_ack(&ctx, r);
             alarm(timeout); /* refresh timeout */
             continue;
         }
 
         /* sendapp */
         if (watchfromchild) {
-            buf = br_ssl_engine_sendapp_buf(&ctx.cc.eng, &len);
+            buf = tls_engine_sendapp_buf(&ctx, &len);
             r = read(fromchild[0], buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 if (r < 0) log_d1("read from child failed");
                 if (r == 0) log_t1("read from child failed, connection closed");
-                br_ssl_engine_close(&ctx.cc.eng);
-                br_ssl_engine_flush(&ctx.cc.eng, 0);
+                tls_engine_close(&ctx);
+                tls_engine_flush(&ctx, 0);
                 continue;
             }
-            br_ssl_engine_sendapp_ack(&ctx.cc.eng, r);
-            br_ssl_engine_flush(&ctx.cc.eng, 0);
+            tls_engine_sendapp_ack(&ctx, r);
+            tls_engine_flush(&ctx, 0);
             alarm(timeout); /* refresh timeout */
             continue;
         }
