@@ -59,6 +59,9 @@ struct tls_context {
 
     struct tls_pubcrt crt;
 
+    int flaghandshakedone;
+    int flagdelayedencryption;
+
     int flagnojail;
     const char *jailaccount;
     const char *jaildir;
@@ -212,5 +215,7 @@ extern void tls_engine_sendrec_ack(struct tls_context *, size_t);
 extern void tls_engine_recvrec_ack(struct tls_context *, size_t);
 extern void tls_engine_flush(struct tls_context *, int);
 extern void tls_engine_close(struct tls_context *);
+extern unsigned int tls_engine_current_state(struct tls_context *);
+extern int tls_engine_handshakedone(struct tls_context *);
 
 #endif

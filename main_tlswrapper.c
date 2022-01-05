@@ -1,6 +1,5 @@
 #include <signal.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -26,6 +25,8 @@
 
 static struct tls_context ctx = {
     .flags = (tls_flags_ENFORCE_SERVER_PREFERENCES | tls_flags_NO_RENEGOTIATION),
+    .flaghandshakedone = 0,
+    .flagdelayedencryption = 0,
     .flagnojail = 0,
     .jailaccount = 0,
     .jaildir = EMPTYDIR,
@@ -64,7 +65,7 @@ static long long timeout;
 
 static int flagverbose = 1;
 
-static int fromchildflag[2] = {-1, -1};
+static int fromchildcontrol[2] = {-1, -1};
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
 static pid_t child = -1;
@@ -382,6 +383,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 if (x[1]) { ctx.jailaccount = (x + 1); break; }
                 if (argv[1]) { ctx.jailaccount = (*++argv); break; }
             }
+            /* delayed encryption */
+            if (*x == 'w') { ctx.flagdelayedencryption = 1; continue; }
+            if (*x == 'W') { ctx.flagdelayedencryption = 0; continue; }
 
             usage();
         }
@@ -399,25 +403,28 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_disable(1);
 
     /* run child process */
-    if (pipe(fromchildflag) == -1) die_pipe();
-    if (pipe(fromchild) == -1) die_pipe();
     if (pipe(tochild) == -1) die_pipe();
+    if (pipe(fromchild) == -1) die_pipe();
+    if (pipe(fromchildcontrol) == -1) die_pipe();
     child = fork();
     switch (child) {
         case -1:
             die_fork();
         case 0:
             alarm(0);
-            close(fromchildflag[0]);
+            close(fromchildcontrol[0]);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
+            if (close(3) != -1) {
+                log_w1("XXX");
+            }
+            if (dup(fromchildcontrol[1]) != 3) die_dup();
             blocking_enable(0);
             blocking_enable(1);
-            fcntl(fromchildflag[1], F_SETFD, 1);
 
             /* read connection info from net-process */
             if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
@@ -448,9 +455,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             log_f2("unable to run ", *argv);
             die(111);
     }
-    close(fromchildflag[1]);
+    close(fromchildcontrol[1]);
     close(fromchild[1]);
     close(tochild[0]);
+    blocking_disable(fromchildcontrol[0]);
     blocking_disable(fromchild[0]);
     blocking_disable(tochild[1]);
 
@@ -538,23 +546,31 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
     if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
 
+    if (ctx.flagdelayedencryption) {
+        if (pipe_write(tochild[1], "", 1) == -1) die_writetopipe();
+    }
+    else {
+        close(fromchildcontrol[0]);
+    }
+
     /* TLS init */
     tls_profile(&ctx);
 
     /* main loop */
     for (;;) {
         unsigned int st;
-        struct pollfd p[5];
+        struct pollfd p[6];
         struct pollfd *q;
         struct pollfd *watch0;
         struct pollfd *watch1;
         struct pollfd *watchfromchild;
         struct pollfd *watchtochild;
         struct pollfd *watchfromselfpipe;
+        struct pollfd *watchfromcontrol;
         unsigned char *buf;
         size_t len;
 
-        st = br_ssl_engine_current_state(&ctx.cc.eng);
+        st = tls_engine_current_state(&ctx);
         if (st & BR_SSL_CLOSED) {
             int err;
             err = br_ssl_engine_last_error(&ctx.cc.eng);
@@ -598,33 +614,27 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             break;
         }
 
-        if ((st & BR_SSL_SENDAPP) && !handshakedone) {
+        if (tls_engine_handshakedone(&ctx)) {
 
-            handshakedone = 1;
             alarm(timeout);
 
-            /* CN from anchor certificate */
-            ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
-            if (userfromcert) {
-                if (!ctx.clientcrt.status) die_extractcn(userfromcert);
-                log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
-                fixname(ctx.clientcrtbuf);
-            }
-            if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
+            if (!ctx.flagdelayedencryption) {
+                /* CN from anchor certificate */
+                ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
+                if (userfromcert) {
+                    if (!ctx.clientcrt.status) die_extractcn(userfromcert);
+                    log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
+                    fixname(ctx.clientcrtbuf);
+                }
+                if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
 
-            /* wait when child starts */
-            {
-                char ch;
-                (void) read(fromchildflag[0], &ch, 1);
-                close(fromchildflag[0]);
+                log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+                tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
+                ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
             }
-
-            log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
-            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
-            ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
         }
 
-        watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = 0;
+        watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
         q = p;
 
         if (st & BR_SSL_SENDREC) { watch1 = q; q->fd = 1; q->events = POLLOUT; ++q; }
@@ -632,9 +642,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         if (st & BR_SSL_RECVAPP) { watchtochild = q; q->fd = tochild[1]; q->events = POLLOUT; ++q; }
         if (st & BR_SSL_SENDAPP) { watchfromchild = q; q->fd = fromchild[0]; q->events = POLLIN; ++q; }
         watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
+        if (ctx.flagdelayedencryption) { watchfromcontrol = q; q->fd = fromchildcontrol[0]; q->events = POLLIN; ++q; }
 
         if (jail_poll(p, q - p, -1) < 0) {
-            watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe =  0;
+            watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
         }
         else {
             if (watch1) if (!watch1->revents) watch1 = 0;
@@ -642,6 +653,24 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (watchtochild) if (!watchtochild->revents) watchtochild = 0;
             if (watchfromchild) if (!watchfromchild->revents) watchfromchild = 0;
             if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
+            if (watchfromcontrol) if (!watchfromcontrol->revents) watchfromcontrol = 0;
+        }
+
+        /* watchfromcontrol */
+        if (watchfromcontrol) {
+            /* read last unencrypted message from the child */
+            buf = tls_engine_sendapp_buf(&ctx, &len);
+            /* XXX switch to timeoutread */
+            r = read(fromchild[0], buf, len);
+            if (r > 0) tls_engine_sendapp_ack(&ctx, r);
+            /* write buffer to the network (stdout) */
+            buf = tls_engine_sendrec_buf(&ctx, &len);
+            if (writeall(1, buf, len) == -1) { log_d1("write to standard output failed"); break; }
+            /* close the control pipe */
+            close(fromchildcontrol[0]);
+            ctx.flagdelayedencryption = 0;
+            log_d1("child requested encrytion(STARTTLS), start TLS");
+            continue;
         }
 
         /* recvapp */
