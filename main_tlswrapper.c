@@ -454,6 +454,13 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             blocking_enable(1);
             fcntl(fromchildflag[1], F_SETFD, 1);
 
+            /* read connection info from net-process */
+            if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
+            if (pipe_readall(0, localport, sizeof localport) == -1) die(111);
+            if (pipe_readall(0, remoteip, sizeof remoteip) == -1) die(111);
+            if (pipe_readall(0, remoteport, sizeof remoteport) == -1) die(111);
+            connectioninfo_set(localip, localport, remoteip, remoteport);
+
             /* drop root to account from client certificate ASN.1 object */
             do {
                 char account[256];
@@ -467,13 +474,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
             /* drop root */
             if (user) if (jail_droppriv(user) == -1) die_droppriv(user);
-
-            /* read connection info from net-process */
-            if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
-            if (pipe_readall(0, localport, sizeof localport) == -1) die(111);
-            if (pipe_readall(0, remoteip, sizeof remoteip) == -1) die(111);
-            if (pipe_readall(0, remoteport, sizeof remoteport) == -1) die(111);
-            connectioninfo_set(localip, localport, remoteip, remoteport);
 
             signal(SIGPIPE, SIG_DFL);
             signal(SIGCHLD, SIG_DFL);
@@ -567,6 +567,12 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     log_d1("start");
 
+    /* write connection info to the child */
+    if (pipe_write(tochild[1], localip, sizeof localip) == -1) die_writetopipe();
+    if (pipe_write(tochild[1], localport, sizeof localport) == -1) die_writetopipe();
+    if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
+    if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
+
     /* TLS init */
     tls_profile(&ctx);
 
@@ -640,12 +646,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 fixname(ctx.clientcrtbuf);
             }
             if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
-
-            /* write connection info to the child */
-            if (pipe_write(tochild[1], localip, sizeof localip) == -1) die_writetopipe();
-            if (pipe_write(tochild[1], localport, sizeof localport) == -1) die_writetopipe();
-            if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
-            if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
 
             /* wait when child starts */
             {
