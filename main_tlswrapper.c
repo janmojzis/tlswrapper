@@ -118,13 +118,10 @@ static void cleanup(void) {
 #define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
 #define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", (x), " from client certificate: object not found"); die(111); }
 #define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
-#define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
 #define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
 
 
 /* proxy-protocol */
-static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
-static const char *ppoutver = 0;
 static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
 static const char *ppinver = 0;
 
@@ -141,27 +138,6 @@ static void pp_incoming(const char *x) {
     else {
         log_f3("unable to parse incoming proxy-protocol version from the string '", x, "'");
         log_f1("available: 1");
-        die(100);
-    }
-}
-static void pp_outgoing(const char *x) {
-
-    if (!strcmp("0", x)) {
-        /* disable outgoing proxy-protocol */
-        return;
-    }
-    else if (!strcmp("1", x)) {
-        ppout = proxyprotocol_v1;
-        ppoutver = x;
-    }
-    else if (!strcmp("2", x)) {
-        ppout = proxyprotocol_v2;
-        ppoutver = x;
-    }
-    else {
-        log_f3("unable to parse outgoing proxy-protocol version from the string '", x, "'");
-        log_f1("available: 1");
-        log_f1("available: 2");
         die(100);
     }
 }
@@ -341,10 +317,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (*x == 'p') {
                 if (x[1]) { pp_incoming(x + 1); break; }
                 if (argv[1]) { pp_incoming(*++argv); break; }
-            }
-            if (*x == 'P') {
-                if (x[1]) { pp_outgoing(x + 1); break; }
-                if (argv[1]) { pp_outgoing(*++argv); break; }
             }
 
             /* run child under user */
@@ -645,15 +617,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 char ch;
                 (void) read(fromchildflag[0], &ch, 1);
                 close(fromchildflag[0]);
-            }
-
-            /* write proxy-protocol string */
-            if (ppout) {
-                char ppbuf[PROXYPROTOCOL_MAX];
-                long long ppbuflen = 0;
-                ppbuflen = ppout(ppbuf, sizeof ppbuf, localip, localport, remoteip, remoteport);
-                if (ppbuflen <= 0) die_ppout(ppoutver);
-                if (writeall(tochild[1], ppbuf, ppbuflen) == -1) die_writetopipe();
             }
 
             log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",

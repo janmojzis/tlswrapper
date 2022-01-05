@@ -1,31 +1,7 @@
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!!\0$\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0OK\n\n
-escape: info: start 
-PROXY UNKNOWN\r\nOK\n\n
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!\x11\0\x0c\x01\x02\x03\x04\x01\x02\x03\x04\x04\xd2\x04\xd2OK\n\n
-escape: info: start 
-PROXY TCP4 1.2.3.4 1.2.3.4 1234 1234\r\nOK\n\n
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!!\0$\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\xab\xcd\x04\xd2\x04\xd2OK\n\n
-escape: info: start 
-PROXY TCP6 abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd 1234 1234\r\nOK\n\n
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!!\0$\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0OK\n\n
-escape: info: start 
-PROXY UNKNOWN\r\nOK\n\n
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!!\0$\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffOK\n\n
-escape: info: start 
-PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535\r\nOK\n\n
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!!\0$\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffOK\n\n
-escape: info: start 
-PROXY TCP6 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff 65535 65535\r\nOK\n\n
-escape: info: start 
-\r\n\r\n\0\r\nQUIT\n!\x11\0\x0c\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffOK\n\n
-escape: info: start 
-PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535\r\nOK\n\n
+::
+ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+255.255.255.255
 tlswrapper: error: unable to parse proxy-protocol string 'PROXY\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
 tlswrapper: error: unable to parse proxy-protocol string 'PROXY TCP6\r\n' 

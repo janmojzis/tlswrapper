@@ -75,7 +75,7 @@ echo
 
 # proxy protocol
 echo 'tlswrapper rejects bad proxy protocol version'
-( tlswrappernojail -Q -f testfile -P 9 </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
+( tlswrappernojail -Q -f testfile -p 9 </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
 echo
 
 # user from client cert. 
