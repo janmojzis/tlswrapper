@@ -55,13 +55,11 @@ static struct tls_context ctx = {
     },
 };
 
-static const char *hstimeoutstr = "30";
-static const char *timeoutstr = "3600";
+static const char *timeoutstr = "30";
 static const char *user = 0;
 static const char *userfromcert = 0;
 
 static long long starttimeout = 3;
-static long long hstimeout;
 static long long timeout;
 
 static int flagverbose = 1;
@@ -370,10 +368,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             }
 
             /* timeouts */
-            if (*x == 'T') {
-                if (x[1]) { hstimeoutstr =  x + 1; break; }
-                if (argv[1]) { hstimeoutstr = *++argv; break; }
-            }
             if (*x == 't') {
                 if (x[1]) { timeoutstr =  x + 1; break; }
                 if (argv[1]) { timeoutstr = *++argv; break; }
@@ -424,7 +418,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (!ctx.certfiles_len) usage();
     if (userfromcert && !ctx.anchorfn) die_optionUa();
     timeout = timeout_parse(timeoutstr);
-    hstimeout = timeout_parse(hstimeoutstr);
 
     /* set flagnojail */
     ctx.flagnojail = flagnojail;
@@ -532,9 +525,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     /* create selfpipe */
     if (pipe(selfpipe) == -1) die_pipe();
 
-    /* handshake timeout */
+    /* set timeout */
     signal(SIGALRM, signalhandler);
-    alarm(hstimeout);
+    alarm(timeout);
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
     if (!ctx.flagnojail) {
@@ -695,6 +688,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to child failed"); break; }
             tls_engine_recvapp_ack(&ctx, r);
+            alarm(timeout); /* refresh timeout */
             continue;
         }
 
@@ -719,7 +713,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 break;
             }
             tls_engine_recvrec_ack(&ctx, r);
-            alarm(timeout); /* refresh timeout */
             continue;
         }
 

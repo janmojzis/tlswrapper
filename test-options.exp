@@ -95,31 +95,17 @@ tlswrapper rejects zero number as a network timeout
 tlswrapper: fatal: timeout must be a number > 0, not '0' 
 100
 
-tlswrapper rejects zero number as a handshake timeout
-tlswrapper: fatal: timeout must be a number > 0, not '0' 
-100
-
 tlswrapper rejects negative number as a network timeout
 tlswrapper: fatal: timeout must be a number > 0, not '-1' 
 100
 
 tlswrapper rejects nefative number as a handshake timeout
-tlswrapper: fatal: timeout must be a number > 0, not '-1' 
-100
-
 tlswrapper rejects bad number as a network timeout
 tlswrapper: fatal: unable to parse timeout from the string 'badtimeout' 
 100
 
 tlswrapper rejects bad number as a handshake timeout
-tlswrapper: fatal: unable to parse timeout from the string 'badtimeout' 
-100
-
 tlswrapper rejects too large number as a network timeout
-tlswrapper: fatal: timeout must be a number < 86400, not '86401' 
-100
-
-tlswrapper rejects too large number as a handshake timeout
 tlswrapper: fatal: timeout must be a number < 86400, not '86401' 
 100
 

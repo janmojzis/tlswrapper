@@ -87,24 +87,14 @@ echo
 echo 'tlswrapper rejects zero number as a network timeout'
 ( tlswrappernojail -Q -f testfile -t0 true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
 echo
-echo 'tlswrapper rejects zero number as a handshake timeout'
-( tlswrappernojail -Q -f testfile -T0 true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
-echo
 echo 'tlswrapper rejects negative number as a network timeout'
 ( tlswrappernojail -Q -f testfile -t -1 true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
 echo
 echo 'tlswrapper rejects nefative number as a handshake timeout'
-( tlswrappernojail -Q -f testfile -T -1 true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
-echo
 echo 'tlswrapper rejects bad number as a network timeout'
 ( tlswrappernojail -Q -f testfile -t badtimeout true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
 echo
 echo 'tlswrapper rejects bad number as a handshake timeout'
-( tlswrappernojail -Q -f testfile -T badtimeout true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
-echo
 echo 'tlswrapper rejects too large number as a network timeout'
 ( tlswrappernojail -Q -f testfile -t 86401 true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
-echo
-echo 'tlswrapper rejects too large number as a handshake timeout'
-( tlswrappernojail -Q -f testfile -T 86401 true </dev/null 2>&1; echo $?;) | sed 's/ (.*)/ /'
 echo
