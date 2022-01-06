@@ -19,6 +19,7 @@
 #include "fixname.h"
 #include "fixpath.h"
 #include "tls.h"
+#include "open.h"
 #include "main.h"
 
 /* clang-format off */
@@ -110,6 +111,7 @@ static void cleanup(void) {
 
 #define die(x) { cleanup(); _exit(x); }
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
+#define die_devnull() { log_f1("unable to open /dev/null"); die(111); }
 #define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
 #define die_fork() { log_f1("unable to fork"); die(111); }
 #define die_dup() { log_f1("unable to dup"); die(111); }
@@ -402,10 +404,17 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_disable(0);
     blocking_disable(1);
 
+    /* open filedecriptors up to 10 */
+    for (;;) {
+        r = open_read("/dev/null");
+        if (r == -1) die_devnull();
+        if (r > 10) { close(r); break; }
+    }
+
     /* run child process */
-    if (pipe(tochild) == -1) die_pipe();
-    if (pipe(fromchild) == -1) die_pipe();
-    if (pipe(fromchildcontrol) == -1) die_pipe();
+    if (open_pipe(tochild) == -1) die_pipe();
+    if (open_pipe(fromchild) == -1) die_pipe();
+    if (open_pipe(fromchildcontrol) == -1) die_pipe();
     child = fork();
     switch (child) {
         case -1:
@@ -419,10 +428,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-            if (close(3) != -1) {
-                log_w1("XXX");
-            }
-            if (dup(fromchildcontrol[1]) != 3) die_dup();
+            close(10);
+            if (dup(fromchildcontrol[1]) != 10) die_dup();
             blocking_enable(0);
             blocking_enable(1);
 
@@ -469,8 +476,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
 
     /* run service process for loading keys and secret-key operations */
-    if (pipe(fromkeyjail) == -1) die_pipe();
-    if (pipe(tokeyjail) == -1) die_pipe();
+    if (open_pipe(fromkeyjail) == -1) die_pipe();
+    if (open_pipe(tokeyjail) == -1) die_pipe();
     keyjailchild = fork();
     switch (keyjailchild) {
         case -1:
@@ -503,7 +510,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     tls_pipe_eng = &ctx.cc.eng;
 
     /* create selfpipe */
-    if (pipe(selfpipe) == -1) die_pipe();
+    if (open_pipe(selfpipe) == -1) die_pipe();
 
     /* set timeout */
     signal(SIGALRM, signalhandler);

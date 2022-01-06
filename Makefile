@@ -74,6 +74,12 @@ main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
 milliseconds.o: milliseconds.c milliseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c milliseconds.c
 
+open_pipe.o: open_pipe.c open.h blocking.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c open_pipe.c
+
+open_read.o: open_read.c open.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c open_read.c
+
 pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
 
@@ -128,7 +134,7 @@ tls_ecdhe.o: tls_ecdhe.c tls.h
 tls_ecdsa.o: tls_ecdsa.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdsa.c
 
-tls_engine.o: tls_engine.c tls.h
+tls_engine.o: tls_engine.c tls.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_engine.c
 
 tls_error.o: tls_error.c tls.h
@@ -190,6 +196,8 @@ OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=main_tlswrapper_test.o
 OBJECTS+=milliseconds.o
+OBJECTS+=open_pipe.o
+OBJECTS+=open_read.o
 OBJECTS+=pipe.o
 OBJECTS+=porttostr.o
 OBJECTS+=proxyprotocol.o
