@@ -147,6 +147,7 @@ int jail(const char *account, const char *dir, int limits) {
 /* if memory limit is greater than 128MB */
 /* set memory limit to 128MB             */
 #define DATAMAX 134217728
+#ifndef __APPLE__
 #ifdef RLIMIT_DATA
     if (getrlimit(RLIMIT_DATA, &r) == -1) {
         log_e1("unable to get RLIMIT_DATA");
@@ -160,6 +161,7 @@ int jail(const char *account, const char *dir, int limits) {
         }
         log_t2("setrlimit RLIMIT_DATA set to ", lognum(DATAMAX));
     }
+#endif
 #endif
 
     log_t4("running under uid = ", lognum(gid), ", gid = ", lognum(gid));

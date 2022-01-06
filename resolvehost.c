@@ -11,6 +11,7 @@ Public domain.
 #include <sys/wait.h>
 #include <signal.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include "e.h"
 #include "blocking.h"
 #include "log.h"

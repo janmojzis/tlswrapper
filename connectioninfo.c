@@ -10,6 +10,7 @@ Public domain.
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/in.h>
 #include "strtoip.h"
 #include "strtoport.h"
 #include "porttostr.h"

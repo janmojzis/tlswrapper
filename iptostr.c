@@ -6,6 +6,7 @@ Public domain.
 
 #include <arpa/inet.h>
 #include <string.h>
+#include <sys/socket.h>
 #include "iptostr.h"
 
 /* convert IPv4 address */

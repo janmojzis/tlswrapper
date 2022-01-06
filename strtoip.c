@@ -1,5 +1,6 @@
 #include <string.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include "strtoip.h"
 
 int strtoip4(unsigned char *ip, const char *x) {
