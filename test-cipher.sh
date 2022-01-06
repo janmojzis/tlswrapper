@@ -35,7 +35,7 @@ CMD="${CMD} -h okcert-ec-prime256v1-ec-prime256v1-ok.pem"
 ) | (
   while read cipher; do
     echo "${cipher}"
-    ( ${CMD} -w -c "${cipher}" tlswrappernojail -Q -d testcerts sh -c 'exec cat >&9' <data.in 9>&1 2>&1; echo $?; )
+    ${CMD} -w -c "${cipher}" tlswrappernojail -Q -d testcerts sh -c 'cat >&2' <data.in 2>&1; echo $?;
   done
 )
 
@@ -56,7 +56,7 @@ CMD="${CMD} -h okcert-rsa-2048-rsa-2048-ok.pem"
 ) | (
   while read cipher; do
     echo "${cipher}"
-    ( ${CMD} -w -c "${cipher}" tlswrappernojail -Q -d testcerts sh -c 'exec cat >&9' <data.in 9>&1 2>&1; echo $?; )
+    ${CMD} -w -c "${cipher}" tlswrappernojail -Q -d testcerts sh -c 'cat >&2' <data.in 2>&1; echo $?;
   done
 )
 
@@ -92,6 +92,6 @@ allciphers="\
 ) | (
   while read cipher host; do
     echo "${cipher} "
-    ( ${CMD} -h "${host}" -w -c "${cipher}" tlswrappernojail ${allciphers} -Q -d ./testcerts sh -c 'exec cat >&9' <data.in 9>&1 2>&1; echo $?; )
+    ${CMD} -h "${host}" -w -c "${cipher}" tlswrappernojail ${allciphers} -Q -d ./testcerts sh -c 'cat >&2' <data.in 2>&1; echo $?;
   done
 )

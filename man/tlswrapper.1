@@ -77,6 +77,12 @@ Chroot network\-process and key\-process into a specified \fIjaildir\fR (default
 .B \-j \fIjailuser\fR
 Run network\-process and key\-process under a specified \fIjailuser\fR's uid and gid. If unset run network\-process and key\-process under random uid and gid.
 .TP
+.B \-b
+Before the encryption starts, allow unencrypted data. It's experimental feature! \fBtlswrapper\fR creates to the child control pipe. The communication starts in plaintext and is encryption in the moment when child closes the control pipe. This is useful for protocols which uses STARTTLS.
+.TP
+.B \-B
+Before the encryption starts, don't allow unencrypted data (default).
+.TP
 .I prog
 program
 .SH SECURITY

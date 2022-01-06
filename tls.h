@@ -60,7 +60,12 @@ struct tls_context {
     struct tls_pubcrt crt;
 
     int flaghandshakedone;
-    int flagdelayedencryption;
+    int flagdelayedenc;
+
+    unsigned char tochildbuf[1024];
+    size_t tochildbuflen;
+    unsigned char tonetbuf[1024];
+    size_t tonetbuflen;
 
     int flagnojail;
     const char *jailaccount;
