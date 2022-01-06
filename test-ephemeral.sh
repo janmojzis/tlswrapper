@@ -31,7 +31,7 @@ CMD="${CMD} -h okcert-rsa-2048-rsa-2048-ok.pem"
 ) | (
   while read cipher; do
     echo "${cipher}"
-    ( ${CMD} -e "${cipher}" -w tlswrappernojail -Q -d testcerts sh -c 'exec cat >&9' <data.in 9>&1 2>&1; echo $?; )
+    ${CMD} -e "${cipher}" -w tlswrappernojail -Q -d testcerts sh -c 'cat >&2' <data.in 2>&1; echo $?;
   done
 )
 
@@ -49,6 +49,6 @@ allecdhe="-e x25519 -e secp256r1 -e secp384r1 -e secp521r1"
 ) | (
   while read cipher; do
     echo "${cipher}"
-    ( ${CMD} -e "${cipher}" -w tlswrappernojail ${allecdhe} -Q -d testcerts sh -c 'exec cat >&9' <data.in 9>&1 2>&1; echo $?; )
+    ${CMD} -e "${cipher}" -w tlswrappernojail ${allecdhe} -Q -d testcerts sh -c 'cat >&2' <data.in 2>&1; echo $?;
   done
 )

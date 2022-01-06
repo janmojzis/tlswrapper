@@ -10,6 +10,8 @@
 #include "fsyncfile.h"
 #include "writeall.h"
 #include "tls.h"
+#include "open.h"
+#include "blocking.h"
 #include "main.h"
 
 /* clang-format off */
@@ -18,6 +20,7 @@ static int flagverbose = 1;
 static int flaginput = 0;
 static int flagoutput = 0;
 static int flagflush = 1;
+static int flagzero = 0;
 
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
@@ -263,6 +266,8 @@ int main_tlswrapper_test(int argc, char **argv) {
             if (*x == 'w') { flagoutput = 1; flaginput = 0; continue; }
             if (*x == 'f') { flagflush = 1; continue; }
             if (*x == 'F') { flagflush = 0; continue; }
+            if (*x == 'z') { flagzero = 1; continue; }
+            if (*x == 'Z') { flagzero = 0; continue; }
             if (*x == 'P') {
                 if (x[1]) { ppstring = (x + 1); break; }
                 if (argv[1]) { ppstring = (*++argv); break; }
@@ -300,17 +305,9 @@ int main_tlswrapper_test(int argc, char **argv) {
     log_ip("0.0.0.0");
     log_d1("start");
 
-#if 0
-    /* set fake env. variables */
-    if (setenv("TCPREMOTEIP", "0.0.0.0", 1) == -1) die_setenv("TCPREMOTEIP");
-    if (setenv("TCPREMOTEPORT", "0", 1) == -1) die_setenv("TCPREMOTEPORT");
-    if (setenv("TCPLOCALIP", "0.0.0.0", 1) == -1) die_setenv("TCPLOCALIP");
-    if (setenv("TCPLOCALPORT", "0", 1) == -1) die_setenv("TCPLOCALPORT");
-#endif
-
     /* run child process */
-    if (pipe(fromchild) == -1) die_pipe();
-    if (pipe(tochild) == -1) die_pipe();
+    if (open_pipe(fromchild) == -1) die_pipe();
+    if (open_pipe(tochild) == -1) die_pipe();
     child = fork();
     switch (child) {
         case -1:
@@ -322,7 +319,8 @@ int main_tlswrapper_test(int argc, char **argv) {
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-
+            blocking_enable(0);
+            blocking_enable(1);
             signal(SIGPIPE, SIG_DFL);
             execvp(*argv, argv);
             log_f2("unable to run ", *argv);
@@ -330,6 +328,8 @@ int main_tlswrapper_test(int argc, char **argv) {
     }
     close(fromchild[1]);
     close(tochild[0]);
+    blocking_enable(fromchild[0]);
+    blocking_enable(tochild[0]);
 
 
     /* load and parse anchor PEM file */
@@ -387,6 +387,13 @@ int main_tlswrapper_test(int argc, char **argv) {
     /* initialise the I/O wrapper context */
     br_sslio_init(&ioc, &sc.eng, _read, &fromchild[0], _write, &tochild[1]);
 
+    if (flagzero) {
+        log_d1("waiting for zerobyte");
+        do {
+            r = read(fromchild[0], buf, 1);
+        } while (r != 1);
+        log_d1("zerobyte received");
+    }
 
     if (flaginput) {
         for (;;) {

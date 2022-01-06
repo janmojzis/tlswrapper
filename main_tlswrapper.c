@@ -1,6 +1,5 @@
 #include <signal.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -20,12 +19,15 @@
 #include "fixname.h"
 #include "fixpath.h"
 #include "tls.h"
+#include "open.h"
 #include "main.h"
 
 /* clang-format off */
 
 static struct tls_context ctx = {
     .flags = (tls_flags_ENFORCE_SERVER_PREFERENCES | tls_flags_NO_RENEGOTIATION),
+    .flaghandshakedone = 0,
+    .flagdelayedenc = 0,
     .flagnojail = 0,
     .jailaccount = 0,
     .jaildir = EMPTYDIR,
@@ -64,7 +66,7 @@ static long long timeout;
 
 static int flagverbose = 1;
 
-static int fromchildflag[2] = {-1, -1};
+static int fromchildcontrol[2] = {-1, -1};
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
 static pid_t child = -1;
@@ -109,6 +111,7 @@ static void cleanup(void) {
 
 #define die(x) { cleanup(); _exit(x); }
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
+#define die_devnull() { log_f1("unable to open /dev/null"); die(111); }
 #define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
 #define die_fork() { log_f1("unable to fork"); die(111); }
 #define die_dup() { log_f1("unable to dup"); die(111); }
@@ -284,7 +287,7 @@ static void usage(void) {
 int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     char *x;
-    int handshakedone = 0;
+    int flaguser = 0;
     long long r;
 
     errno = 0;
@@ -382,6 +385,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 if (x[1]) { ctx.jailaccount = (x + 1); break; }
                 if (argv[1]) { ctx.jailaccount = (*++argv); break; }
             }
+            /* delayed encryption */
+            if (*x == 'b') { ctx.flagdelayedenc = 1; continue; }
+            if (*x == 'B') { ctx.flagdelayedenc = 0; continue; }
 
             usage();
         }
@@ -398,26 +404,35 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_disable(0);
     blocking_disable(1);
 
+    /* open filedecriptors up to 3 */
+    for (;;) {
+        r = open_read("/dev/null");
+        if (r == -1) die_devnull();
+        if (r > 3) { close(r); break; }
+    }
+
     /* run child process */
-    if (pipe(fromchildflag) == -1) die_pipe();
-    if (pipe(fromchild) == -1) die_pipe();
-    if (pipe(tochild) == -1) die_pipe();
+    if (open_pipe(tochild) == -1) die_pipe();
+    if (open_pipe(fromchild) == -1) die_pipe();
+    if (open_pipe(fromchildcontrol) == -1) die_pipe();
     child = fork();
     switch (child) {
         case -1:
             die_fork();
         case 0:
             alarm(0);
-            close(fromchildflag[0]);
+            close(fromchildcontrol[0]);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
+            close(3);
+            if (dup(fromchildcontrol[1]) != 3) die_dup();
             blocking_enable(0);
             blocking_enable(1);
-            fcntl(fromchildflag[1], F_SETFD, 1);
+            blocking_enable(3);
 
             /* read connection info from net-process */
             if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
@@ -448,9 +463,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             log_f2("unable to run ", *argv);
             die(111);
     }
-    close(fromchildflag[1]);
+    close(fromchildcontrol[1]);
     close(fromchild[1]);
     close(tochild[0]);
+    blocking_disable(fromchildcontrol[0]);
     blocking_disable(fromchild[0]);
     blocking_disable(tochild[1]);
 
@@ -461,8 +477,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
 
     /* run service process for loading keys and secret-key operations */
-    if (pipe(fromkeyjail) == -1) die_pipe();
-    if (pipe(tokeyjail) == -1) die_pipe();
+    if (open_pipe(fromkeyjail) == -1) die_pipe();
+    if (open_pipe(tokeyjail) == -1) die_pipe();
     keyjailchild = fork();
     switch (keyjailchild) {
         case -1:
@@ -471,6 +487,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             alarm(0);
             close(fromkeyjail[0]);
             close(tokeyjail[1]);
+            close(fromchildcontrol[0]);
             close(fromchild[0]);
             close(tochild[1]);
             close(0);
@@ -495,7 +512,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     tls_pipe_eng = &ctx.cc.eng;
 
     /* create selfpipe */
-    if (pipe(selfpipe) == -1) die_pipe();
+    if (open_pipe(selfpipe) == -1) die_pipe();
+    blocking_enable(selfpipe[1]);
 
     /* set timeout */
     signal(SIGALRM, signalhandler);
@@ -538,93 +556,58 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
     if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
 
+    if (ctx.flagdelayedenc) {
+        if (pipe_write(tochild[1], "", 1) == -1) die_writetopipe();
+        flaguser = 1;
+    }
+    else {
+        close(fromchildcontrol[0]);
+    }
+
     /* TLS init */
     tls_profile(&ctx);
 
     /* main loop */
     for (;;) {
         unsigned int st;
-        struct pollfd p[5];
+        struct pollfd p[6];
         struct pollfd *q;
         struct pollfd *watch0;
         struct pollfd *watch1;
         struct pollfd *watchfromchild;
         struct pollfd *watchtochild;
         struct pollfd *watchfromselfpipe;
+        struct pollfd *watchfromcontrol;
         unsigned char *buf;
         size_t len;
 
-        st = br_ssl_engine_current_state(&ctx.cc.eng);
-        if (st & BR_SSL_CLOSED) {
-            int err;
-            err = br_ssl_engine_last_error(&ctx.cc.eng);
-            if (err == BR_ERR_OK) {
-                if (handshakedone) {
-                    log_i9("SSL closed normally: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
-                    tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
-                    ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
-                }
-                else {
-                    log_d1("SSL closed normally");
-                }
-            }
-            else {
-                if (err >= BR_ERR_SEND_FATAL_ALERT) {
-                    err -= BR_ERR_SEND_FATAL_ALERT;
-                    if (handshakedone) {
-                        log_e2("SSL closed abnormally, sent alert: ", tls_error_str(err));
-                    }
-                    else {
-                        log_d2("SSL closed abnormally, sent alert: ", tls_error_str(err));
-                    }
-                } else if (err >= BR_ERR_RECV_FATAL_ALERT) {
-                    err -= BR_ERR_RECV_FATAL_ALERT;
-                    if (handshakedone) {
-                        log_e2("SSL closed abnormally, received alert: ", tls_error_str(err));
-                    }
-                    else {
-                        log_d2("SSL closed abnormally, received alert: ", tls_error_str(err));
-                    }
-                }
-                else {
-                    if (handshakedone) {
-                        log_e2("SSL closed abnormally: ", tls_error_str(err));
-                    }
-                    else {
-                        log_d2("SSL closed abnormally: ", tls_error_str(err));
-                    }
-                }
-            }
-            break;
-        }
+        st = tls_engine_current_state(&ctx);
+        if (st & BR_SSL_CLOSED) break;
 
-        if ((st & BR_SSL_SENDAPP) && !handshakedone) {
+        if (tls_engine_handshakedone(&ctx)) {
 
-            handshakedone = 1;
             alarm(timeout);
 
-            /* CN from anchor certificate */
-            ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
-            if (userfromcert) {
-                if (!ctx.clientcrt.status) die_extractcn(userfromcert);
-                log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
-                fixname(ctx.clientcrtbuf);
-            }
-            if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
+            if (!ctx.flagdelayedenc) {
+                /* CN from anchor certificate */
+                if (!flaguser) {
+                    ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
+                    if (userfromcert) {
+                        if (!ctx.clientcrt.status) die_extractcn(userfromcert);
+                        log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
+                        fixname(ctx.clientcrtbuf);
+                    }
+                    if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
+                    flaguser = 1;
+                }
 
-            /* wait when child starts */
-            {
-                char ch;
-                (void) read(fromchildflag[0], &ch, 1);
-                close(fromchildflag[0]);
+                log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+                tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
+                ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
             }
-
-            log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
-            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
-            ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
         }
 
-        watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = 0;
+        watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
         q = p;
 
         if (st & BR_SSL_SENDREC) { watch1 = q; q->fd = 1; q->events = POLLOUT; ++q; }
@@ -632,9 +615,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         if (st & BR_SSL_RECVAPP) { watchtochild = q; q->fd = tochild[1]; q->events = POLLOUT; ++q; }
         if (st & BR_SSL_SENDAPP) { watchfromchild = q; q->fd = fromchild[0]; q->events = POLLIN; ++q; }
         watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
+        if (ctx.flagdelayedenc) { watchfromcontrol = q; q->fd = fromchildcontrol[0]; q->events = POLLIN; ++q; }
 
         if (jail_poll(p, q - p, -1) < 0) {
-            watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe =  0;
+            watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
         }
         else {
             if (watch1) if (!watch1->revents) watch1 = 0;
@@ -642,6 +626,24 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (watchtochild) if (!watchtochild->revents) watchtochild = 0;
             if (watchfromchild) if (!watchfromchild->revents) watchfromchild = 0;
             if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
+            if (watchfromcontrol) if (!watchfromcontrol->revents) watchfromcontrol = 0;
+        }
+
+        /* watchfromcontrol */
+        if (watchfromcontrol) {
+            /* read last unencrypted message from the child */
+            buf = tls_engine_sendapp_buf(&ctx, &len);
+            /* XXX switch to timeoutread */
+            r = read(fromchild[0], buf, len);
+            if (r > 0) tls_engine_sendapp_ack(&ctx, r);
+            /* write buffer to the network (stdout) */
+            buf = tls_engine_sendrec_buf(&ctx, &len);
+            if (writeall(1, buf, len) == -1) { log_d1("write to standard output failed"); break; }
+            /* close the control pipe */
+            close(fromchildcontrol[0]);
+            ctx.flagdelayedenc = 0;
+            log_d1("child requested encrytion(STARTTLS), start TLS");
+            continue;
         }
 
         /* recvapp */
