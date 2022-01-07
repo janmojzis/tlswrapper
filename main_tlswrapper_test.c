@@ -389,9 +389,11 @@ int main_tlswrapper_test(int argc, char **argv) {
 
     if (flagzero) {
         log_d1("waiting for zerobyte");
-        do {
-            r = read(fromchild[0], buf, 1);
-        } while (r != 1);
+        r = _read(&fromchild[0], buf, 1);
+        if (r == -1) {
+            log_f1("unable to read from child");
+            goto finish;
+        }
         log_d1("zerobyte received");
     }
 
@@ -455,6 +457,7 @@ int main_tlswrapper_test(int argc, char **argv) {
         }
     }
 
+finish:
     while (waitpid(child, &childstatus, 0) != child) {};
     log_d1("finished");
     die(WEXITSTATUS(childstatus));
