@@ -57,6 +57,8 @@ static struct tls_context ctx = {
     },
 };
 
+#define CONTROLPIPEFD 4
+
 static const char *timeoutstr = "30";
 static const char *user = 0;
 static const char *userfromcert = 0;
@@ -111,6 +113,7 @@ static void cleanup(void) {
 
 #define die(x) { cleanup(); _exit(x); }
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
+#define die_controlpipe() { log_f3("unable to create control pipe on filedescriptor ", lognum(CONTROLPIPEFD), ": filedescriptor exits"); die(111); }
 #define die_devnull() { log_f1("unable to open /dev/null"); die(111); }
 #define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
 #define die_fork() { log_f1("unable to fork"); die(111); }
@@ -404,11 +407,15 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_disable(0);
     blocking_disable(1);
 
-    /* open filedecriptors up to 3 */
-    for (;;) {
-        r = open_read("/dev/null");
-        if (r == -1) die_devnull();
-        if (r > 3) { close(r); break; }
+    /* create control pipe on fd 4 */
+    if (ctx.flagdelayedenc) {
+        struct stat st;
+        if (fstat(CONTROLPIPEFD, &st) != -1) die_controlpipe();
+        for (;;) {
+            r = open_read("/dev/null");
+            if (r == -1) die_devnull();
+            if (r > CONTROLPIPEFD) { close(r); break; }
+        }
     }
 
     /* run child process */
@@ -428,11 +435,11 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-            close(3);
-            if (dup(fromchildcontrol[1]) != 3) die_dup();
+            close(CONTROLPIPEFD);
+            if (dup(fromchildcontrol[1]) != CONTROLPIPEFD) die_dup();
             blocking_enable(0);
             blocking_enable(1);
-            blocking_enable(3);
+            blocking_enable(CONTROLPIPEFD);
 
             /* read connection info from net-process */
             if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
