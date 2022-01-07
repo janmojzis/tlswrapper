@@ -29,7 +29,8 @@ unsigned char *tls_engine_recvapp_buf(struct tls_context *ctx, size_t *len) {
 }
 void tls_engine_recvapp_ack(struct tls_context *ctx, size_t len) {
     if (ctx->flagdelayedenc) {
-        memmove(ctx->tochildbuf, ctx->tochildbuf + len, ctx->tochildbuflen - len);
+        memmove(ctx->tochildbuf, ctx->tochildbuf + len,
+                ctx->tochildbuflen - len);
         ctx->tochildbuflen -= len;
         return;
     }
