@@ -1,4 +1,4 @@
-/* taken from public-domain nacl-20110221, from curvecp/blocking.c */
+/* taken from public-domain nacl-20110221, from curvecp/open_pipe.c */
 #include <unistd.h>
 #include <fcntl.h>
 #include "open.h"
