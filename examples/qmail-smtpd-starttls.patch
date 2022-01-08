@@ -1,0 +1,59 @@
+diff -Nur qmail.orig/qmail-smtpd.c qmail/qmail-smtpd.c
+--- qmail.orig/qmail-smtpd.c	2022-01-07 20:22:26.000000000 +0100
++++ qmail/qmail-smtpd.c	2022-01-08 07:25:29.000000000 +0100
+@@ -1,3 +1,6 @@
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
+ #include "sig.h"
+ #include "readwrite.h"
+ #include "stralloc.h"
+@@ -82,6 +85,8 @@
+   smtp_greet("221 "); out("\r\n"); flush(); _exit(0);
+ }
+ 
++int tlscontrolpipe = -1;
++
+ char *remoteip;
+ char *remotehost;
+ char *remoteinfo;
+@@ -326,6 +331,7 @@
+ void smtp_ehlo(arg) char *arg;
+ {
+   smtp_greet("250-"); out("\r\n250-PIPELINING\r\n250-8BITMIME\r\n");
++  if (tlscontrolpipe != -1) out("250-STARTTLS\r\n");
+   smtp_size();
+   seenmail = 0; dohelo(arg);
+ }
+@@ -369,6 +375,13 @@
+   out("250 ok\r\n");
+ }
+ 
++void smtp_tls()
++{
++  if (tlscontrolpipe == -1) { err_unimpl(); return; }
++  out("220 ready to start TLS\r\n"); flush();
++  close(tlscontrolpipe); tlscontrolpipe = -1;
++  seenmail = 0; dohelo(remotehost);
++}
+ 
+ int saferead(fd,buf,len) int fd; char *buf; int len;
+ {
+@@ -508,6 +521,7 @@
+ , { "ehlo", smtp_ehlo, flush }
+ , { "rset", smtp_rset, 0 }
+ , { "help", smtp_help, flush }
++, { "starttls", smtp_tls, flush }
+ , { "noop", err_noop, flush }
+ , { "vrfy", err_vrfy, flush }
+ , { 0, err_unimpl, flush }
+@@ -515,6 +529,9 @@
+ 
+ int main()
+ {
++  struct stat st;
++  if (fstat(5, &st) == 0) tlscontrolpipe = 5;
++
+   sig_pipeignore();
+   if (chdir(auto_qmail) == -1) die_control();
+   setup();
