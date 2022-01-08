@@ -64,6 +64,7 @@ struct tls_context {
 
     unsigned char tochildbuf[1024];
     size_t tochildbuflen;
+    int netclosed;
     unsigned char tonetbuf[1024];
     size_t tonetbuflen;
     int childclosed;

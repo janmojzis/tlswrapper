@@ -4,6 +4,7 @@
 /* sendapp */
 unsigned char *tls_engine_sendapp_buf(struct tls_context *ctx, size_t *len) {
     if (ctx->flagdelayedenc) {
+        if (ctx->childclosed) return 0;
         *len = sizeof ctx->tonetbuf - ctx->tonetbuflen;
         if (!*len) return 0;
         return ctx->tonetbuf + ctx->tonetbuflen;
@@ -21,6 +22,7 @@ void tls_engine_sendapp_ack(struct tls_context *ctx, size_t len) {
 /* recvapp */
 unsigned char *tls_engine_recvapp_buf(struct tls_context *ctx, size_t *len) {
     if (ctx->flagdelayedenc) {
+        if (ctx->childclosed) return 0;
         *len = ctx->tochildbuflen;
         if (!*len) return 0;
         return ctx->tochildbuf;
@@ -40,6 +42,7 @@ void tls_engine_recvapp_ack(struct tls_context *ctx, size_t len) {
 /* sendrec */
 unsigned char *tls_engine_sendrec_buf(struct tls_context *ctx, size_t *len) {
     if (ctx->flagdelayedenc) {
+        if (ctx->netclosed) return 0;
         *len = ctx->tonetbuflen;
         if (!*len) return 0;
         return ctx->tonetbuf;
@@ -58,6 +61,7 @@ void tls_engine_sendrec_ack(struct tls_context *ctx, size_t len) {
 /* recvrec */
 unsigned char *tls_engine_recvrec_buf(struct tls_context *ctx, size_t *len) {
     if (ctx->flagdelayedenc) {
+        if (ctx->netclosed) return 0;
         *len = sizeof ctx->tochildbuf - ctx->tochildbuflen;
         if (!*len) return 0;
         return ctx->tochildbuf + ctx->tochildbuflen;
@@ -98,10 +102,11 @@ int tls_engine_handshakedone(struct tls_context *ctx) {
 
 unsigned int tls_engine_current_state(struct tls_context *ctx) {
     unsigned int st = 0;
+    size_t len;
 
     if (ctx->flagdelayedenc) {
-        size_t len;
-        if (ctx->childclosed && !ctx->tonetbuflen) st |= BR_SSL_CLOSED;
+        if (ctx->childclosed && !tls_engine_sendrec_buf(ctx, &len)) st |= BR_SSL_CLOSED;;
+        if (ctx->netclosed && !tls_engine_recvapp_buf(ctx, &len))  st |= BR_SSL_CLOSED;
         if (tls_engine_sendrec_buf(ctx, &len) != 0) st |= BR_SSL_SENDREC;
         if (tls_engine_recvrec_buf(ctx, &len) != 0) st |= BR_SSL_RECVREC;
         if (tls_engine_sendapp_buf(ctx, &len) != 0) st |= BR_SSL_SENDAPP;

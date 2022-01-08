@@ -91,6 +91,7 @@ static void signalhandler(int signum) {
     log_t3("signal ", lognum(signum), " received");
     if (signum == SIGCHLD) {
         alarm(1);
+        ctx.childclosed = 1;
         return;
     }
     w = write(selfpipe[1], "", 1);
@@ -600,8 +601,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
             alarm(timeout);
 
+            /* CN from anchor certificate */
             if (!ctx.flagdelayedenc) {
-                /* CN from anchor certificate */
                 if (!flaguser) {
                     ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
                     if (userfromcert) {
@@ -612,11 +613,11 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                     if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
                     flaguser = 1;
                 }
-
-                log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
-                tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
-                ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
             }
+
+            log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
+            ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
         }
 
         watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
@@ -670,6 +671,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (r <= 0) {
                 if (r < 0) log_d1("read from standard input failed");
                 if (r == 0) log_t1("read from standard input failed, connection closed");
+                ctx.netclosed = 1;
                 break;
             }
             tls_engine_recvrec_ack(&ctx, r);
@@ -702,7 +704,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             /* close the control pipe */
             close(fromchildcontrol[0]);
             ctx.flagdelayedenc = 0;
-            log_d1("child requested encrytion(STARTTLS), start TLS");
+            if (!ctx.childclosed) {
+                log_d1("child requested encrytion(STARTTLS), start TLS");
+            }
             continue;
         }
 
