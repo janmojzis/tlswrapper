@@ -57,7 +57,7 @@ static struct tls_context ctx = {
     },
 };
 
-#define CONTROLPIPEFD 4
+#define CONTROLPIPEFD 5
 
 static const char *timeoutstr = "30";
 static const char *user = 0;
@@ -389,8 +389,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 if (argv[1]) { ctx.jailaccount = (*++argv); break; }
             }
             /* delayed encryption */
-            if (*x == 'b') { ctx.flagdelayedenc = 1; continue; }
-            if (*x == 'B') { ctx.flagdelayedenc = 0; continue; }
+            if (*x == 'D') { ctx.flagdelayedenc = 0; continue; }
 
             usage();
         }
@@ -407,7 +406,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_disable(0);
     blocking_disable(1);
 
-    /* create control pipe on fd 4 */
+    /* create control pipe  */
     if (ctx.flagdelayedenc) {
         struct stat st;
         if (fstat(CONTROLPIPEFD, &st) != -1) die_controlpipe();
@@ -428,18 +427,23 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             die_fork();
         case 0:
             alarm(0);
-            close(fromchildcontrol[0]);
-            close(fromchild[0]);
+
             close(tochild[1]);
             close(0);
             if (dup(tochild[0]) != 0) die_dup();
+            blocking_enable(0);
+
+            close(fromchild[0]);
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-            close(CONTROLPIPEFD);
-            if (dup(fromchildcontrol[1]) != CONTROLPIPEFD) die_dup();
-            blocking_enable(0);
             blocking_enable(1);
-            blocking_enable(CONTROLPIPEFD);
+
+            close(fromchildcontrol[0]);
+            close(CONTROLPIPEFD);
+            if (ctx.flagdelayedenc) {
+                if (dup(fromchildcontrol[1]) != CONTROLPIPEFD) die_dup();
+                blocking_enable(CONTROLPIPEFD);
+            }
 
             /* read connection info from net-process */
             if (pipe_readall(0, localip, sizeof localip) == -1) die(111);
@@ -636,23 +640,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (watchfromcontrol) if (!watchfromcontrol->revents) watchfromcontrol = 0;
         }
 
-        /* watchfromcontrol */
-        if (watchfromcontrol) {
-            /* read last unencrypted message from the child */
-            buf = tls_engine_sendapp_buf(&ctx, &len);
-            /* XXX switch to timeoutread */
-            r = read(fromchild[0], buf, len);
-            if (r > 0) tls_engine_sendapp_ack(&ctx, r);
-            /* write buffer to the network (stdout) */
-            buf = tls_engine_sendrec_buf(&ctx, &len);
-            if (writeall(1, buf, len) == -1) { log_d1("write to standard output failed"); break; }
-            /* close the control pipe */
-            close(fromchildcontrol[0]);
-            ctx.flagdelayedenc = 0;
-            log_d1("child requested encrytion(STARTTLS), start TLS");
-            continue;
-        }
-
         /* recvapp */
         if (watchtochild) {
             buf = tls_engine_recvapp_buf(&ctx, &len);
@@ -703,6 +690,18 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             tls_engine_sendapp_ack(&ctx, r);
             tls_engine_flush(&ctx, 0);
             alarm(timeout); /* refresh timeout */
+            continue;
+        }
+
+        /* controlpipe */
+        if (watchfromcontrol) {
+            /* flush buffer */
+            buf = tls_engine_sendrec_buf(&ctx, &len);
+            if (writeall(1, buf, len) == -1) { log_d1("write to standard output failed"); break; }
+            /* close the control pipe */
+            close(fromchildcontrol[0]);
+            ctx.flagdelayedenc = 0;
+            log_d1("child requested encrytion(STARTTLS), start TLS");
             continue;
         }
 

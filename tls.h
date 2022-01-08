@@ -66,6 +66,7 @@ struct tls_context {
     size_t tochildbuflen;
     unsigned char tonetbuf[1024];
     size_t tonetbuflen;
+    int childclosed;
 
     int flagnojail;
     const char *jailaccount;

@@ -50,6 +50,7 @@ void tls_engine_sendrec_ack(struct tls_context *ctx, size_t len) {
     if (ctx->flagdelayedenc) {
         memmove(ctx->tonetbuf, ctx->tonetbuf + len, ctx->tonetbuflen - len);
         ctx->tonetbuflen -= len;
+        return;
     }
     br_ssl_engine_sendrec_ack(&ctx->cc.eng, len);
 }
@@ -77,7 +78,10 @@ void tls_engine_flush(struct tls_context *ctx, int force) {
 }
 
 void tls_engine_close(struct tls_context *ctx) {
-    if (ctx->flagdelayedenc) return;
+    if (ctx->flagdelayedenc) {
+        ctx->childclosed = 1;
+        return;
+    }
     br_ssl_engine_close(&ctx->cc.eng);
 }
 
@@ -97,10 +101,12 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
 
     if (ctx->flagdelayedenc) {
         size_t len;
+        if (ctx->childclosed && !ctx->tonetbuflen) st |= BR_SSL_CLOSED;
         if (tls_engine_sendrec_buf(ctx, &len) != 0) st |= BR_SSL_SENDREC;
         if (tls_engine_recvrec_buf(ctx, &len) != 0) st |= BR_SSL_RECVREC;
         if (tls_engine_sendapp_buf(ctx, &len) != 0) st |= BR_SSL_SENDAPP;
         if (tls_engine_recvapp_buf(ctx, &len) != 0) st |= BR_SSL_RECVAPP;
+        return st;
     }
     else {
         st = br_ssl_engine_current_state(&ctx->cc.eng);
