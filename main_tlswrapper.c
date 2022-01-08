@@ -389,7 +389,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 if (argv[1]) { ctx.jailaccount = (*++argv); break; }
             }
             /* delayed encryption */
-            if (*x == 'D') { ctx.flagdelayedenc = 0; continue; }
+            if (*x == 'n') { ctx.flagdelayedenc = 1; continue; }
+            if (*x == 'N') { ctx.flagdelayedenc = 0; continue; }
 
             usage();
         }

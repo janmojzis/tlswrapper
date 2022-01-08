@@ -77,8 +77,11 @@ Chroot network\-process and key\-process into a specified \fIjaildir\fR (default
 .B \-j \fIjailuser\fR
 Run network\-process and key\-process under a specified \fIjailuser\fR's uid and gid. If unset run network\-process and key\-process under random uid and gid.
 .TP
-.B \-D
+.B \-n
 Enable delayed encryption. It's experimental feature! \fBtlswrapper\fR creates to the child control pipe. The communication starts in plaintext and is encrypted in the moment when child closes the control pipe. This is useful for protocols which uses STARTTLS.
+.TP
+.B \-N
+Disabe delayed encryption (default).
 .TP
 .I prog
 program
