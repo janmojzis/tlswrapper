@@ -59,11 +59,13 @@ static struct tls_context ctx = {
 
 #define CONTROLPIPEFD 5
 
-static const char *timeoutstr = "30";
+static const char *hstimeoutstr = "30";
+static const char *timeoutstr = "60";
 static const char *user = 0;
 static const char *userfromcert = 0;
 
 static long long starttimeout = 3;
+static long long hstimeout;
 static long long timeout;
 
 static int flagverbose = 1;
@@ -347,6 +349,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             }
 
             /* timeouts */
+            if (*x == 'T') {
+                if (x[1]) { hstimeoutstr =  x + 1; break; }
+                if (argv[1]) { hstimeoutstr = *++argv; break; }
+            }
             if (*x == 't') {
                 if (x[1]) { timeoutstr =  x + 1; break; }
                 if (argv[1]) { timeoutstr = *++argv; break; }
@@ -400,6 +406,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (!ctx.certfiles_len) usage();
     if (userfromcert && !ctx.anchorfn) die_optionUa();
     timeout = timeout_parse(timeoutstr);
+    hstimeout = timeout_parse(hstimeoutstr);
 
     /* set flagnojail */
     ctx.flagnojail = flagnojail;
@@ -528,9 +535,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (open_pipe(selfpipe) == -1) die_pipe();
     blocking_enable(selfpipe[1]);
 
-    /* set timeout */
+    /* handshake timeout */
     signal(SIGALRM, signalhandler);
-    alarm(timeout);
+    alarm(hstimeout);
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
     if (!ctx.flagnojail) {
@@ -599,8 +606,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
         if (tls_engine_handshakedone(&ctx)) {
 
-            alarm(timeout);
-
             /* CN from anchor certificate */
             if (!ctx.flagdelayedenc) {
                 if (!flaguser) {
@@ -618,6 +623,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
             tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
             ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
+
+            alarm(timeout);
         }
 
         watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
@@ -649,7 +656,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to child failed"); break; }
             tls_engine_recvapp_ack(&ctx, r);
-            alarm(timeout); /* refresh timeout */
             continue;
         }
 
@@ -675,6 +681,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 break;
             }
             tls_engine_recvrec_ack(&ctx, r);
+            alarm(timeout); /* refresh timeout */
             continue;
         }
 
@@ -707,6 +714,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (!ctx.childclosed) {
                 log_d1("child requested encrytion(STARTTLS), start TLS");
             }
+            alarm(hstimeout);
             continue;
         }
 
