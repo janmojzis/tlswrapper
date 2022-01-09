@@ -1,6 +1,6 @@
 diff -Nur qmail.orig/qmail-smtpd.c qmail/qmail-smtpd.c
 --- qmail.orig/qmail-smtpd.c	2022-01-07 20:22:26.000000000 +0100
-+++ qmail/qmail-smtpd.c	2022-01-08 07:25:29.000000000 +0100
++++ qmail/qmail-smtpd.c	2022-01-09 09:55:21.000000000 +0100
 @@ -1,3 +1,6 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
@@ -8,16 +8,17 @@ diff -Nur qmail.orig/qmail-smtpd.c qmail/qmail-smtpd.c
  #include "sig.h"
  #include "readwrite.h"
  #include "stralloc.h"
-@@ -82,6 +85,8 @@
+@@ -82,6 +85,9 @@
    smtp_greet("221 "); out("\r\n"); flush(); _exit(0);
  }
  
-+int tlscontrolpipe = -1;
++#define CONTROLFD 5
++int tlscontrolpipe = CONTROLFD;
 +
  char *remoteip;
  char *remotehost;
  char *remoteinfo;
-@@ -326,6 +331,7 @@
+@@ -326,6 +332,7 @@
  void smtp_ehlo(arg) char *arg;
  {
    smtp_greet("250-"); out("\r\n250-PIPELINING\r\n250-8BITMIME\r\n");
@@ -25,21 +26,24 @@ diff -Nur qmail.orig/qmail-smtpd.c qmail/qmail-smtpd.c
    smtp_size();
    seenmail = 0; dohelo(arg);
  }
-@@ -369,6 +375,13 @@
+@@ -369,6 +376,16 @@
    out("250 ok\r\n");
  }
  
++char sscontrolbuf[128];
++substdio sscontrol = SUBSTDIO_FDBUF(safewrite,CONTROLFD,sscontrolbuf,sizeof sscontrolbuf);
++void outcontrol(s) char *s; { substdio_puts(&sscontrol,s); substdio_flush(&sscontrol); close(tlscontrolpipe); tlscontrolpipe = -1;}
++
 +void smtp_tls()
 +{
 +  if (tlscontrolpipe == -1) { err_unimpl(); return; }
-+  out("220 ready to start TLS\r\n"); flush();
-+  close(tlscontrolpipe); tlscontrolpipe = -1;
++  outcontrol("220 ready to start TLS\r\n");
 +  seenmail = 0; dohelo(remotehost);
 +}
  
  int saferead(fd,buf,len) int fd; char *buf; int len;
  {
-@@ -508,6 +521,7 @@
+@@ -508,6 +525,7 @@
  , { "ehlo", smtp_ehlo, flush }
  , { "rset", smtp_rset, 0 }
  , { "help", smtp_help, flush }
@@ -47,12 +51,12 @@ diff -Nur qmail.orig/qmail-smtpd.c qmail/qmail-smtpd.c
  , { "noop", err_noop, flush }
  , { "vrfy", err_vrfy, flush }
  , { 0, err_unimpl, flush }
-@@ -515,6 +529,9 @@
+@@ -515,6 +533,9 @@
  
  int main()
  {
 +  struct stat st;
-+  if (fstat(5, &st) == 0) tlscontrolpipe = 5;
++  if (fstat(tlscontrolpipe, &st) == -1) tlscontrolpipe = -1;
 +
    sig_pipeignore();
    if (chdir(auto_qmail) == -1) die_control();

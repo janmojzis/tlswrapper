@@ -1,5 +1,6 @@
-#include "tls.h"
+#include "writeall.h"
 #include "log.h"
+#include "tls.h"
 
 /* sendapp */
 unsigned char *tls_engine_sendapp_buf(struct tls_context *ctx, size_t *len) {
@@ -76,6 +77,24 @@ void tls_engine_recvrec_ack(struct tls_context *ctx, size_t len) {
     br_ssl_engine_recvrec_ack(&ctx->cc.eng, len);
 }
 
+/* sendapp5 */
+unsigned char *tls_engine_sendapp5_buf(struct tls_context *ctx, size_t *len) {
+    if (ctx->flagdelayedenc) {
+        if (ctx->childclosed) return 0;
+        *len = sizeof ctx->tonet5buf - ctx->tonet5buflen;
+        if (!*len) return 0;
+        return ctx->tonet5buf + ctx->tonet5buflen;
+    }
+    return 0;
+}
+void tls_engine_sendapp5_ack(struct tls_context *ctx, size_t len) {
+    if (ctx->flagdelayedenc) {
+        ctx->tonet5buflen += len;
+        return;
+    }
+    return;
+}
+
 void tls_engine_flush(struct tls_context *ctx, int force) {
     if (ctx->flagdelayedenc) return;
     br_ssl_engine_flush(&ctx->cc.eng, force);
@@ -105,8 +124,14 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
     size_t len;
 
     if (ctx->flagdelayedenc) {
-        if (ctx->childclosed && !tls_engine_sendrec_buf(ctx, &len)) st |= BR_SSL_CLOSED;;
-        if (ctx->netclosed && !tls_engine_recvapp_buf(ctx, &len))  st |= BR_SSL_CLOSED;
+        if (ctx->childclosed && !tls_engine_sendrec_buf(ctx, &len)) {
+            st |= BR_SSL_CLOSED;
+            log_d1("TCP closed normally, child closed the connection");
+        }
+        if (ctx->netclosed && !tls_engine_recvapp_buf(ctx, &len)) {
+            st |= BR_SSL_CLOSED;
+            log_d1("TCP closed normally, remote closed the connection");
+        }
         if (tls_engine_sendrec_buf(ctx, &len) != 0) st |= BR_SSL_SENDREC;
         if (tls_engine_recvrec_buf(ctx, &len) != 0) st |= BR_SSL_RECVREC;
         if (tls_engine_sendapp_buf(ctx, &len) != 0) st |= BR_SSL_SENDAPP;

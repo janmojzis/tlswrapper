@@ -93,7 +93,6 @@ static void signalhandler(int signum) {
     log_t3("signal ", lognum(signum), " received");
     if (signum == SIGCHLD) {
         alarm(1);
-        ctx.childclosed = 1;
         return;
     }
     w = write(selfpipe[1], "", 1);
@@ -127,6 +126,7 @@ static void cleanup(void) {
 #define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
 #define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", (x), " from client certificate: object not found"); die(111); }
 #define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
+#define die_optionUn() { log_f1("option -U is not compatible with -u"); die(100); }
 #define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
 
 
@@ -405,6 +405,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (!*++argv) usage();
     if (!ctx.certfiles_len) usage();
     if (userfromcert && !ctx.anchorfn) die_optionUa();
+    if (userfromcert && ctx.flagdelayedenc) die_optionUn();
     timeout = timeout_parse(timeoutstr);
     hstimeout = timeout_parse(hstimeoutstr);
 
@@ -705,16 +706,25 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
         /* controlpipe */
         if (watchfromcontrol) {
-            /* flush buffer */
-            buf = tls_engine_sendrec_buf(&ctx, &len);
-            if (writeall(1, buf, len) == -1) { log_d1("write to standard output failed"); break; }
-            /* close the control pipe */
-            close(fromchildcontrol[0]);
-            ctx.flagdelayedenc = 0;
-            if (!ctx.childclosed) {
-                log_d1("child requested encrytion(STARTTLS), start TLS");
+
+            buf = tls_engine_sendapp5_buf(&ctx, &len);
+            r = read(fromchildcontrol[0], buf, len);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r == -1) {
+                log_d1("read from child failed");
+                break;
             }
-            alarm(hstimeout);
+            tls_engine_sendapp5_ack(&ctx, r);
+            if (r == 0 && ctx.tonet5buflen) {
+                if (writeall(1, ctx.tonet5buf, ctx.tonet5buflen) == -1) {
+                    log_d1("write to standard output failed");
+                    break;
+                }
+                ctx.flagdelayedenc = 0;
+                log_d1("child requested encrytion(STARTTLS), start TLS");
+                close(fromchildcontrol[0]);
+                alarm(hstimeout);
+            }
             continue;
         }
 

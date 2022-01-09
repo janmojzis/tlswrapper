@@ -64,9 +64,11 @@ struct tls_context {
 
     unsigned char tochildbuf[1024];
     size_t tochildbuflen;
-    int netclosed;
     unsigned char tonetbuf[1024];
     size_t tonetbuflen;
+    unsigned char tonet5buf[1024];
+    size_t tonet5buflen;
+    int netclosed;
     int childclosed;
 
     int flagnojail;
@@ -220,6 +222,8 @@ extern void tls_engine_sendapp_ack(struct tls_context *, size_t);
 extern void tls_engine_recvapp_ack(struct tls_context *, size_t);
 extern void tls_engine_sendrec_ack(struct tls_context *, size_t);
 extern void tls_engine_recvrec_ack(struct tls_context *, size_t);
+extern unsigned char *tls_engine_sendapp5_buf(struct tls_context *, size_t *);
+extern void tls_engine_sendapp5_ack(struct tls_context *, size_t);
 extern void tls_engine_flush(struct tls_context *, int);
 extern void tls_engine_close(struct tls_context *);
 extern unsigned int tls_engine_current_state(struct tls_context *);
