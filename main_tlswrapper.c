@@ -608,17 +608,15 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         if (tls_engine_handshakedone(&ctx)) {
 
             /* CN from anchor certificate */
-            if (!ctx.flagdelayedenc) {
-                if (!flaguser) {
-                    ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
-                    if (userfromcert) {
-                        if (!ctx.clientcrt.status) die_extractcn(userfromcert);
-                        log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
-                        fixname(ctx.clientcrtbuf);
-                    }
-                    if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
-                    flaguser = 1;
+            if (!flaguser) {
+                ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
+                if (userfromcert) {
+                    if (!ctx.clientcrt.status) die_extractcn(userfromcert);
+                    log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
+                    fixname(ctx.clientcrtbuf);
                 }
+                if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
+                flaguser = 1;
             }
 
             log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
