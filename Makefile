@@ -59,7 +59,7 @@ log.o: log.c e.h randommod.h log.h
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  randombytes.h alloc.h connectioninfo.h proxyprotocol.h iptostr.h \
- writeall.h fixname.h fixpath.h tls.h main.h
+ writeall.h fixname.h fixpath.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
@@ -68,7 +68,7 @@ main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
- fsyncfile.h writeall.h tls.h main.h
+ fsyncfile.h writeall.h tls.h open.h blocking.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
 
 milliseconds.o: milliseconds.c milliseconds.h
@@ -134,7 +134,7 @@ tls_ecdhe.o: tls_ecdhe.c tls.h
 tls_ecdsa.o: tls_ecdsa.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdsa.c
 
-tls_engine.o: tls_engine.c tls.h log.h
+tls_engine.o: tls_engine.c writeall.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_engine.c
 
 tls_error.o: tls_error.c tls.h
@@ -147,7 +147,7 @@ tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h log.h jail.h fixpath.h \
 tls_keytype.o: tls_keytype.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keytype.c
 
-tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h tls.h
+tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h open.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pem.c
 
 tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h log.h

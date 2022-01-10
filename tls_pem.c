@@ -4,7 +4,7 @@ Jan Mojzis
 Public domain.
 */
 
-#include <fcntl.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
@@ -12,6 +12,7 @@ Public domain.
 #include "readall.h"
 #include "randombytes.h"
 #include "log.h"
+#include "open.h"
 #include "tls.h"
 
 void tls_pem_free(struct tls_pem *ctx) {
@@ -112,9 +113,10 @@ int tls_pem_load(struct tls_pem *ctx, const char *fn,
 
     tls_pem_free(ctx);
 
-    fd = open(fn, O_RDONLY | O_NONBLOCK);
+    fd = open_read(fn);
     if (fd == -1) goto cleanup;
     if (fstat(fd, &st) == -1) goto cleanup;
+    if ((st.st_mode & S_IFMT) != S_IFREG) goto cleanup;
     ctx->alloc = ctx->seclen = st.st_size;
     ctx->alloc += 1;
     ctx->sec = alloc(ctx->alloc);
