@@ -145,9 +145,7 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
     if (st & BR_SSL_CLOSED) {
         int err;
         err = br_ssl_engine_last_error(&ctx->cc.eng);
-        if (err == BR_ERR_OK) {
-            log_d1("SSL closed normally");
-        }
+        if (err == BR_ERR_OK) { log_d1("SSL closed normally"); }
         else {
             if (err >= BR_ERR_SEND_FATAL_ALERT) {
                 err -= BR_ERR_SEND_FATAL_ALERT;
