@@ -619,7 +619,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 flaguser = 1;
             }
 
-            log_d9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
+            log_i9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
             tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
             ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
 

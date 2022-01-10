@@ -146,19 +146,7 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         int err;
         err = br_ssl_engine_last_error(&ctx->cc.eng);
         if (err == BR_ERR_OK) {
-            if (ctx->flaghandshakedone) {
-                log_i9(
-                    "SSL closed normally: ",
-                    tls_version_str(br_ssl_engine_get_version(&ctx->cc.eng)),
-                    ", ", tls_cipher_str(ctx->cc.eng.session.cipher_suite),
-                    ", ",
-                    tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx->cc.eng)),
-                    ", sni='", br_ssl_engine_get_server_name(&ctx->cc.eng),
-                    "'");
-            }
-            else {
-                log_d1("SSL closed normally");
-            }
+            log_d1("SSL closed normally");
         }
         else {
             if (err >= BR_ERR_SEND_FATAL_ALERT) {
