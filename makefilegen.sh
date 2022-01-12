@@ -23,7 +23,7 @@
     done
     echo
 
-    echo "all: bearssl \$(BINARIES) tlswrapper-tcp"
+    echo "all: bearssl \$(BINARIES) tlswrapper-tcp tlswrapper-smtptest"
     echo 
 
     for file in `ls *.c`; do
@@ -70,9 +70,18 @@
     echo "	ln -s tlswrapper tlswrapper-tcp"
     echo
 
+    echo "tlswrapper-smtp: tlswrapper"
+    echo "	ln -s tlswrapper tlswrapper-smtp"
+    echo
+
+    echo "tlswrapper-smtptest: tlswrapper"
+    echo "	ln -s tlswrapper tlswrapper-smtptest"
+    echo
+
     echo "install: \$(BINARIES) tlswrapper-tcp"
     echo "	install -D -m 0755 tlswrapper \$(DESTDIR)/usr/bin/tlswrapper"
     echo "	install -D -m 0755 tlswrapper-tcp \$(DESTDIR)/usr/bin/tlswrapper-tcp"
+    echo "	install -D -m 0755 tlswrapper-smtp \$(DESTDIR)/usr/bin/tlswrapper-smtp"
     echo "	install -d -m 0755 \$(DESTDIR)/\$(EMPTYDIR)"
     echo
 
@@ -88,7 +97,7 @@
     echo
 
     echo "clean:"
-    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp"
+    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp tlswrapper-smtptest"
     echo 
 
   ) > Makefile

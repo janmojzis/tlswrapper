@@ -8,7 +8,7 @@ BINARIES=escape
 BINARIES+=tlswrapper
 BINARIES+=tlswrapper-test
 
-all: bearssl $(BINARIES) tlswrapper-tcp
+all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtptest
 
 alloc.o: alloc.c randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
@@ -18,6 +18,9 @@ blocking.o: blocking.c blocking.h
 
 buf.o: buf.c buf.h iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
+
+commands.o: commands.c sio.h stralloc.h commands.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c commands.c
 
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
@@ -61,6 +64,16 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  randombytes.h alloc.h connectioninfo.h proxyprotocol.h iptostr.h \
  writeall.h fixname.h fixpath.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
+
+main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h sio.h \
+ commands.h log.h open.h stralloc.h e.h blocking.h iptostr.h \
+ connectioninfo.h main.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
+
+main_tlswrapper_smtptest.o: main_tlswrapper_smtptest.c randombytes.h \
+ commands.h sio.h log.h open.h stralloc.h e.h blocking.h main.h \
+ writeall.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtptest.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
  proxyprotocol.h connectioninfo.h resolvehost.h strtoport.h socket.h e.h \
@@ -106,8 +119,14 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
 sa.o: sa.c alloc.h sa.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c sa.c
 
+sio.o: sio.c e.h jail.h sio.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c sio.c
+
 socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
+
+stralloc.o: stralloc.c alloc.h e.h stralloc.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c stralloc.c
 
 strtoip.o: strtoip.c strtoip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
@@ -181,6 +200,7 @@ writeall.o: writeall.c e.h jail.h writeall.h
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=buf.o
+OBJECTS+=commands.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
@@ -193,6 +213,8 @@ OBJECTS+=jail.o
 OBJECTS+=jail_poll.o
 OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
+OBJECTS+=main_tlswrapper_smtp.o
+OBJECTS+=main_tlswrapper_smtptest.o
 OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=main_tlswrapper_test.o
 OBJECTS+=milliseconds.o
@@ -206,7 +228,9 @@ OBJECTS+=randommod.o
 OBJECTS+=readall.o
 OBJECTS+=resolvehost.o
 OBJECTS+=sa.o
+OBJECTS+=sio.o
 OBJECTS+=socket.o
+OBJECTS+=stralloc.o
 OBJECTS+=strtoip.o
 OBJECTS+=strtoport.o
 OBJECTS+=tls_anchor.o
@@ -247,9 +271,16 @@ bearssl:
 tlswrapper-tcp: tlswrapper
 	ln -s tlswrapper tlswrapper-tcp
 
+tlswrapper-smtp: tlswrapper
+	ln -s tlswrapper tlswrapper-smtp
+
+tlswrapper-smtptest: tlswrapper
+	ln -s tlswrapper tlswrapper-smtptest
+
 install: $(BINARIES) tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
 	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
+	install -D -m 0755 tlswrapper-smtp $(DESTDIR)/usr/bin/tlswrapper-smtp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
 test: bearssl $(BINARIES) tlswrapper-tcp escape
@@ -263,5 +294,5 @@ test: bearssl $(BINARIES) tlswrapper-tcp escape
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:
-	rm -f *.o *.out $(BINARIES) tlswrapper-tcp
+	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp tlswrapper-smtptest
 
