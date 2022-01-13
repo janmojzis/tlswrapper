@@ -19,7 +19,10 @@ blocking.o: blocking.c blocking.h
 buf.o: buf.c buf.h iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
 
-commands.o: commands.c sio.h stralloc.h commands.h
+case_startb.o: case_startb.c case.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c case_startb.c
+
+commands.o: commands.c sio.h log.h stralloc.h commands.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c commands.c
 
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
@@ -65,9 +68,9 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  writeall.h fixname.h fixpath.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
-main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h sio.h \
- commands.h log.h open.h stralloc.h e.h blocking.h iptostr.h \
- connectioninfo.h main.h
+main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h sio.h log.h \
+ open.h stralloc.h e.h blocking.h iptostr.h connectioninfo.h case.h \
+ main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_smtptest.o: main_tlswrapper_smtptest.c randombytes.h \
@@ -200,6 +203,7 @@ writeall.o: writeall.c e.h jail.h writeall.h
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=buf.o
+OBJECTS+=case_startb.o
 OBJECTS+=commands.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o

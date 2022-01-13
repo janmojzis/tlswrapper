@@ -1,0 +1,54 @@
+.TH tlswrapper\-smtp 1
+.SH NAME
+tlswrapper\-smtp \- TLS encryption wrapper \- smtp helper
+.SH SYNOPSIS
+.B tlswrapper\-smtp [ options ] \fIprog\fR
+.SH DESCRIPTION
+.PP
+The \fBtlswrapper\-smtp\fR adds STARTTLS support to old inetd-style SMTP servers which doesn't support STARTTLS naturally.
+Is excecuted as follows:
+.PP
+Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-> \fBtlswrapper\-smtp\fR  <\-\-> smtpprogram
+.PP
+.SH OPTIONS
+.TP
+.B \-q
+Quiet mode. No error messages.
+.TP
+.B \-v
+Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3.
+.TP
+.B \-u \fIuser\fR
+Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
+.TP
+.B \-J \fIjaildir\fR
+Chroot into a specified \fIjaildir\fR (default: /var/lib/tlswraper/empty).
+.TP
+.B \-j \fIjailuser\fR
+Run under a specified \fIjailuser\fR's uid and gid. If unset run under random uid and gid.
+.TP
+.I prog
+program
+.SH SECURITY
+.B JAIL \- Privilege separation, filesystem isolation, limits
+.PP
+The \fBtlswrapper\-smtp\fR similarly to \fBtlswrapper\fR processes runs under dedicated non\-zero uid to prohibit kill, ptrace, etc.
+Is chrooted into an empty, unwritable directory to prohibit filesystem access.
+Sets ulimits to prohibit new files, sockets, etc. Sets ulimits to prohibit forks.
+.PP
+.SH EXAMPLES
+.PP
+run qmail-smtpd on port 25 with STARTTLS:
+.RS 4
+.nf
+exec softlimit -m 64000000 -f 100000000 \\
+tcpserver \-HRDl0 0 25 \\
+tlswrapper \-v \-n \-f /etc/ssl/cert.pem \\
+tlswrapper-smtp \-v \-u qmaild \\
+fixcrio \\
+qmail-smtpd
+.fi
+.RE
+.PP
+.SH SEE ALSO
+.BR tlswrapper (1)
