@@ -41,9 +41,6 @@ int main(int argc, char **argv) {
     if (!strcmp(x, "tlswrapper-smtp")) {
         return main_tlswrapper_smtp(argc, argv);
     }
-    if (!strcmp(x, "tlswrapper-smtptest")) {
-        return main_tlswrapper_smtptest(argc, argv);
-    }
     return main_tlswrapper(argc, argv, 0);
 
     _exit(111);

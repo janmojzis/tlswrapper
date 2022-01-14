@@ -8,7 +8,7 @@ BINARIES=escape
 BINARIES+=tlswrapper
 BINARIES+=tlswrapper-test
 
-all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtptest
+all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
 alloc.o: alloc.c randombytes.h alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
@@ -21,9 +21,6 @@ buf.o: buf.c buf.h iptostr.h
 
 case_startb.o: case_startb.c case.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c case_startb.c
-
-commands.o: commands.c sio.h log.h stralloc.h commands.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c commands.c
 
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
@@ -70,13 +67,8 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h sio.h log.h \
  open.h stralloc.h e.h blocking.h iptostr.h connectioninfo.h case.h \
- main.h
+ alloc.h jail.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
-
-main_tlswrapper_smtptest.o: main_tlswrapper_smtptest.c randombytes.h \
- commands.h sio.h log.h open.h stralloc.h e.h blocking.h main.h \
- writeall.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtptest.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
  proxyprotocol.h connectioninfo.h resolvehost.h strtoport.h socket.h e.h \
@@ -204,7 +196,6 @@ OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=buf.o
 OBJECTS+=case_startb.o
-OBJECTS+=commands.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
@@ -218,7 +209,6 @@ OBJECTS+=jail_poll.o
 OBJECTS+=log.o
 OBJECTS+=main_tlswrapper.o
 OBJECTS+=main_tlswrapper_smtp.o
-OBJECTS+=main_tlswrapper_smtptest.o
 OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=main_tlswrapper_test.o
 OBJECTS+=milliseconds.o
@@ -278,9 +268,6 @@ tlswrapper-tcp: tlswrapper
 tlswrapper-smtp: tlswrapper
 	ln -s tlswrapper tlswrapper-smtp
 
-tlswrapper-smtptest: tlswrapper
-	ln -s tlswrapper tlswrapper-smtptest
-
 install: $(BINARIES) tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
 	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
@@ -298,5 +285,5 @@ test: bearssl $(BINARIES) tlswrapper-tcp escape
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:
-	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp tlswrapper-smtptest
+	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
