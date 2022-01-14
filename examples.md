@@ -3,7 +3,7 @@
 RELAYCLIENT=''; export RELAYCLIENT
 exec softlimit -m 64000000 -f 100000000 \
 tcpserver -HRDl0 -c10 0.0.0.0 465 \
-/usr/bin/tlswrapper -u qmaild -vv -f /etc/ssl/sslcert.pem  -a /etc/ssl/ca.pem \
+/usr/bin/tlswrapper -u qmaild -v -f /etc/ssl/sslcert.pem  -a /etc/ssl/ca.pem \
 /usr/sbin/qmail-smtpd
 ~~~
 
@@ -15,21 +15,17 @@ tcpserver -HRDl0 0.0.0.0 993 \
 /usr/lib/dovecot/imap
 ~~~
 
-## run qmail-smtpd SMTP service with STARTTLS enabled
-
-## 1. patch qmail
-[examples/qmail-smtpd-starttls.patch](examples/qmail-smtpd-starttls.patch)
-
-### 2. run script
+## run qmail-smtpd SMTP service with STARTTLS enabled (without patching QMAIL)
 ~~~bash
 exec softlimit -m 64000000 -f 100000000 \
 tcpserver -HRDl0 0 25 \
-/usr/bin/tlswrapper -u qmaild -vv -n -f /etc/ssl/sslcert.pem \
-/usr/sbin/qmail-smtpd
+tlswrapper -v -n -f /etc/ssl/cert.pem \
+tlswrapper-smtp -v -u qmaild \
+fixcrio \
+qmail-smtpd
 ~~~
-
-### 3. check it using python3 script
 ~~~python
+# check if it works
 host=<your host>
 server = smtplib.SMTP(host, 25)
 server.set_debuglevel(True)
