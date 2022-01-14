@@ -19,9 +19,10 @@ tcpserver -HRDl0 0.0.0.0 993 \
 ~~~bash
 exec softlimit -m 64000000 -f 100000000 \
 tcpserver -HRDl0 0 25 \
-/usr/bin/tlswrapper -v -n -f /etc/ssl/sslcert.pem \
-/usr/bin/tlswrapper-smtp -v -u qmaild \
-/usr/sbin/qmail-smtpd
+tlswrapper -v -n -f /etc/ssl/cert.pem \
+tlswrapper-smtp -v -u qmaild \
+fixcrio \
+qmail-smtpd
 ~~~
 ~~~python
 # check if it works

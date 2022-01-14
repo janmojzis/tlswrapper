@@ -81,7 +81,7 @@ Chroot network\-process and key\-process into a specified \fIjaildir\fR (default
 Run network\-process and key\-process under a specified \fIjailuser\fR's uid and gid. If unset run network\-process and key\-process under random uid and gid.
 .TP
 .B \-n
-Enable delayed encryption. It's experimental feature! This is useful for protocols which uses STARTTLS. \fBtlswrapper\fR creates to the child control pipe on filedescriptor 5 for writing. The child process starts communication in plaintext a encryption starts in the moment when child use the control pipe instead of startdard output, writes the initialization string (e.g. for SMTP protocol '220 ready to start TLS\r\n') and closes the control pipe.
+Enable delayed encryption. It's experimental feature! This is useful for protocols which uses STARTTLS. \fBtlswrapper\fR creates to the child control pipe on filedescriptor 5 for writing. The child process starts communication in plaintext a encryption starts in the moment when child use the control pipe instead of startdard output, writes the initialization string (e.g. for SMTP protocol '220 ready to start TLS\r\n') and closes the control pipe. See e.g. tlswrapper\-smtp(1).
 .TP
 .B \-N
 Disabe delayed encryption (default).
@@ -279,6 +279,7 @@ Enable client certificate authentication, and run program under user extracted f
 .RE
 .SH SEE ALSO
 .BR tlswrapper\-tcp (1),
+.BR tlswrapper\-smtp (1),
 .BR systemd.socket (5),
 .BR inetd (8),
 .BR tcpserver (1)
