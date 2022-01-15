@@ -268,6 +268,12 @@ int main_tlswrapper_smtp(int argc, char **argv) {
 
     alarm(1200);
 
+    /* initialize randombytes */
+    {
+        char ch[1];
+        randombytes(ch, sizeof ch);
+    }
+
     if (jail(jailaccount, jaildir, 1) == -1) die_jail();
 
     connectioninfo_get(localip, localport, remoteip, remoteport);
