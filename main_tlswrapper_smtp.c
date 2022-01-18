@@ -159,8 +159,6 @@ static long long smtpcode(char *append) {
     while (ch != '\n') { get(&ch); out(ch); }
     if (append && code == 250) outs(append);
     flush();
-    if (logcode.len > 0 && logcode.s[logcode.len - 1] == '\n') --logcode.len;
-    if (logcode.len > 0 && logcode.s[logcode.len - 1] == '\r') --logcode.len;
     if (!stralloc_0(&logcode)) die_nomem();
     return code;
 }
@@ -331,14 +329,25 @@ int main_tlswrapper_smtp(int argc, char **argv) {
                 sio_puts(&sout, "553 sorry, can't start TLS again\r\n");
                 sio_flush(&sout);
                 log_d2(logline.s, ": 553 sorry, can't start TLS again");
+                errno = 0;
+                continue;
             }
-            else {
-                sio_puts(&sout5, "220 ready to start TLS\r\n");
-                sio_flush(&sout5);
-                close(5);
-                log_d2(logline.s, ": 220 ready to start TLS");
+#define TLSMSG "220 ready to start TLS\r\n"
+            sio_puts(&sout5, TLSMSG);
+            sio_flush(&sout5);
+            close(5);
+            log_d3(logline.s, ": ", TLSMSG);
+
+            sio_puts(&scout, "RSET\r\n");
+            sio_flush(&scout);
+            if (!stralloc_copys(&logcode, "")) die_nomem();
+            for (;;) {
+                unsigned char ch;
+                get(&ch);
+                if (ch == '\n') break;
             }
-            errno = 0;
+            if (!stralloc_0(&logcode)) die_nomem();
+            log_d2("RSET: ", logcode.s);
             continue;
         }
         if (case_startb(line.s, line.len, "quit")) {
