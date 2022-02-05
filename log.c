@@ -46,6 +46,7 @@ void log_name(const char *name) { logname = name; }
 void log_time(int flag) { logtime = flag; }
 void log_limit(long long limit) { loglimit = limit; }
 void log_ip(const char *ip) { logipstr = ip; }
+const char *log_getid(void) { return logid; }
 
 static char buf[256];
 static unsigned long long buflen = 0;

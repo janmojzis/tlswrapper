@@ -55,11 +55,11 @@ int conn_init(long long num) {
 
     if (num > MAXIP) num = MAXIP;
 
-    for (i = 0; i < MAXIP; ++i) {
+    for (i = 0; i < num; ++i) {
         fds[i] = socket_tcp();
-        if (fds[i] == -1) return -1;
+        if (fds[i] == -1) return 0;
     }
-    return 0;
+    return 1;
 }
 
 int conn(long long timeout, unsigned char *ip, long long iplen,
@@ -120,6 +120,7 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
             if (p[i].revents) {
                 if (socket_connected(p[i].fd)) {
                     conn_copyip(p[i].fd, ip, iplen);
+                    errno = 0;
                     return p[i].fd;
                 }
                 log_w4("unable to connect to [",

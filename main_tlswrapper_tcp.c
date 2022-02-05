@@ -243,7 +243,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     if (pipe(selfpipe) == -1) die_pipe();
 
     /* create sockets */
-    if (conn_init(iplen / 16) == -1) {
+    if (!conn_init(iplen / 16)) {
         log_f1("unable to create TCP socket");
         die(111);
     }

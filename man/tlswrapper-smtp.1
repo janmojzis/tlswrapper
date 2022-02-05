@@ -18,8 +18,17 @@ Quiet mode. No error messages.
 .B \-v
 Enable verbose mode. Multiple \-v options increase the verbosity. The maximum is 3.
 .TP
+.B \-t \fIseconds\fR
+Set the network timeout to seconds \fIseconds\fR. (default 600).
+.TP
+.B \-T \fIseconds\fR
+Set the connect timeout to seconds \fIseconds\fR. (default 10).
+.TP
 .B \-u \fIuser\fR
 Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
+.TP
+.B \-g \fIhost:port\fR
+Enable greylist support (postgrey protocol) and use server running on \fIhost:port\fR .
 .TP
 .B \-J \fIjaildir\fR
 Chroot into a specified \fIjaildir\fR (default: /var/lib/tlswraper/empty).

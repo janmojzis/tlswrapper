@@ -8,6 +8,8 @@ extern void log_level(int);
 extern void log_time(int);
 extern void log_limit(long long);
 
+extern const char *log_getid(void);
+
 extern char *logip(unsigned char *);
 extern char *logport(unsigned char *);
 extern char *lognum(long long);

@@ -19,8 +19,8 @@ blocking.o: blocking.c blocking.h
 buf.o: buf.c buf.h iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
 
-case_startb.o: case_startb.c case.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c case_startb.c
+case_diffb.o: case_diffb.c case.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c case_diffb.c
 
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
@@ -48,6 +48,9 @@ fixpath.o: fixpath.c fixpath.h
 fsyncfile.o: fsyncfile.c fsyncfile.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fsyncfile.c
 
+hostport.o: hostport.c strtoport.h hostport.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c hostport.c
+
 iptostr.o: iptostr.c iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c iptostr.c
 
@@ -65,9 +68,9 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  writeall.h fixname.h fixpath.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
-main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h sio.h log.h \
- open.h stralloc.h e.h blocking.h iptostr.h connectioninfo.h case.h \
- alloc.h jail.h main.h
+main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h log.h \
+ iptostr.h connectioninfo.h jail.h writeall.h sio.h stralloc.h open.h e.h \
+ tls.h blocking.h resolvehost.h hostport.h conn.h case.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
@@ -114,7 +117,7 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
 sa.o: sa.c alloc.h sa.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c sa.c
 
-sio.o: sio.c e.h jail.h sio.h
+sio.o: sio.c jail.h sio.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c sio.c
 
 socket.o: socket.c blocking.h socket.h
@@ -195,7 +198,7 @@ writeall.o: writeall.c e.h jail.h writeall.h
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=buf.o
-OBJECTS+=case_startb.o
+OBJECTS+=case_diffb.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
@@ -203,6 +206,7 @@ OBJECTS+=e.o
 OBJECTS+=fixname.o
 OBJECTS+=fixpath.o
 OBJECTS+=fsyncfile.o
+OBJECTS+=hostport.o
 OBJECTS+=iptostr.o
 OBJECTS+=jail.o
 OBJECTS+=jail_poll.o

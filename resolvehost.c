@@ -205,12 +205,22 @@ long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
 }
 
 void resolvehost_close(void) {
-    unsigned char buf[257] = {0};
-    int status;
     if (resolvehost_fd != -1) {
+        unsigned char buf[257] = {0};
+        /*
+        we don't have permission to kill the child process,
+        so sending bulfen > 256 signals the end of the child process
+        */
         (void) send(resolvehost_fd, buf, sizeof buf, 0);
         close(resolvehost_fd);
         resolvehost_fd = -1;
-        while (waitpid(resolvehost_pid, &status, 0) != resolvehost_pid) {};
+    }
+    if (resolvehost_pid != -1) {
+        int status;
+        long long r;
+        do {
+            r = waitpid(resolvehost_pid, &status, 0);
+        } while (r == -1 && errno == EINTR);
+        resolvehost_pid = -1;
     }
 }
