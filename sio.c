@@ -16,7 +16,7 @@ long long sio_write(int fd, void *x, long long xlen) {
     return write(fd, x, xlen);
 }
 
-static long long allwrite(long long (*op)(int, void *, long long), int fd,
+static int allwrite(long long (*op)(int, void *, long long), int fd,
                           const void *xv, long long xlen) {
 
     char *x = (char *) xv;
