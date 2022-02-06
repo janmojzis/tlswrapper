@@ -19,6 +19,9 @@ blocking.o: blocking.c blocking.h
 buf.o: buf.c buf.h iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
 
+buffer.o: buffer.c buffer.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c buffer.c
+
 case_diffb.o: case_diffb.c case.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c case_diffb.c
 
@@ -69,8 +72,8 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h log.h \
- iptostr.h connectioninfo.h jail.h writeall.h sio.h stralloc.h open.h e.h \
- tls.h blocking.h resolvehost.h hostport.h conn.h case.h main.h
+ iptostr.h connectioninfo.h jail.h writeall.h buffer.h stralloc.h open.h \
+ e.h tls.h blocking.h resolvehost.h hostport.h conn.h case.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
@@ -116,9 +119,6 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
 
 sa.o: sa.c alloc.h sa.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c sa.c
-
-sio.o: sio.c jail.h sio.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c sio.c
 
 socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
@@ -198,6 +198,7 @@ writeall.o: writeall.c e.h jail.h writeall.h
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=buf.o
+OBJECTS+=buffer.o
 OBJECTS+=case_diffb.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
@@ -226,7 +227,6 @@ OBJECTS+=randommod.o
 OBJECTS+=readall.o
 OBJECTS+=resolvehost.o
 OBJECTS+=sa.o
-OBJECTS+=sio.o
 OBJECTS+=socket.o
 OBJECTS+=stralloc.o
 OBJECTS+=strtoip.o
