@@ -29,6 +29,7 @@ static const char *jaildir = EMPTYDIR;
 static const char *user = 0;
 
 static int flagverbose = 1;
+static int flagstarttls = 0;
 
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
@@ -441,11 +442,11 @@ static void smtp_ehlo(void) {
     struct stat st;
 
     sio_putsflush(&scout, line.s);
-    if (fstat(5, &st) == -1) {
-        (void) smtpline(0, 0);
+    if (flagstarttls && fstat(5, &st) == 0) {
+        (void) smtpline("250 STARTTLS\r\n", 0);
     }
     else {
-        (void) smtpline("250 STARTTLS\r\n", 0);
+        (void) smtpline(0, 0);
     }
     errno = 0;
     sio_putsflush(&sout, cline.s);
@@ -456,8 +457,8 @@ static void smtp_starttls(void) {
 
     struct stat st;
 
-    if (fstat(5, &st) == -1) {
-        if (!stralloc_copys(&cline, "553 sorry, can't start TLS again")) die_nomem();
+    if (!flagstarttls || fstat(5, &st) != 0) {
+        if (!stralloc_copys(&cline, "502 unimplemented (#5.5.1)")) die_nomem();
         if (!_catlogid(&cline)) die_nomem();
         if (!stralloc_cats(&cline, "\r\n")) die_nomem();
         if (!stralloc_0(&cline)) die_nomem();
@@ -467,7 +468,7 @@ static void smtp_starttls(void) {
         return;
     }
 
-    if (!stralloc_copys(&cline, "220 ready to start TLS")) die_nomem();
+    if (!stralloc_copys(&cline, "220 ready to start TLS (#2.0.0)")) die_nomem();
     if (!_catlogid(&cline)) die_nomem();
     if (!stralloc_cats(&cline, "\r\n")) die_nomem();
     if (!stralloc_0(&cline)) die_nomem();
@@ -558,11 +559,9 @@ int main_tlswrapper_smtp(int argc, char **argv) {
         log_t5("greylist address '", greylisthost, ":", logport(greylistport), "'");
     }
 
-    if (fstat(5, &st) == -1) {
-        log_f1("please don't start tlswrapper-smtp directly");
-        die(100);
+    if (fstat(5, &st) == 0) {
+        flagstarttls = 1;
     }
-
 
     /* run child process */
     if (open_pipe(tochild) == -1) die_pipe();
