@@ -20,6 +20,8 @@
 #include "hostport.h"
 #include "conn.h"
 #include "case.h"
+#include "timeoutwrite.h"
+#include "timeoutread.h"
 #include "main.h"
 
 /* clang-format off */
@@ -91,9 +93,9 @@ static void usage(void) {
 }
 
 static const char *timeoutstr = "600";
-static const char *connecttimeoutstr = "10";
+static const char *crwtimeoutstr = "10";
 static long long timeout;
-static long long connecttimeout;
+static long long crwtimeout;
 
 static long long timeout_parse(const char *x) {
     long long ret;
@@ -118,7 +120,7 @@ static void signalhandler(int signum) {
 }
 
 static long long _write(int fd, void *xv, long long xlen) {
-    long long w = buffer_write(fd, xv, xlen);
+    long long w = timeoutwrite(crwtimeout, fd, xv, xlen);
     if (w <= 0) {
         log_d1("write failed");
         die(111);
@@ -128,7 +130,7 @@ static long long _write(int fd, void *xv, long long xlen) {
 
 static long long _read(int fd, void *xv, long long xlen) {
 
-    long long r = buffer_read(fd, xv, xlen);
+    long long r = timeoutread(crwtimeout, fd, xv, xlen);
     if (r <= 0) {
         log_d1("read failed");
         die(111);
@@ -524,8 +526,8 @@ int main_tlswrapper_smtp(int argc, char **argv) {
             }
             /* timeouts */
             if (*x == 'T') {
-                if (x[1]) { connecttimeoutstr =  x + 1; break; }
-                if (argv[1]) { connecttimeoutstr = *++argv; break; }
+                if (x[1]) { crwtimeoutstr =  x + 1; break; }
+                if (argv[1]) { crwtimeoutstr = *++argv; break; }
             }
             if (*x == 't') {
                 if (x[1]) { timeoutstr =  x + 1; break; }
@@ -550,7 +552,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
     }
     if (!*++argv) usage();
     timeout = timeout_parse(timeoutstr);
-    connecttimeout = timeout_parse(connecttimeoutstr);
+    crwtimeout = timeout_parse(crwtimeoutstr);
     if (greylisthostport) {
         if (!hostport_parse(greylisthost, sizeof greylisthost, greylistport, greylisthostport)) {
             log_f3("unable to parse greylist host:port from the string: '", greylisthostport, "'");
@@ -633,7 +635,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
         log_d4("resolvehost: ", greylisthost, ": ", logip(greylistip));
         resolvehost_close();
 
-        greylistfd = conn(connecttimeout, greylistip, greylistiplen, greylistport);
+        greylistfd = conn(crwtimeout, greylistip, greylistiplen, greylistport);
         if (greylistfd == -1) {
             log_w2("unable to connect to ", greylisthostport);
         }

@@ -73,7 +73,8 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h log.h \
  iptostr.h connectioninfo.h jail.h writeall.h buffer.h stralloc.h open.h \
- e.h tls.h blocking.h resolvehost.h hostport.h conn.h case.h main.h
+ e.h tls.h blocking.h resolvehost.h hostport.h conn.h case.h \
+ timeoutwrite.h timeoutread.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
@@ -131,6 +132,12 @@ strtoip.o: strtoip.c strtoip.h
 
 strtoport.o: strtoport.c strtoport.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoport.c
+
+timeoutread.o: timeoutread.c timeoutread.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c timeoutread.c
+
+timeoutwrite.o: timeoutwrite.c timeoutwrite.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c timeoutwrite.c
 
 tls_anchor.o: tls_anchor.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_anchor.c
@@ -231,6 +238,8 @@ OBJECTS+=socket.o
 OBJECTS+=stralloc.o
 OBJECTS+=strtoip.o
 OBJECTS+=strtoport.o
+OBJECTS+=timeoutread.o
+OBJECTS+=timeoutwrite.o
 OBJECTS+=tls_anchor.o
 OBJECTS+=tls_certfile.o
 OBJECTS+=tls_cipher.o
