@@ -17,7 +17,7 @@ void buffer_init(buffer *s, long long (*op)(int, void *, long long), int fd,
     if (s->n < 0) s->n = 0;
 }
 
-long long buffer_write(int fd, void *x, long long xlen) {
+long long buffer_write(int fd, const void *x, long long xlen) {
 
     if (xlen < 0) {
         errno = EINVAL;

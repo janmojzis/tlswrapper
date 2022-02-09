@@ -19,7 +19,7 @@ extern void buffer_init(buffer *, long long (*)(int, void *, long long), int,
     { (buf), 0, (len), (fd), (op) }
 
 /* write */
-extern long long buffer_write(int, void *, long long);
+extern long long buffer_write(int, const void *, long long);
 extern int buffer_flush(buffer *);
 extern int buffer_put(buffer *, const void *, long long);
 extern int buffer_puts(buffer *, const char *);
