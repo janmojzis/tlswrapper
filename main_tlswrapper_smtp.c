@@ -93,7 +93,7 @@ static void usage(void) {
 }
 
 static const char *timeoutstr = "600";
-static const char *crwtimeoutstr = "10";
+static const char *crwtimeoutstr = "15";
 static long long timeout;
 static long long crwtimeout;
 
