@@ -30,6 +30,12 @@ Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
 .B \-g \fIhost:port\fR
 Enable greylist support (postgrey protocol) and use server running on \fIhost:port\fR .
 .TP
+.B \-c
+Handle communication to greylist server in fail-closed mode. If a greylist lookup fails temporarily, \fBtlswrapper-smtp\fR exits with status 111.
+.TP
+.B \-C
+Handle communication to greylist server in fail-open mode. If a greylist lookup fails temporarily, assume that the address is not greylisted (default).
+.TP
 .B \-J \fIjaildir\fR
 Chroot into a specified \fIjaildir\fR (default: /var/lib/tlswraper/empty).
 .TP

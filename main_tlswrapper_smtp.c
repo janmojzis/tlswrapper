@@ -32,6 +32,7 @@ static const char *user = 0;
 
 static int flagverbose = 1;
 static int flagstarttls = 0;
+static int flaggreyfailclosed = 0;
 
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
@@ -177,28 +178,57 @@ static unsigned char greylistip[16];
 static long long greylistiplen;
 static int greylistfd = -1;
 static char greylistbuf[256];
+static buffer gsin;
+
+static long long _gwrite(int fd, void *xv, long long xlen) {
+    long long w = timeoutwrite(crwtimeout, fd, xv, xlen);
+    if (w <= 0) {
+        if (flaggreyfailclosed) {
+            log_f3("write to '", greylisthostport, "' failed");
+            die(111);
+        }
+        else {
+            log_w3("write to '", greylisthostport, "' failed");
+        }
+    }
+    return w;
+}
+
+static long long _gread(int fd, void *xv, long long xlen) {
+
+    long long r = timeoutread(crwtimeout, fd, xv, xlen);
+    if (r <= 0) {
+        if (flaggreyfailclosed) {
+            log_f3("read from '", greylisthostport, "' failed");
+            die(111);
+        }
+        else {
+            log_w3("read from '", greylisthostport, "' failed");
+        }
+    }
+    return r;
+}
 
 static const char *greylist(void) {
 
     char ch;
 
-    buffer gsin;
-    buffer_init(&gsin, _write, greylistfd, greylistbuf, sizeof greylistbuf);
+    buffer_init(&gsin, _gwrite, greylistfd, greylistbuf, sizeof greylistbuf);
 
-    buffer_puts(&gsin, "request=smtpd_access_policy\n");
-    buffer_puts(&gsin, "client_address=");
-    buffer_puts(&gsin, remoteipstr);
-    buffer_puts(&gsin, "\nsender=");
-    buffer_puts(&gsin, mailfrom.s);
-    buffer_puts(&gsin, "\nrecipient=");
-    buffer_puts(&gsin, rcptto.s);
-    buffer_puts(&gsin, "\n\n");
-    buffer_flush(&gsin);
+    if (buffer_puts(&gsin, "request=smtpd_access_policy\n") == -1) return 0;
+    if (buffer_puts(&gsin, "client_address=") == -1) return 0;
+    if (buffer_puts(&gsin, remoteipstr) == -1) return 0;
+    if (buffer_puts(&gsin, "\nsender=") == -1) return 0;
+    if (buffer_puts(&gsin, mailfrom.s) == -1) return 0;
+    if (buffer_puts(&gsin, "\nrecipient=") == -1) return 0;
+    if (buffer_puts(&gsin, rcptto.s) == -1) return 0;
+    if (buffer_puts(&gsin, "\n\n") == -1) return 0;
+    if (buffer_flush(&gsin)== -1) return 0;
 
-    buffer_init(&gsin, _read, greylistfd, greylistbuf, sizeof greylistbuf);
+    buffer_init(&gsin, _gread, greylistfd, greylistbuf, sizeof greylistbuf);
 
     do {
-        buffer_GETC(&gsin, &ch);
+        if (buffer_get(&gsin, &ch, 1) != 1) return 0;
         if (!stralloc_append(&greylistresp, &ch)) die_nomem();
     } while (ch != '\n');
     if (!stralloc_0(&greylistresp)) die_nomem();
@@ -538,6 +568,8 @@ int main_tlswrapper_smtp(int argc, char **argv) {
                 if (x[1]) { greylisthostport =  x + 1; break; }
                 if (argv[1]) { greylisthostport = *++argv; break; }
             }
+            if (*x == 'c') { flaggreyfailclosed = 1; continue; }
+            if (*x == 'C') { flaggreyfailclosed = 0; continue; }
             /* jail */
             if (*x == 'J') {
                 if (x[1]) { jaildir = (x + 1); break; }
@@ -637,7 +669,13 @@ int main_tlswrapper_smtp(int argc, char **argv) {
 
         greylistfd = conn(crwtimeout, greylistip, greylistiplen, greylistport);
         if (greylistfd == -1) {
-            log_w2("unable to connect to ", greylisthostport);
+            if (flaggreyfailclosed) {
+                log_f2("unable to connect to ", greylisthostport);
+                die(111);
+            }
+            else {
+                log_w2("unable to connect to ", greylisthostport);
+            }
         }
     }
 
