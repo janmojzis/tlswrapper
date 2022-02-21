@@ -1,9 +1,3 @@
-/*
-20131117
-Jan Mojzis
-Public domain.
-*/
-
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
