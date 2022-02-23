@@ -2,8 +2,10 @@
 version 20220222
 */
 
-#include <sys/random.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#include <sys/random.h>
+#endif
 #include "randombytes.h"
 
 void randombytes(void *xv, long long xlen) {
