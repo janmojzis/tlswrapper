@@ -1,8 +1,15 @@
 language: c
-dist: focal
 
 os:
   - linux
+  - freebsd
+  - osx
+
+jobs:
+  include:
+    -
+      os: linux
+      dist: focal
 
 arch:
   - s390x
@@ -12,7 +19,7 @@ compiler:
   - gcc
 
 script:
-  - sudo apt-get install build-essential curl
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install build-essential curl; fi
   - cd "$TRAVIS_BUILD_DIR"
   - $CC -dM -E - < /dev/null
   - make test
