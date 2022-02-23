@@ -1,5 +1,9 @@
+/*
+version 20220222
+*/
+
+#include <errno.h>
 #include "alloc.h"
-#include "e.h"
 #include "stralloc.h"
 
 int stralloc_readyplus(stralloc *r, long long len) {
