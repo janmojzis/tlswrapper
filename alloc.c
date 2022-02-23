@@ -1,5 +1,5 @@
 /*
-version 20220221
+version 20220222
 */
 
 #include <stdlib.h>
@@ -56,6 +56,8 @@ static void cleanup(void *xv, unsigned long long xlen) {
 
     xlen /= sizeof(unsigned long);
     while (xlen-- > 0) *x++ = 0;
+
+    __asm__ __volatile__("" : : "r"(xv) : "memory");
 }
 
 void *alloc(long long norig) {
