@@ -22,11 +22,12 @@ jobs:
             - curl
     -
       os: osx
-    -
-      os: freebsd
-      addons:
-        pkg:
-          - curl
+# TODO
+#    -
+#      os: freebsd
+#      addons:
+#        pkg:
+#          - curl
 
 script:
   - cd "$TRAVIS_BUILD_DIR"
