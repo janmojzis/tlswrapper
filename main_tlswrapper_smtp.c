@@ -22,6 +22,7 @@
 #include "case.h"
 #include "timeoutwrite.h"
 #include "timeoutread.h"
+#include "strtonum.h"
 #include "main.h"
 
 /* clang-format off */
@@ -100,7 +101,7 @@ static long long crwtimeout;
 
 static long long timeout_parse(const char *x) {
     long long ret;
-    if (!tls_timeout_parse(&ret, x)) {
+    if (!strtonum(&ret, x)) {
         log_f3("unable to parse timeout from the string '", x, "'");
         die(100);
     }

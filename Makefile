@@ -67,19 +67,19 @@ log.o: log.c e.h randommod.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
- randombytes.h alloc.h connectioninfo.h proxyprotocol.h iptostr.h \
- writeall.h fixname.h fixpath.h tls.h open.h main.h
+ strtonum.h randombytes.h alloc.h connectioninfo.h proxyprotocol.h \
+ iptostr.h writeall.h fixname.h fixpath.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h log.h \
  iptostr.h connectioninfo.h jail.h writeall.h buffer.h stralloc.h open.h \
  e.h tls.h blocking.h resolvehost.h hostport.h conn.h case.h \
- timeoutwrite.h timeoutread.h main.h
+ timeoutwrite.h timeoutread.h strtonum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
  proxyprotocol.h connectioninfo.h resolvehost.h strtoport.h socket.h e.h \
- log.h conn.h tls.h jail.h randommod.h main.h
+ log.h conn.h tls.h jail.h randommod.h strtonum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
@@ -132,6 +132,9 @@ str.o: str.c str.h
 
 strtoip.o: strtoip.c strtoip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
+
+strtonum.o: strtonum.c strtonum.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtonum.c
 
 strtoport.o: strtoport.c strtoport.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoport.c
@@ -190,9 +193,6 @@ tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h sa.h tls.h
 tls_seccrt.o: tls_seccrt.c log.h randombytes.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_seccrt.c
 
-tls_timeout.o: tls_timeout.c tls.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_timeout.c
-
 tls_version.o: tls_version.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_version.c
 
@@ -241,6 +241,7 @@ OBJECTS+=socket.o
 OBJECTS+=stralloc.o
 OBJECTS+=str.o
 OBJECTS+=strtoip.o
+OBJECTS+=strtonum.o
 OBJECTS+=strtoport.o
 OBJECTS+=timeoutread.o
 OBJECTS+=timeoutwrite.o
@@ -259,7 +260,6 @@ OBJECTS+=tls_pipe.o
 OBJECTS+=tls_profile.o
 OBJECTS+=tls_pubcrt.o
 OBJECTS+=tls_seccrt.o
-OBJECTS+=tls_timeout.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
 
