@@ -6,13 +6,14 @@ Public domain.
 
 #include <unistd.h>
 #include <string.h>
-#include "jail.h"
-#include "buf.h"
 #include "e.h"
 #include "log.h"
+#include "str.h"
+#include "buf.h"
+#include "jail.h"
+#include "iptostr.h"
 #include "strtoip.h"
 #include "strtoport.h"
-#include "iptostr.h"
 #include "porttostr.h"
 #include "proxyprotocol.h"
 
@@ -34,27 +35,6 @@ static int getch(int fd, char *x) {
         break;
     }
     return r;
-}
-
-static long long str_chr(const char *s, int c) {
-
-    long long i;
-    char ch = c;
-
-    for (i = 0; s[i]; ++i)
-        if (s[i] == ch) break;
-    return i;
-}
-
-static int str_start(const char *s, const char *t) {
-
-    char x;
-
-    for (;;) {
-        x = *t++;
-        if (!x) return 1;
-        if (x != *s++) return 0;
-    }
 }
 
 static int proxyprotocol1_parse(char *buforig, unsigned char *localipx,

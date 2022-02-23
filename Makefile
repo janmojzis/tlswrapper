@@ -101,8 +101,8 @@ pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
-proxyprotocol.o: proxyprotocol.c jail.h buf.h e.h log.h strtoip.h \
- strtoport.h iptostr.h porttostr.h proxyprotocol.h
+proxyprotocol.o: proxyprotocol.c e.h log.h str.h buf.h jail.h iptostr.h \
+ strtoip.h strtoport.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c log.h randombytes.h
@@ -126,6 +126,9 @@ socket.o: socket.c blocking.h socket.h
 
 stralloc.o: stralloc.c alloc.h e.h stralloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c stralloc.c
+
+str.o: str.c str.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c str.c
 
 strtoip.o: strtoip.c strtoip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
@@ -236,6 +239,7 @@ OBJECTS+=resolvehost.o
 OBJECTS+=sa.o
 OBJECTS+=socket.o
 OBJECTS+=stralloc.o
+OBJECTS+=str.o
 OBJECTS+=strtoip.o
 OBJECTS+=strtoport.o
 OBJECTS+=timeoutread.o
