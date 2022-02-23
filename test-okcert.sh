@@ -4,8 +4,15 @@ check() {
   if [ x"`shasum < data.in`" = x"`shasum < data.out`" ]; then
     echo "$1 OK"
   else
-    echo "$1 FAILED" >&2
-    cat log >&2
+    (
+      echo "$1 FAILED"
+      echo "ls -la data.in: `ls -la data.in`"
+      echo "ls -la data.out: `ls -la data.out`"
+      echo "shasum data.in: `shasum < data.in`"
+      echo "shasum data.out: `shasum < data.out`"
+      echo "log:"
+      cat log
+    ) >&2
     exit 1
   fi
 }

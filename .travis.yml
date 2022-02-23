@@ -12,6 +12,8 @@ jobs:
       arch: s390x
     -
       os: osx
+    -
+      os: freebsd
 
 script:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install build-essential curl; fi
