@@ -654,6 +654,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             r = write(tochild[1], buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to child failed"); break; }
+            log_t4("write(tochild[1], buf, len=", lognum(len), ") = ", lognum(r));
             tls_engine_recvapp_ack(&ctx, r);
             continue;
         }
@@ -664,6 +665,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             r = write(1, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to standard output failed"); break; }
+            log_t4("write(1, buf, len=", lognum(len), ") = ", lognum(r));
             tls_engine_sendrec_ack(&ctx, r);
             continue;
         }
@@ -679,6 +681,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 ctx.netclosed = 1;
                 break;
             }
+            log_t4("read(0, buf, len=", lognum(len), ") = ", lognum(r));
             tls_engine_recvrec_ack(&ctx, r);
             alarm(timeout); /* refresh timeout */
             continue;
@@ -696,6 +699,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 tls_engine_flush(&ctx, 0);
                 continue;
             }
+            log_t4("read(fromchild[0], buf, len=", lognum(len), ") = ", lognum(r));
             tls_engine_sendapp_ack(&ctx, r);
             tls_engine_flush(&ctx, 0);
             alarm(timeout); /* refresh timeout */
