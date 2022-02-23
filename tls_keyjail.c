@@ -1,5 +1,4 @@
 #include <string.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include "pipe.h"
 #include "randombytes.h"

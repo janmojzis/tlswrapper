@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "e.h"
@@ -12,6 +11,7 @@
 #include "tls.h"
 #include "open.h"
 #include "blocking.h"
+#include "strtonum.h"
 #include "main.h"
 
 /* clang-format off */
@@ -37,7 +37,7 @@ static const char *host = 0;
 static unsigned char buf[16384];
 
 static char *daysstr = 0;
-static unsigned long long days = 0;
+static long long days = 0;
 
 static const char *anchorfn = 0;
 static unsigned char anchorkey[32] = {0};
@@ -49,18 +49,6 @@ static char *ppstring = 0;
 static uint16_t ciphersuite = 0;
 static uint32_t ecdhecurves = 0;
 static br_ec_impl ecdhe;
-
-static int numparse(unsigned long long *num, const char *x) {
-
-    char *endptr = 0;
-
-    *num = strtoull(x, &endptr, 10);
-
-    if (!x || strlen(x) == 0 || !endptr || endptr[0]) {
-        return 0;
-    }
-    return 1;
-}
 
 static int _read(void *ctx, unsigned char *buf, size_t len) {
 
@@ -345,7 +333,7 @@ int main_tlswrapper_test(int argc, char **argv) {
         br_ssl_engine_set_x509(&cc->eng, &xcp->vtable);
     }
     if (daysstr) {
-        if (!numparse(&days, daysstr)) {
+        if (!strtonum(&days, daysstr)) {
             log_f3("unable to parse '", daysstr, "'");
             die(100);
         }
