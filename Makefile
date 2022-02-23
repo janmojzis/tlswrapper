@@ -83,7 +83,7 @@ main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
- fsyncfile.h writeall.h tls.h open.h blocking.h main.h
+ fsyncfile.h writeall.h tls.h open.h blocking.h strtonum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
 
 milliseconds.o: milliseconds.c milliseconds.h
@@ -124,7 +124,7 @@ sa.o: sa.c alloc.h sa.h
 socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
 
-stralloc.o: stralloc.c alloc.h e.h stralloc.h
+stralloc.o: stralloc.c alloc.h stralloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c stralloc.c
 
 str.o: str.c str.h
