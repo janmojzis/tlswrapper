@@ -53,14 +53,17 @@ static br_ec_impl ecdhe;
 static int _read(void *ctx, unsigned char *buf, size_t len) {
 
     int r;
+    int fd = *(int *)ctx;
 
     for (;;) {
-        r = read(*(int *)ctx, buf, len);
+        r = read(fd, buf, len);
         if (r == 0) errno = EPIPE;
         if (r <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            log_f4("read(", lognum(fd), ", buf, len) = ", lognum(r));
             return -1;
         }
+        log_t4("read(", lognum(fd), ", buf, len) = ", lognum(r));
         return r;
     }
 }
@@ -68,14 +71,17 @@ static int _read(void *ctx, unsigned char *buf, size_t len) {
 static int _write(void *ctx, const unsigned char *buf, size_t len) {
 
     int w;
+    int fd = *(int *)ctx;
 
     for (;;) {
-        w = write(*(int *)ctx, buf, len);
+        w = write(fd, buf, len);
         if (w == 0) errno = EPIPE;
         if (w <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            log_f4("write(", lognum(fd), ", buf, len) = ", lognum(w));
             return -1;
         }
+        log_t4("write(", lognum(fd), ", buf, len) = ", lognum(w));
         return w;
     }
 }
@@ -403,6 +409,7 @@ int main_tlswrapper_test(int argc, char **argv) {
     if (flagoutput) {
         for (;;) {
             r = read(0, buf, sizeof buf);
+            log_t2("read(0, buf, sizeof buf) = ", lognum(r));
             if (r == -1) {
                 if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             }
@@ -411,6 +418,7 @@ int main_tlswrapper_test(int argc, char **argv) {
                 log_f1("unable to write to child");
                 break;
             }
+            log_t3("br_sslio_write_all(&ioc, buf, r = ", lognum(r), ")");
         }
         if (br_sslio_flush(&ioc) == -1) {
             log_f1("unable to write to child");
