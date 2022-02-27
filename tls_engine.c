@@ -109,9 +109,9 @@ void tls_engine_close(struct tls_context *ctx) {
 }
 
 int tls_engine_handshakedone(struct tls_context *ctx) {
-    if (!ctx->flagdelayedenc) {
+    if (!ctx->flagdelayedenc && !ctx->flaghandshakedone) {
         unsigned int st = tls_engine_current_state(ctx);
-        if ((st & BR_SSL_SENDAPP) && !ctx->flaghandshakedone) {
+        if (st & BR_SSL_SENDAPP) {
             ctx->flaghandshakedone = 1;
             return 1;
         }
@@ -136,7 +136,7 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         if (tls_engine_recvrec_buf(ctx, &len) != 0) st |= BR_SSL_RECVREC;
         if (tls_engine_sendapp_buf(ctx, &len) != 0) st |= BR_SSL_SENDAPP;
         if (tls_engine_recvapp_buf(ctx, &len) != 0) st |= BR_SSL_RECVAPP;
-        return st;
+        goto ret;
     }
     else {
         st = br_ssl_engine_current_state(&ctx->cc.eng);
@@ -179,5 +179,7 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
             }
         }
     }
+ret:
+    log_t2("br_ssl_engine_current_state(&ctx->cc.eng) = ", lognum(st));
     return st;
 }
