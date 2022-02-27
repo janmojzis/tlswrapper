@@ -49,7 +49,7 @@ while read name; do
 
   randdata
   CMD="${CMD} -a ${caname} -h "${name}""
-  ${CMD} -w tlswrappernojail -vvv -d "testcerts" sh -c 'cat > data.out' < data.in  2>log
+  ${CMD} -w tlswrappernojail -vvv -d "testcerts" bash -c 'cat > data.out' < data.in  2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), upload"
 
   randdata
@@ -58,7 +58,7 @@ while read name; do
 
   randdata
   CMD="${CMD} -a ${caname} -h "${name}""
-  ${CMD} -w tlswrappernojail -v -f "testcerts/${name}" sh -c 'cat > data.out' < data.in  2>log
+  ${CMD} -w tlswrappernojail -v -f "testcerts/${name}" bash -c 'cat > data.out' < data.in  2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certfile (-f), upload"
 
   randdata
