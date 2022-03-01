@@ -1,5 +1,4 @@
 #include <unistd.h>
-#include <string.h>
 #include <signal.h>
 #include "randombytes.h"
 #include "iptostr.h"
@@ -11,6 +10,7 @@
 #include "e.h"
 #include "log.h"
 #include "conn.h"
+#include "str.h"
 #include "tls.h"
 #include "jail.h"
 #include "randommod.h"
@@ -93,11 +93,11 @@ static const char *ppinver = 0;
 
 static void pp_incoming(const char *x) {
 
-    if (!strcmp("0", x)) {
+    if (str_equal("0", x)) {
         /* disable incoming proxy-protocol */
         return;
     }
-    else if (!strcmp("1", x)) {
+    else if (str_equal("1", x)) {
         ppin = proxyprotocol_v1_get;
         ppinver = x;
     }
@@ -109,15 +109,15 @@ static void pp_incoming(const char *x) {
 }
 static void pp_outgoing(const char *x) {
 
-    if (!strcmp("0", x)) {
+    if (str_equal("0", x)) {
         /* disable outgoing proxy-protocol */
         return;
     }
-    else if (!strcmp("1", x)) {
+    else if (str_equal("1", x)) {
         ppout = proxyprotocol_v1;
         ppoutver = x;
     }
-    else if (!strcmp("2", x)) {
+    else if (str_equal("2", x)) {
         ppout = proxyprotocol_v2;
         ppoutver = x;
     }

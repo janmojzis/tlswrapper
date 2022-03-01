@@ -1,4 +1,4 @@
-#include <string.h>
+#include "str.h"
 #include "tls.h"
 
 /* clang-format off */
@@ -35,7 +35,7 @@ int tls_ecdhe_add(struct tls_context *ctx, const char *x) {
     }
 
     for (i = 0; tls_ecdhes[i].name; ++i) {
-        if (strcmp(x, tls_ecdhes[i].name)) continue;
+        if (str_diff(x, tls_ecdhes[i].name)) continue;
         ctx->ecdhe_enabled |= (uint32_t) 1 << tls_ecdhes[i].curve;
         return 1;
     }

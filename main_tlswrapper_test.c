@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <signal.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "e.h"
@@ -8,6 +7,7 @@
 #include "randombytes.h"
 #include "fsyncfile.h"
 #include "writeall.h"
+#include "str.h"
 #include "tls.h"
 #include "open.h"
 #include "blocking.h"
@@ -203,7 +203,7 @@ static void cipher_get(const char *x) {
     long long i;
 
     for (i = 0; ciphers[i].name; ++i) {
-        if (strcmp(x, ciphers[i].name)) continue;
+        if (str_diff(x, ciphers[i].name)) continue;
         ciphersuite = ciphers[i].suite;
         return;
     }
@@ -227,7 +227,7 @@ static void ecdhe_add(const char *x) {
     long long i;
 
     for (i = 0; ecdhes[i].name; ++i) {
-        if (strcmp(x, ecdhes[i].name)) continue;
+        if (str_diff(x, ecdhes[i].name)) continue;
         ecdhecurves |= 1 << ecdhes[i].suite;
         return;
     }

@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <string.h>
 #include "blocking.h"
 #include "pipe.h"
 #include "log.h"
@@ -18,6 +17,7 @@
 #include "writeall.h"
 #include "fixname.h"
 #include "fixpath.h"
+#include "str.h"
 #include "tls.h"
 #include "open.h"
 #include "main.h"
@@ -136,11 +136,11 @@ static const char *ppinver = 0;
 
 static void pp_incoming(const char *x) {
 
-    if (!strcmp("0", x)) {
+    if (str_equal("0", x)) {
         /* disable incoming proxy-protocol*/
         return;
     }
-    else if (!strcmp("1", x)) {
+    else if (str_equal("1", x)) {
         ppin = proxyprotocol_v1_get;
         ppinver = x;
     }
@@ -153,10 +153,10 @@ static void pp_incoming(const char *x) {
 static void certuser_add(const char *x) {
 
     userfromcert = x;
-    if (!strcmp("commonName", x)) {
+    if (str_equal("commonName", x)) {
         ctx.clientcrt.oid = (unsigned char *)"\003\125\004\003";
     }
-    else if (!strcmp("emailAddress", x)) {
+    else if (str_equal("emailAddress", x)) {
         ctx.clientcrt.oid = (unsigned char *)"\011\052\206\110\206\367\015\001\011\001";
     }
     else {

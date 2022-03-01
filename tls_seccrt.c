@@ -4,9 +4,9 @@ Jan Mojzis
 Public domain.
 */
 
-#include <string.h>
 #include "log.h"
 #include "randombytes.h"
+#include "str.h"
 #include "tls.h"
 
 static void parsedummy(void *yv, const void *x, size_t xlen) {
@@ -51,9 +51,9 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
                 inobj = 1;
 
                 br_pem_decoder_setdest(&pc, parsedummy, &crt->keydc);
-                if (!strcmp(br_pem_decoder_name(&pc), "EC PRIVATE KEY") ||
-                    !strcmp(br_pem_decoder_name(&pc), "RSA PRIVATE KEY") ||
-                    !strcmp(br_pem_decoder_name(&pc), "PRIVATE KEY")) {
+                if (str_equal(br_pem_decoder_name(&pc), "EC PRIVATE KEY") ||
+                    str_equal(br_pem_decoder_name(&pc), "RSA PRIVATE KEY") ||
+                    str_equal(br_pem_decoder_name(&pc), "PRIVATE KEY")) {
                     if (br_skey_decoder_key_type(&crt->keydc)) {
                         log_e3("too many secret-keys in '", fn, "'");
                         goto cleanup;
@@ -70,9 +70,9 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
                 }
                 inobj = 0;
 
-                if (!strcmp(br_pem_decoder_name(&pc), "EC PRIVATE KEY") ||
-                    !strcmp(br_pem_decoder_name(&pc), "RSA PRIVATE KEY") ||
-                    !strcmp(br_pem_decoder_name(&pc), "PRIVATE KEY")) {
+                if (str_equal(br_pem_decoder_name(&pc), "EC PRIVATE KEY") ||
+                    str_equal(br_pem_decoder_name(&pc), "RSA PRIVATE KEY") ||
+                    str_equal(br_pem_decoder_name(&pc), "PRIVATE KEY")) {
                     const br_rsa_private_key *rsakey;
                     const br_ec_private_key *eckey;
                     err = br_skey_decoder_last_error(&crt->keydc);

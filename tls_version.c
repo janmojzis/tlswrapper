@@ -1,4 +1,4 @@
-#include <string.h>
+#include "str.h"
 #include "tls.h"
 
 /* clang-format off */
@@ -26,7 +26,7 @@ int tls_version_setmin(struct tls_context *ctx, const char *x) {
     long long i;
 
     for (i = 0; tls_versions[i].name; ++i) {
-        if (!strcmp(x, tls_versions[i].name)) {
+        if (str_equal(x, tls_versions[i].name)) {
             ctx->version_min = tls_versions[i].version;
             return 1;
         }
@@ -40,7 +40,7 @@ int tls_version_setmax(struct tls_context *ctx, const char *x) {
     long long i;
 
     for (i = 0; tls_versions[i].name; ++i) {
-        if (!strcmp(x, tls_versions[i].name)) {
+        if (str_equal(x, tls_versions[i].name)) {
             ctx->version_max = tls_versions[i].version;
             return 1;
         }

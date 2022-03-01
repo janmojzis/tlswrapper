@@ -3,6 +3,7 @@
 #include "pipe.h"
 #include "randombytes.h"
 #include "alloc.h"
+#include "str.h"
 #include "log.h"
 
 int tls_pipe_fromchild = -1;
@@ -144,7 +145,7 @@ void tls_pipe_prf(void *dst, size_t len, const void *secret, size_t secret_len,
     (void) secret;
     (void) secret_len;
 
-    if (strcmp(label, "client finished") && strcmp(label, "server finished"))
+    if (str_diff(label, "client finished") && str_diff(label, "server finished"))
         goto randomoutput;
     if (seed_num != 1) goto randomoutput;
 

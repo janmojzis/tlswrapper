@@ -1,4 +1,4 @@
-#include <string.h>
+#include "str.h"
 #include "log.h"
 #include "tls.h"
 
@@ -78,7 +78,7 @@ int tls_cipher_add(struct tls_context *ctx, const char *x) {
     }
 
     for (i = 0; tls_ciphers[i].name; ++i) {
-        if (strcmp(x, tls_ciphers[i].name)) continue;
+        if (str_diff(x, tls_ciphers[i].name)) continue;
         ecsuite = tls_ciphers[i].ecsuite;
         rsasuite = tls_ciphers[i].rsasuite;
         goto ok;

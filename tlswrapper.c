@@ -9,7 +9,7 @@ Multi-call binary wrapper
 */
 
 #include <unistd.h>
-#include <string.h>
+#include "str.h"
 #include "main.h"
 
 static char *basename(char *str) {
@@ -35,10 +35,10 @@ int main(int argc, char **argv) {
     x = basename(argv[0]);
     if (!x) _exit(100);
 
-    if (!strcmp(x, "tlswrapper-tcp")) {
+    if (str_equal(x, "tlswrapper-tcp")) {
         return main_tlswrapper_tcp(argc, argv);
     }
-    if (!strcmp(x, "tlswrapper-smtp")) {
+    if (str_equal(x, "tlswrapper-smtp")) {
         return main_tlswrapper_smtp(argc, argv);
     }
     return main_tlswrapper(argc, argv, 0);

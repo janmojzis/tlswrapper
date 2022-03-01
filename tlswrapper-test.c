@@ -9,7 +9,7 @@ Multi-call binary wrapper
 */
 
 #include <unistd.h>
-#include <string.h>
+#include "str.h"
 #include "main.h"
 
 static char *basename(char *str) {
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     x = basename(argv[0]);
     if (!x) _exit(100);
 
-    if (!strcmp(x, "tlswrappernojail")) {
+    if (str_equal(x, "tlswrappernojail")) {
         return main_tlswrapper(argc, argv, 1);
     }
     return main_tlswrapper_test(argc, argv);

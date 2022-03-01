@@ -68,7 +68,7 @@ log.o: log.c e.h randommod.h log.h
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  strtonum.h randombytes.h alloc.h connectioninfo.h proxyprotocol.h \
- iptostr.h writeall.h fixname.h fixpath.h tls.h open.h main.h
+ iptostr.h writeall.h fixname.h fixpath.h str.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h log.h \
@@ -79,11 +79,11 @@ main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h log.h \
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h iptostr.h \
  proxyprotocol.h connectioninfo.h resolvehost.h strtoport.h socket.h e.h \
- log.h conn.h tls.h jail.h randommod.h strtonum.h main.h
+ log.h conn.h str.h tls.h jail.h randommod.h strtonum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
- fsyncfile.h writeall.h tls.h open.h blocking.h strtonum.h main.h
+ fsyncfile.h writeall.h str.h tls.h open.h blocking.h strtonum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
 
 milliseconds.o: milliseconds.c milliseconds.h
@@ -148,14 +148,14 @@ tls_anchor.o: tls_anchor.c tls.h
 tls_certfile.o: tls_certfile.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_certfile.c
 
-tls_cipher.o: tls_cipher.c log.h tls.h
+tls_cipher.o: tls_cipher.c str.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_cipher.c
 
 tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h \
  crypto_scalarmult_curve25519.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_crypto_scalarmult.c
 
-tls_ecdhe.o: tls_ecdhe.c tls.h
+tls_ecdhe.o: tls_ecdhe.c str.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdhe.c
 
 tls_ecdsa.o: tls_ecdsa.c tls.h
@@ -177,7 +177,7 @@ tls_keytype.o: tls_keytype.c tls.h
 tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h open.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pem.c
 
-tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h log.h
+tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h str.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
 tls_profile.o: tls_profile.c log.h randombytes.h e.h buf.h fixpath.h \
@@ -188,16 +188,16 @@ tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h stralloc.h str.h \
  tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pubcrt.c
 
-tls_seccrt.o: tls_seccrt.c log.h randombytes.h tls.h
+tls_seccrt.o: tls_seccrt.c log.h randombytes.h str.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_seccrt.c
 
-tls_version.o: tls_version.c tls.h
+tls_version.o: tls_version.c str.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_version.c
 
-tlswrapper.o: tlswrapper.c main.h
+tlswrapper.o: tlswrapper.c str.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
 
-tlswrapper-test.o: tlswrapper-test.c main.h
+tlswrapper-test.o: tlswrapper-test.c str.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper-test.c
 
 writeall.o: writeall.c e.h jail.h writeall.h
