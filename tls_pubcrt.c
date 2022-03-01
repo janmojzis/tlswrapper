@@ -4,11 +4,12 @@ Jan Mojzis
 Public domain.
 */
 
-#include <string.h>
+#include <errno.h>
 #include "randombytes.h"
 #include "alloc.h"
 #include "log.h"
-#include "sa.h"
+#include "stralloc.h"
+#include "str.h"
 #include "tls.h"
 
 static void parsedummy(void *yv, const void *x, size_t xlen) {
@@ -17,15 +18,36 @@ static void parsedummy(void *yv, const void *x, size_t xlen) {
     (void) xlen;
 }
 
-static void *xmemdup(const void *src, size_t len) {
+static void *xmemdup(const unsigned char *src, size_t len) {
 
-    void *buf = alloc(len);
-    if (buf) { memcpy(buf, src, len); }
+    size_t i;
+    unsigned char *buf = alloc(len);
+    if (buf) {
+        for (i = 0; i < len; ++i) buf[i] = src[i];
+    }
     return buf;
 }
 
-static void append(void *sa, const void *buf, size_t buflen) {
-    sa_append(sa, buf, buflen);
+struct sa {
+    unsigned char *s;
+    long long len;
+    long long alloc;
+    int error;
+};
+
+static void append(void *xv, const void *buf, size_t buflen) {
+
+    stralloc s;
+    struct sa *x = (struct sa *) xv;
+    s.s = (char *) x->s;
+    s.len = x->len;
+    s.alloc = x->alloc;
+
+    if (!stralloc_catb(&s, buf, buflen)) { x->error = errno; }
+
+    x->s = (unsigned char *) s.s;
+    x->len = s.len;
+    x->alloc = s.alloc;
 }
 
 #define XMEMDUP(dst, src, len)                                                 \
@@ -74,8 +96,8 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen,
                 }
                 inobj = 1;
                 br_pem_decoder_setdest(&pc, parsedummy, 0);
-                if (!strcmp(br_pem_decoder_name(&pc), "CERTIFICATE") ||
-                    !strcmp(br_pem_decoder_name(&pc), "X509 CERTIFICATE")) {
+                if (str_equal(br_pem_decoder_name(&pc), "CERTIFICATE") ||
+                    str_equal(br_pem_decoder_name(&pc), "X509 CERTIFICATE")) {
                     if (crt->crtlen >= sizeof crt->crt / sizeof crt->crt[0]) {
                         log_e3("too many public PEM certificates in '", fn,
                                "'");
@@ -93,9 +115,9 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen,
                     goto cleanup;
                 }
                 inobj = 0;
-                if (!strcmp(br_pem_decoder_name(&pc), "CERTIFICATE") ||
-                    !strcmp(br_pem_decoder_name(&pc), "X509 CERTIFICATE")) {
-                    XMEMDUP(crt->crt[crt->crtlen].data, sa.p, sa.len);
+                if (str_equal(br_pem_decoder_name(&pc), "CERTIFICATE") ||
+                    str_equal(br_pem_decoder_name(&pc), "X509 CERTIFICATE")) {
+                    XMEMDUP(crt->crt[crt->crtlen].data, sa.s, sa.len);
                     crt->crt[crt->crtlen].data_len = sa.len;
 
                     sa.len = 0;
@@ -122,7 +144,7 @@ int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen,
                                "public-object");
                         goto cleanup;
                     }
-                    XMEMDUP(crt->ta[crt->talen].dn.data, sa.p, sa.len);
+                    XMEMDUP(crt->ta[crt->talen].dn.data, sa.s, sa.len);
                     crt->ta[crt->talen].dn.len = sa.len;
                     crt->ta[crt->talen].flags = 0;
                     if (br_x509_decoder_isCA(&dc5)) {

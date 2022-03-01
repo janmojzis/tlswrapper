@@ -22,8 +22,8 @@ buf.o: buf.c buf.h iptostr.h
 buffer.o: buffer.c buffer.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buffer.c
 
-case_diffb.o: case_diffb.c case.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c case_diffb.c
+case.o: case.c case.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c case.c
 
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
@@ -118,9 +118,6 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
  resolvehost.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c resolvehost.c
 
-sa.o: sa.c alloc.h sa.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c sa.c
-
 socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
 
@@ -187,7 +184,8 @@ tls_profile.o: tls_profile.c log.h randombytes.h e.h buf.h fixpath.h \
  tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
-tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h sa.h tls.h
+tls_pubcrt.o: tls_pubcrt.c randombytes.h alloc.h log.h stralloc.h str.h \
+ tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pubcrt.c
 
 tls_seccrt.o: tls_seccrt.c log.h randombytes.h tls.h
@@ -209,7 +207,7 @@ OBJECTS=alloc.o
 OBJECTS+=blocking.o
 OBJECTS+=buf.o
 OBJECTS+=buffer.o
-OBJECTS+=case_diffb.o
+OBJECTS+=case.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
 OBJECTS+=crypto_scalarmult_curve25519.o
@@ -236,7 +234,6 @@ OBJECTS+=randombytes.o
 OBJECTS+=randommod.o
 OBJECTS+=readall.o
 OBJECTS+=resolvehost.o
-OBJECTS+=sa.o
 OBJECTS+=socket.o
 OBJECTS+=stralloc.o
 OBJECTS+=str.o
