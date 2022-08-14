@@ -84,7 +84,7 @@ Run network\-process and key\-process under a specified \fIjailuser\fR's uid and
 Enable delayed encryption. It's experimental feature! This is useful for protocols which uses STARTTLS. \fBtlswrapper\fR creates to the child control pipe on filedescriptor 5 for writing. The child process starts communication in plaintext a encryption starts in the moment when child use the control pipe instead of startdard output, writes the initialization string (e.g. for SMTP protocol '220 ready to start TLS\\r\\n') and closes the control pipe. See e.g. tlswrapper\-smtp(1).
 .TP
 .B \-N
-Disabe delayed encryption (default).
+Disable delayed encryption (default).
 .TP
 .I prog
 program
