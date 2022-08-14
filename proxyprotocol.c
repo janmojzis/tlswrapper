@@ -22,7 +22,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
                          unsigned char *localportx, unsigned char *remoteipx,
                          unsigned char *remoteportx) {
 
-    buffer sin = buffer_INIT(buffer_read, fd, /*no buffer*/ 0, /*no buffer length*/ 0);
+    buffer sin = buffer_INIT(buffer_read, fd, /*no buffer*/ 0, /*no buffer*/ 0);
     int ret = 0;
     long long pos;
     char bufspace[PROXYPROTOCOL_MAX];
