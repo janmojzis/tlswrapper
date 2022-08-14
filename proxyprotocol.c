@@ -129,10 +129,10 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip,
     }
 
     if (!memcmp("\0\0\0\0\0\0\0\0\0\0\377\377", remoteip, 12)) {
-        if (!stralloc_cats(&sa, "PROXY TCP4 ")) goto cleanup;
+        if (!stralloc_copys(&sa, "PROXY TCP4 ")) goto cleanup;
     }
     else {
-        if (!stralloc_cats(&sa, "PROXY TCP6 ")) goto cleanup;
+        if (!stralloc_copys(&sa, "PROXY TCP6 ")) goto cleanup;
     }
     if (!stralloc_cats(&sa, iptostr(0, remoteip))) goto cleanup;
     if (!stralloc_cats(&sa, " ")) goto cleanup;
