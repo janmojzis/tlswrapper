@@ -67,8 +67,8 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoipop(remoteip, buf)) {
-        log_e3("unable to parse remoteip from proxy-protocol string '",
-               buforig, "'");
+        log_e3("unable to parse remoteip from proxy-protocol string '", buforig,
+               "'");
         goto cleanup;
     }
     buf += pos + 1;
@@ -136,11 +136,11 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip,
     }
     if (!stralloc_cats(&sa, iptostr(0, remoteip))) goto cleanup;
     if (!stralloc_cats(&sa, " ")) goto cleanup;
-    if (!stralloc_cats(&sa, iptostr(0,  localip))) goto cleanup;
+    if (!stralloc_cats(&sa, iptostr(0, localip))) goto cleanup;
     if (!stralloc_cats(&sa, " ")) goto cleanup;
-    if (!stralloc_cats(&sa, porttostr(0,  remoteport))) goto cleanup;
+    if (!stralloc_cats(&sa, porttostr(0, remoteport))) goto cleanup;
     if (!stralloc_cats(&sa, " ")) goto cleanup;
-    if (!stralloc_cats(&sa, porttostr(0,  localport))) goto cleanup;
+    if (!stralloc_cats(&sa, porttostr(0, localport))) goto cleanup;
     if (!stralloc_cats(&sa, "\r\n")) goto cleanup;
     if (!stralloc_0(&sa)) goto cleanup;
     --sa.len;

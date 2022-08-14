@@ -145,7 +145,8 @@ void tls_pipe_prf(void *dst, size_t len, const void *secret, size_t secret_len,
     (void) secret;
     (void) secret_len;
 
-    if (str_diff(label, "client finished") && str_diff(label, "server finished"))
+    if (str_diff(label, "client finished") &&
+        str_diff(label, "server finished"))
         goto randomoutput;
     if (seed_num != 1) goto randomoutput;
 
