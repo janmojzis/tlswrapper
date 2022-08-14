@@ -180,7 +180,7 @@ tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h log.h open.h tls.h
 tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h alloc.h str.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
-tls_profile.o: tls_profile.c log.h randombytes.h e.h buf.h fixpath.h \
+tls_profile.o: tls_profile.c log.h randombytes.h e.h stralloc.h fixpath.h \
  tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 

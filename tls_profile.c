@@ -1,7 +1,7 @@
 #include "log.h"
 #include "randombytes.h"
 #include "e.h"
-#include "buf.h"
+#include "stralloc.h"
 #include "fixpath.h"
 #include "tls.h"
 
@@ -20,28 +20,31 @@ static int hash_choose(unsigned int bf) {
 
 static int copyfn(char *buf, long long buflen, const char *a, const char *b) {
 
-    long long pos = 0;
+    stralloc sa = {0};
+    int ret = 0;
 
-    if (!buf || !a || !b || buflen < 0) return 0;
+    if (!buf || !a || !b || buflen < 0) goto cleanup;
 
     /* add a */
-    pos = buf_puts(buf, buflen, pos, a);
-    if (!pos) return 0;
+    if (!stralloc_copys(&sa, a)) goto cleanup;
 
     if (b && strlen(b) > 0) {
         /* add '/' */
-        pos = buf_puts(buf, buflen, pos, "/");
-        if (!pos) return 0;
-
+        if (!stralloc_cats(&sa, "/")) goto cleanup;
         /* add b */
-        pos = buf_puts(buf, buflen, pos, b);
-        if (!pos) return 0;
+        if (!stralloc_cats(&sa, b)) goto cleanup;
+    }
+    if (!stralloc_0(&sa)) goto cleanup;
+    fixpath(sa.s);
+
+    if (buflen >= sa.len) {
+        memcpy(buf, sa.s, sa.len);
+        ret = 1;
     }
 
-    pos = buf_put(buf, buflen, pos, "", 1);
-    if (!pos) return 0;
-    fixpath(buf);
-    return 1;
+cleanup:
+    stralloc_free(&sa);
+    return ret;
 }
 
 static int tls_choose(const br_ssl_server_policy_class **pctx,
