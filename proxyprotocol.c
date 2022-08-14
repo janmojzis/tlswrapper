@@ -11,7 +11,6 @@ Public domain.
 #include "str.h"
 #include "buffer.h"
 #include "stralloc.h"
-#include "buf.h"
 #include "jail.h"
 #include "iptostr.h"
 #include "strtoip.h"
@@ -153,73 +152,4 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip,
 cleanup:
     stralloc_free(&sa);
     return ret;
-}
-
-long long proxyprotocol_v2(char *buf, long long buflen, unsigned char *localip,
-                           unsigned char *localport, unsigned char *remoteip,
-                           unsigned char *remoteport) {
-
-    long long pos = 0;
-    unsigned char ch;
-    unsigned char len[2];
-    int flagipv4 = 0;
-    int flagipv6 = 0;
-
-    if (!buf || buflen <= 0) goto fail;
-
-    /* header */
-    pos = buf_put(buf, buflen, pos,
-                  "\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A", 12);
-    if (!pos) goto fail;
-
-    /* version + local/proxy  */
-    ch = (2 << 4); /* version 2 */
-    ch += 1;       /* proxy */
-    pos = buf_put(buf, buflen, pos, &ch, 1);
-    if (!pos) goto fail;
-
-    /* address family */
-    if (!memcmp(remoteip, "\0\0\0\0\0\0\0\0\0\0\377\377", 12)) {
-        ch = (1 << 4); /* IPv4 */
-        len[0] = 0;
-        len[1] = 12;
-        flagipv4 = 1;
-    }
-    else {
-        ch = (2 << 4); /* IPv6 */
-        len[0] = 0;
-        len[1] = 36;
-        flagipv6 = 1;
-    }
-    /* transport protocol */
-    ch += 1; /* stream */
-    pos = buf_put(buf, buflen, pos, &ch, 1);
-    if (!pos) goto fail;
-
-    /* length */
-    pos = buf_put(buf, buflen, pos, len, 2);
-    if (!pos) goto fail;
-
-    /* src ip */
-    if (flagipv4) pos = buf_put(buf, buflen, pos, remoteip + 12, 4);
-    if (flagipv6) pos = buf_put(buf, buflen, pos, remoteip, 16);
-    if (!pos) goto fail;
-
-    /* dst ip */
-    if (flagipv4) pos = buf_put(buf, buflen, pos, localip + 12, 4);
-    if (flagipv6) pos = buf_put(buf, buflen, pos, localip, 16);
-    if (!pos) goto fail;
-
-    /* src port */
-    pos = buf_put(buf, buflen, pos, remoteport, 2);
-    if (!pos) goto fail;
-
-    /* dst port */
-    pos = buf_put(buf, buflen, pos, localport, 2);
-    if (!pos) goto fail;
-
-    return pos;
-
-fail:
-    return 0;
 }

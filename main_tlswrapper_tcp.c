@@ -117,10 +117,6 @@ static void pp_outgoing(const char *x) {
         ppout = proxyprotocol_v1;
         ppoutver = x;
     }
-    else if (str_equal("2", x)) {
-        ppout = proxyprotocol_v2;
-        ppoutver = x;
-    }
     else {
         log_f3("unable to parse outgoing proxy-protocol version from the string '", x, "'");
         log_f1("available: 1");
