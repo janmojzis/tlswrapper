@@ -10,6 +10,7 @@ Public domain.
 #include "log.h"
 #include "str.h"
 #include "buffer.h"
+#include "stralloc.h"
 #include "buf.h"
 #include "jail.h"
 #include "iptostr.h"
@@ -119,55 +120,39 @@ long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip,
                            unsigned char *localport, unsigned char *remoteip,
                            unsigned char *remoteport) {
 
-    long long pos = 0;
-
-    if (!buf || buflen < PROXYPROTOCOL_MAX) return 0;
+    stralloc sa = {0};
+    long long ret = 0;
 
     if (!memcmp(localip, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) &&
         !memcmp(remoteip, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) &&
         !memcmp(localport, "\0\0", 2) && !memcmp(remoteport, "\0\0", 2)) {
-        goto fail;
+        goto cleanup;
     }
 
     if (!memcmp("\0\0\0\0\0\0\0\0\0\0\377\377", remoteip, 12)) {
-        pos = buf_puts(buf, buflen, pos, "PROXY TCP4 ");
+        if (!stralloc_cats(&sa, "PROXY TCP4 ")) goto cleanup;
     }
     else {
-        pos = buf_puts(buf, buflen, pos, "PROXY TCP6 ");
+        if (!stralloc_cats(&sa, "PROXY TCP6 ")) goto cleanup;
     }
-    if (!pos) goto fail;
+    if (!stralloc_cats(&sa, iptostr(0, remoteip))) goto cleanup;
+    if (!stralloc_cats(&sa, " ")) goto cleanup;
+    if (!stralloc_cats(&sa, iptostr(0,  localip))) goto cleanup;
+    if (!stralloc_cats(&sa, " ")) goto cleanup;
+    if (!stralloc_cats(&sa, porttostr(0,  remoteport))) goto cleanup;
+    if (!stralloc_cats(&sa, " ")) goto cleanup;
+    if (!stralloc_cats(&sa, porttostr(0,  localport))) goto cleanup;
+    if (!stralloc_cats(&sa, "\r\n")) goto cleanup;
+    if (!stralloc_0(&sa)) goto cleanup;
+    --sa.len;
+    if (buf && buflen >= sa.len) {
+        memcpy(buf, sa.s, sa.len);
+        ret = sa.len;
+    }
 
-    pos = buf_puts(buf, buflen, pos, iptostr(0, remoteip));
-    if (!pos) goto fail;
-    pos = buf_puts(buf, buflen, pos, " ");
-    if (!pos) goto fail;
-
-    pos = buf_puts(buf, buflen, pos, iptostr(0, localip));
-    if (!pos) goto fail;
-    pos = buf_puts(buf, buflen, pos, " ");
-    if (!pos) goto fail;
-
-    pos = buf_puts(buf, buflen, pos, porttostr(0, remoteport));
-    if (!pos) goto fail;
-    pos = buf_puts(buf, buflen, pos, " ");
-    if (!pos) goto fail;
-
-    pos = buf_puts(buf, buflen, pos, porttostr(0, localport));
-    if (!pos) goto fail;
-
-    pos = buf_puts(buf, buflen, pos, "\r\n");
-    if (!pos) goto fail;
-
-    pos = buf_put(buf, buflen, pos, "", 1);
-    if (!pos) goto fail;
-
-    return pos - 1;
-
-fail:
-    pos = 0;
-    pos = buf_puts(buf, buflen, pos, "PROXY UNKNOWN\r\n");
-    pos = buf_put(buf, buflen, pos, "", 1);
-    return pos - 1;
+cleanup:
+    stralloc_free(&sa);
+    return ret;
 }
 
 long long proxyprotocol_v2(char *buf, long long buflen, unsigned char *localip,
