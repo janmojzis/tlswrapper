@@ -16,9 +16,6 @@ alloc.o: alloc.c log.h alloc.h
 blocking.o: blocking.c blocking.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c blocking.c
 
-buf.o: buf.c buf.h iptostr.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c buf.c
-
 buffer.o: buffer.c buffer.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buffer.c
 
@@ -205,7 +202,6 @@ writeall.o: writeall.c e.h jail.h writeall.h
 
 OBJECTS=alloc.o
 OBJECTS+=blocking.o
-OBJECTS+=buf.o
 OBJECTS+=buffer.o
 OBJECTS+=case.o
 OBJECTS+=conn.o
