@@ -1,6 +1,7 @@
 #include "log.h"
 #include "randombytes.h"
 #include "e.h"
+#include "str.h"
 #include "stralloc.h"
 #include "fixpath.h"
 #include "tls.h"
@@ -28,7 +29,7 @@ static int copyfn(char *buf, long long buflen, const char *a, const char *b) {
     /* add a */
     if (!stralloc_copys(&sa, a)) goto cleanup;
 
-    if (b && strlen(b) > 0) {
+    if (b && str_len(b) > 0) {
         /* add '/' */
         if (!stralloc_cats(&sa, "/")) goto cleanup;
         /* add b */
@@ -79,7 +80,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
     for (i = 0; i < ctx->certfiles_len; ++i) {
         if (ctx->certfiles[i].filetype == S_IFDIR) {
             /* certificate directory, but server didn't send SNI server_name */
-            if (strlen(server_name) == 0) continue;
+            if (str_len(server_name) == 0) continue;
 
             /* create filename */
             if (!copyfn(ctx->certfn, sizeof ctx->certfn, ctx->certfiles[i].name,

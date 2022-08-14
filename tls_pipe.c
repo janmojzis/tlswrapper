@@ -1,4 +1,3 @@
-#include <string.h>
 #include "tls.h"
 #include "pipe.h"
 #include "randombytes.h"
@@ -20,7 +19,7 @@ int tls_pipe_getcert(br_x509_certificate *chain, size_t *chain_len,
     struct tls_pubcrt crt = {0};
 
     /* write filename */
-    if (pipe_write(tls_pipe_tochild, fn, strlen(fn) + 1) == -1) goto cleanup;
+    if (pipe_write(tls_pipe_tochild, fn, str_len(fn) + 1) == -1) goto cleanup;
 
     /* read PEM */
     pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
@@ -151,7 +150,7 @@ void tls_pipe_prf(void *dst, size_t len, const void *secret, size_t secret_len,
     if (seed_num != 1) goto randomoutput;
 
     if (pipe_write(tls_pipe_tochild, &ch, sizeof ch) == -1) goto randomoutput;
-    if (pipe_write(tls_pipe_tochild, label, strlen(label) + 1) == -1)
+    if (pipe_write(tls_pipe_tochild, label, str_len(label) + 1) == -1)
         goto randomoutput;
     if (pipe_write(tls_pipe_tochild, &seed->len, sizeof seed->len) == -1)
         goto randomoutput;

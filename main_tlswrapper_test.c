@@ -361,7 +361,7 @@ int main_tlswrapper_test(int argc, char **argv) {
         long long i;
         for (i = 0; ppstring[i]; ++i) if (ppstring[i] == '_') ppstring[i] = ' ';
 
-        if (writeall(tochild[1], ppstring, strlen(ppstring)) == -1) {
+        if (writeall(tochild[1], ppstring, str_len(ppstring)) == -1) {
             log_f1("unable to write output");
             die(111);
         }

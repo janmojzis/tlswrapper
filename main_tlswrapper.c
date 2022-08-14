@@ -550,7 +550,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         size_t pubpemlen;
         /* get anchor PEM file, and parse it */
         fixpath(ctx.anchorfn);
-        if (pipe_write(tls_pipe_tochild, ctx.anchorfn, strlen(ctx.anchorfn) + 1) == -1) die_writetopipe();
+        if (pipe_write(tls_pipe_tochild, ctx.anchorfn, str_len(ctx.anchorfn) + 1) == -1) die_writetopipe();
         pubpem = pipe_readalloc(tls_pipe_fromchild, &pubpemlen);
         if (!pubpem) die_readanchorpem(ctx.anchorfn);
         if (!tls_pubcrt_parse(&ctx.anchorcrt, pubpem, pubpemlen, ctx.anchorfn)) die_parseanchorpem(ctx.anchorfn);
@@ -615,7 +615,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                     log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
                     fixname(ctx.clientcrtbuf);
                 }
-                if (pipe_write(tochild[1], ctx.clientcrtbuf, strlen(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
+                if (pipe_write(tochild[1], ctx.clientcrtbuf, str_len(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
                 flaguser = 1;
             }
 
