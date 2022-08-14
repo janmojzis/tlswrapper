@@ -101,8 +101,8 @@ pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
-proxyprotocol.o: proxyprotocol.c e.h log.h str.h buf.h jail.h iptostr.h \
- strtoip.h strtoport.h porttostr.h proxyprotocol.h
+proxyprotocol.o: proxyprotocol.c e.h log.h str.h buffer.h stralloc.h \
+ jail.h iptostr.h strtoip.h strtoport.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c randombytes.h
