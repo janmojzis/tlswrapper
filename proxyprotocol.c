@@ -9,6 +9,7 @@ Public domain.
 #include "e.h"
 #include "log.h"
 #include "str.h"
+#include "buffer.h"
 #include "buf.h"
 #include "jail.h"
 #include "iptostr.h"
@@ -17,35 +18,15 @@ Public domain.
 #include "porttostr.h"
 #include "proxyprotocol.h"
 
-static int getch(int fd, char *x) {
+int proxyprotocol_v1_get(int fd, unsigned char *localipx,
+                         unsigned char *localportx, unsigned char *remoteipx,
+                         unsigned char *remoteportx) {
 
-    int r;
-    struct pollfd p;
-
-    for (;;) {
-        r = read(fd, x, 1);
-        if (r == -1) {
-            if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
-                p.fd = fd;
-                p.events = POLLIN | POLLERR;
-                jail_poll(&p, 1, -1);
-                continue;
-            }
-        }
-        break;
-    }
-    return r;
-}
-
-static int proxyprotocol1_parse(char *buforig, unsigned char *localipx,
-                                unsigned char *localportx,
-                                unsigned char *remoteipx,
-                                unsigned char *remoteportx) {
-
+    buffer sin = buffer_INIT(buffer_read, fd, /*no buffer*/ 0, /*no buffer length*/ 0);
     int ret = 0;
     long long pos;
-    unsigned long i;
     char bufspace[PROXYPROTOCOL_MAX];
+    char buforig[PROXYPROTOCOL_MAX];
     char *buf = bufspace;
     int (*strtoipop)(unsigned char *, const char *);
     unsigned char localip[16] = {0};
@@ -53,13 +34,17 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx,
     unsigned char remoteip[16] = {0};
     unsigned char remoteport[2] = {0};
 
-    log_t3("proxyprotocol1_parse = ('", buforig, "')");
+    log_t1("proxyprotocol_v1_get()");
 
-    /* copy string to new buffer */
-    for (i = 0; i < sizeof bufspace - 1 && buforig[i]; ++i) {
-        bufspace[i] = buforig[i];
+    /* read proxy string byte-by-byte */
+    for (pos = 0; pos < PROXYPROTOCOL_MAX - 1; ++pos) {
+        if (buffer_GETC(&sin, &buf[pos]) != 1) goto cleanup;
+        if (buf[pos] == '\n') break;
     }
-    bufspace[i] = 0;
+    if (buf[pos] != '\n') goto cleanup;
+    /*if (pos > 0 && buf[pos - 1] == '\r') --pos; */
+    buf[pos + 1] = 0;
+    memcpy(buforig, bufspace, PROXYPROTOCOL_MAX);
 
     /* header */
     if (str_start(buf, "PROXY UNKNOWN")) {
@@ -82,8 +67,8 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx,
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoipop(remoteip, buf)) {
-        log_e3("unable to parse remoteip from proxy-protocol string '", buforig,
-               "'");
+        log_e3("unable to parse remoteip from proxy-protocol string '",
+               buforig, "'");
         goto cleanup;
     }
     buf += pos + 1;
@@ -102,7 +87,7 @@ static int proxyprotocol1_parse(char *buforig, unsigned char *localipx,
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoport(remoteport, buf)) {
-        log_e3("unable to parse repoteport from proxy-protocol string '",
+        log_e3("unable to parse remoteport from proxy-protocol string '",
                buforig, "'");
         goto cleanup;
     }
@@ -126,34 +111,8 @@ cleanup:
         memcpy(localportx, localport, 2);
         memcpy(remoteportx, remoteport, 2);
     }
-    log_t4("proxyprotocol1_parse = ('", buforig, "') = ", lognum(ret));
+    log_t2("proxyprotocol_v1_get() = ", lognum(ret));
     return ret;
-}
-
-int proxyprotocol_v1_get(int fd, unsigned char *localip,
-                         unsigned char *localport, unsigned char *remoteip,
-                         unsigned char *remoteport) {
-
-    char ch, buf[PROXYPROTOCOL_MAX];
-    int r;
-    long long pos = 0;
-
-    for (;;) {
-        r = getch(fd, &ch);
-        if (r != 1) return 0;
-        pos = buf_put(buf, sizeof buf, pos, &ch, 1);
-        if (!pos) return 0;
-        if (ch == '\n') break;
-    }
-    errno = 0;
-    pos = buf_put(buf, sizeof buf, pos, "", 1);
-    if (!pos) return 0;
-    r = proxyprotocol1_parse(buf, localip, localport, remoteip, remoteport);
-    if (r)
-        log_d8("received proxy-protocol: localip=", logip(localip),
-               ", localport=", logport(localport), ", remote=", logip(remoteip),
-               ", remoteport=", logport(remoteport));
-    return r;
 }
 
 long long proxyprotocol_v1(char *buf, long long buflen, unsigned char *localip,
