@@ -647,7 +647,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
             die(111);
         }
         if (!conn_init(1)) {
-            log_f1("unable to initalize TCP connection");
+            log_f1("unable to initialize TCP connection");
             die(111);
         }
     }
