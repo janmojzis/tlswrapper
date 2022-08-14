@@ -87,7 +87,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
     if (!strtoport(remoteport, buf)) {
-        log_e3("unable to parse repoteport from proxy-protocol string '",
+        log_e3("unable to parse remoteport from proxy-protocol string '",
                buforig, "'");
         goto cleanup;
     }

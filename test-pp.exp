@@ -20,9 +20,9 @@ tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
 tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
-tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 \r\n' 
+tlswrapper: error: unable to parse remoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 \r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
-tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535\r\n' 
+tlswrapper: error: unable to parse remoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
 tlswrapper: error: unable to parse localport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535 \r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
@@ -32,7 +32,7 @@ tlswrapper: error: unable to parse remoteip from proxy-protocol string 'PROXY TC
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
 tlswrapper: error: unable to parse localip from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.256.255.255 65535 65535\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
-tlswrapper: error: unable to parse repoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65536 65535\r\n' 
+tlswrapper: error: unable to parse remoteport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65536 65535\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
 tlswrapper: error: unable to parse localport from proxy-protocol string 'PROXY TCP4 255.255.255.255 255.255.255.255 65535 65536\r\n' 
 tlswrapper: fatal: unable to receive incoming proxy-protocol v1 string 
