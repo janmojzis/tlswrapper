@@ -9,6 +9,7 @@
     echo "DESTDIR?="
     echo 
 
+    # binaries
     i=0
     for file in `ls *.c`; do
       if grep '^int main(' "${file}" >/dev/null; then
@@ -23,16 +24,38 @@
     done
     echo
 
+    # portable
+    headers=`ls *.c-* | sed 's/\.c-.*/.h/' | sort -u`
+
     echo "all: bearssl \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo 
 
+    for hfile in "${headers}"; do
+      echo "${hfile}:"
+      ls "${hfile}-"* \
+      | sort \
+      | while read hhfile
+      do
+        ccfile=`echo ${hhfile} | sed 's/\.h-/.c-/'`
+        echo "	cat ${ccfile} | grep -v ${hfile} > try.c"
+        echo "	[ ! -f ${hfile} ] && \$(CC) \$(CFLAGS) \$(CPPFLAGS) -c try.c && cat ${hhfile} > ${hfile} || :"
+      done
+      echo "	rm try.c try.o"
+      touch "${hfile}"
+    done
+    echo
+
+
     for file in `ls *.c`; do
       (
-        #gcc -I/usr/include/bearssl -MM "${file}"
         gcc -MM "${file}"
         echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c ${file}"
         echo
       )
+    done
+
+    for hfile in "${headers}"; do
+      rm -f "${hfile}"
     done
 
     i=0
@@ -94,6 +117,9 @@
 
     echo "clean:"
     echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
+    for hfile in "${headers}"; do
+      echo "	rm -f ${hfile}"
+    done
     echo 
 
   ) > Makefile
