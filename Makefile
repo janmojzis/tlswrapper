@@ -9,6 +9,13 @@ BINARIES+=tlswrapper-test
 
 all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
+randombytes.h:
+	(grep -v "randombytes.h" "randombytes.c-01getentropy"; echo "int main() {}";) > try.c
+	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o try try.c && cat randombytes.h-01getentropy > randombytes.h || :
+	(grep -v "randombytes.h" "randombytes.c-02devurandom"; echo "int main() {}";) > try.c
+	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o try try.c && cat randombytes.h-02devurandom > randombytes.h || :
+	rm try.c try
+
 alloc.o: alloc.c log.h alloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
 
@@ -261,8 +268,8 @@ tlswrapper-test: tlswrapper-test.o $(OBJECTS)
 
 bearssl:
 	echo 'int main(){}' > try.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o try.o $(LDFLAGS) try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
-	rm -f try.o try.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o try try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
+	rm -f try.c try
 	mkdir -p bearssl/inc
 
 tlswrapper-tcp: tlswrapper
@@ -289,4 +296,5 @@ test: bearssl $(BINARIES) tlswrapper-tcp
 
 clean:
 	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp
+	rm -f randombytes.h
 
