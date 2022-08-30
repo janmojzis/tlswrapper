@@ -9,13 +9,6 @@ BINARIES+=tlswrapper-test
 
 all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
-randombytes.h:
-	cat randombytes.c-01getentropy | grep -v randombytes.h > try.c
-	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) -c try.c && cat randombytes.h-01getentropy > randombytes.h || :
-	cat randombytes.c-02devurandom | grep -v randombytes.h > try.c
-	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) -c try.c && cat randombytes.h-02devurandom > randombytes.h || :
-	rm try.c try.o
-
 alloc.o: alloc.c log.h alloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
 
@@ -296,5 +289,4 @@ test: bearssl $(BINARIES) tlswrapper-tcp
 
 clean:
 	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp
-	rm -f randombytes.h
 

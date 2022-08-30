@@ -2,6 +2,5 @@
 #define _RANDOMBYTES_H____
 
 extern void randombytes(void *, long long);
-#define randombytes_getentropy 1
 
 #endif
