@@ -104,7 +104,7 @@
     echo "	install -d -m 0755 \$(DESTDIR)/\$(EMPTYDIR)"
     echo
 
-    echo "test: bearssl \$(BINARIES) tlswrapper-tcp escape"
+    echo "test: bearssl \$(BINARIES) tlswrapper-tcp"
     echo "	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp"
     echo "	sh runtest.sh test-ephemeral.sh test-ephemeral.out test-ephemeral.exp"
     echo "	sh runtest.sh test-options.sh test-options.out test-options.exp"
