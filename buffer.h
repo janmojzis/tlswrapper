@@ -37,9 +37,9 @@ extern long long buffer_get(buffer *, void *, long long);
 #define buffer_PEEK(s) ((s)->x + (s)->n)
 #define buffer_SEEK(s, len) (((s)->p -= (len)), ((s)->n += (len)))
 
-#define buffer_GETC(s, c)                                                      \
-    (((s)->p > 0) ? (*(c) = (s)->x[(s)->n], buffer_SEEK((s), 1), 1)            \
-                  : buffer_get((s), (c), 1))
+#define buffer_GETC(s, ch)                                                     \
+    (((s)->p > 0) ? (*(ch) = (s)->x[(s)->n], buffer_SEEK((s), 1), 1)           \
+                  : buffer_get((s), (ch), 1))
 
 /* copy */
 extern int buffer_copy(buffer *, buffer *);
