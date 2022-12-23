@@ -53,7 +53,7 @@ Sets ulimits to prohibit new files, sockets, etc. Sets ulimits to prohibit forks
 .PP
 .SH EXAMPLES
 .PP
-run qmail-smtpd on port 25 with STARTTLS:
+run QMAIL qmail-smtpd on port 25 with STARTTLS enabled (without patching QMAIL):
 .RS 4
 .nf
 exec softlimit -m 64000000 -f 100000000 \\
