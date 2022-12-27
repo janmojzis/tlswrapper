@@ -412,9 +412,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     /* set flagnojail */
     ctx.flagnojail = flagnojail;
 
-    /* non-blockning stdin/stdout */
-    blocking_disable(0);
-    blocking_disable(1);
 
     /* create control pipe  */
     if (ctx.flagdelayedenc) {
@@ -568,6 +565,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         (void) connectioninfo_get(localip, localport, remoteip, remoteport);
     }
     log_ip(iptostr(remoteipstr, remoteip));
+
+    /* non-blockning stdin/stdout */
+    blocking_disable(0);
+    blocking_disable(1);
 
     log_d1("start");
 
