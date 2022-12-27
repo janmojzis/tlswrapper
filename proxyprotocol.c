@@ -38,10 +38,17 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
 
     /* read proxy string byte-by-byte */
     for (pos = 0; pos < PROXYPROTOCOL_MAX - 1; ++pos) {
-        if (buffer_GETC(&sin, &buf[pos]) != 1) goto cleanup;
+        if (buffer_GETC(&sin, &buf[pos]) != 1) {
+            log_e1("unable to read proxy-protocol string");
+            goto cleanup;
+        }
         if (buf[pos] == '\n') break;
     }
-    if (buf[pos] != '\n') goto cleanup;
+    if (buf[pos] != '\n') {
+        errno = EPROTO;
+        log_e1("unable to read proxy-protocol string, no CRLF");
+        goto cleanup;
+    }
     /*if (pos > 0 && buf[pos - 1] == '\r') --pos; */
     buf[pos + 1] = 0;
     memcpy(buforig, bufspace, PROXYPROTOCOL_MAX);
