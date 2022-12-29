@@ -10,11 +10,12 @@ BINARIES+=tlswrapper-test
 all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
 randombytes.h:
-	(grep -v "randombytes.h" "randombytes.c-01getentropy"; echo "int main() {}";) > try.c
-	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o try try.c && cat randombytes.h-01getentropy > randombytes.h || :
-	(grep -v "randombytes.h" "randombytes.c-02devurandom"; echo "int main() {}";) > try.c
-	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o try try.c && cat randombytes.h-02devurandom > randombytes.h || :
-	rm try.c try
+	(grep -v "randombytes.h" "randombytes.c-01getentropy"; echo "int main() {}";) > tryrandombytes.c
+	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o tryrandombytes tryrandombytes.c && cat randombytes.h-01getentropy > randombytes.h || :
+	rm -f tryrandombytes.c tryrandombytes
+	(grep -v "randombytes.h" "randombytes.c-02devurandom"; echo "int main() {}";) > tryrandombytes.c
+	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o tryrandombytes tryrandombytes.c && cat randombytes.h-02devurandom > randombytes.h || :
+	rm -f tryrandombytes.c tryrandombytes
 
 alloc.o: alloc.c log.h alloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
@@ -267,9 +268,9 @@ tlswrapper-test: tlswrapper-test.o $(OBJECTS)
 
 
 bearssl:
-	echo 'int main(){}' > try.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o try try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
-	rm -f try.c try
+	echo 'int main(){}' > trybearssl.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o trybearssl trybearssl.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
+	rm -f trybearssl.c trybearssl
 	mkdir -p bearssl/inc
 
 tlswrapper-tcp: tlswrapper

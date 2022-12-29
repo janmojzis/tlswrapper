@@ -37,10 +37,11 @@
       | while read hhfile
       do
         ccfile=`echo ${hhfile} | sed 's/\.h-/.c-/'`
-        echo "	(grep -v \"${hfile}\" \"${ccfile}\"; echo \"int main() {}\";) > try.c"
-        echo "	[ ! -f ${hfile} ] && \$(CC) \$(CFLAGS) \$(CPPFLAGS) \$(LDFLAGS) -o try try.c && cat ${hhfile} > ${hfile} || :"
+        tryfile=`echo ${hhfile} | sed 's/\.h-.*//' | sed 's/^/try/'`
+        echo "	(grep -v \"${hfile}\" \"${ccfile}\"; echo \"int main() {}\";) > ${tryfile}.c"
+        echo "	[ ! -f ${hfile} ] && \$(CC) \$(CFLAGS) \$(CPPFLAGS) \$(LDFLAGS) -o ${tryfile} ${tryfile}.c && cat ${hhfile} > ${hfile} || :"
+        echo "	rm -f ${tryfile}.c ${tryfile}"
       done
-      echo "	rm try.c try"
       touch "${hfile}"
     done
     echo
@@ -83,9 +84,9 @@
     echo
 
     echo "bearssl:"
-    echo "	echo 'int main(){}' > try.c"
-    echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) \$(LDFLAGS) -o try try.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
-    echo "	rm -f try.c try"
+    echo "	echo 'int main(){}' > trybearssl.c"
+    echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) \$(LDFLAGS) -o trybearssl trybearssl.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
+    echo "	rm -f trybearssl.c trybearssl"
     echo "	mkdir -p bearssl/inc"
     echo
 
