@@ -4,6 +4,13 @@
 #include <errno.h>
 #include "timeoutread.h"
 
+/*
+The function 'timeoutread()' attempts to read up to 'len' bytes from file
+descriptor 'fd' into the buffer starting at 'buf' and waits at most 't' seconds.
+In the timeoutread() function is used select(),
+because poll() doesn't work when RLIMIT_NOFILE is set to 0;
+*/
+
 long long timeoutread(long long t, int fd, char *buf, long long len) {
 
     struct timeval tv;

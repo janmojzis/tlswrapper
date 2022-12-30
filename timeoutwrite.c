@@ -4,6 +4,14 @@
 #include <errno.h>
 #include "timeoutwrite.h"
 
+/*
+The function 'timeoutwrite()' writes up to 'len' bytes from the buffer starting
+at 'buf' to the file referred to by the file descriptor 'fd' and waits at most
+'t' seconds.
+In the timeoutwrite() function is used select(),
+because poll() doesn't work when RLIMIT_NOFILE is set to 0;
+*/
+
 long long timeoutwrite(long long t, int fd, const char *buf, long long len) {
 
     struct timeval tv;
