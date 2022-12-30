@@ -1,5 +1,7 @@
 #include "fixpath.h"
 
+/* for security reasons the 'fixpath(s)' function replaces '/.' -> '/:' */
+
 void fixpath(char *s) {
 
     char ch;
