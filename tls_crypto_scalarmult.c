@@ -1,5 +1,4 @@
 #include "tls.h"
-#include "crypto_scalarmult_curve25519.h"
 #ifdef X448
 #include "crypto_scalarmult_x448.h"
 #endif
@@ -18,8 +17,8 @@ int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen,
             break;
 #endif
         case tls_ecdhe_X25519:
-            if (crypto_scalarmult_curve25519_base(p, sk) == 0) ret = 0;
-            *plen = 32;
+            *plen = br_ec_get_default()->mulgen(p, sk, 32, curve);
+            if (*plen == 32) ret = 0;
             break;
         case tls_ecdhe_SECP256R1:
             sk[0] &= 127;
@@ -58,7 +57,7 @@ int tls_crypto_scalarmult(int curve, unsigned char *p, size_t *plen,
             break;
 #endif
         case tls_ecdhe_X25519:
-            if (crypto_scalarmult_curve25519(p, sk, p) == 0) ret = 0;
+            if (br_ec_get_default()->mul(p, 32, sk, 32, curve)) ret = 0;
             *plen = 32;
             break;
         case tls_ecdhe_SECP256R1:
