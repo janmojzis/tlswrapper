@@ -28,10 +28,6 @@ connectioninfo.o: connectioninfo.c strtoip.h strtoport.h porttostr.h \
  iptostr.h log.h connectioninfo.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
 
-crypto_scalarmult_curve25519.o: crypto_scalarmult_curve25519.c \
- crypto_scalarmult_curve25519.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c crypto_scalarmult_curve25519.c
-
 e.o: e.c e.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c e.c
 
@@ -144,8 +140,7 @@ tls_certfile.o: tls_certfile.c tls.h
 tls_cipher.o: tls_cipher.c str.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_cipher.c
 
-tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h \
- crypto_scalarmult_curve25519.h
+tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_crypto_scalarmult.c
 
 tls_ecdhe.o: tls_ecdhe.c str.h tls.h
@@ -202,7 +197,6 @@ OBJECTS+=buffer.o
 OBJECTS+=case.o
 OBJECTS+=conn.o
 OBJECTS+=connectioninfo.o
-OBJECTS+=crypto_scalarmult_curve25519.o
 OBJECTS+=e.o
 OBJECTS+=fixname.o
 OBJECTS+=fixpath.o
