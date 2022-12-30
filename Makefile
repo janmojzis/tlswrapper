@@ -9,14 +9,6 @@ BINARIES+=tlswrapper-test
 
 all: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
-randombytes.h:
-	(grep -v "randombytes.h" "randombytes.c-01getentropy"; echo "int main() {}";) > tryrandombytes.c
-	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o tryrandombytes tryrandombytes.c && cat randombytes.h-01getentropy > randombytes.h || :
-	rm -f tryrandombytes.c tryrandombytes
-	(grep -v "randombytes.h" "randombytes.c-02devurandom"; echo "int main() {}";) > tryrandombytes.c
-	[ ! -f randombytes.h ] && $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o tryrandombytes tryrandombytes.c && cat randombytes.h-02devurandom > randombytes.h || :
-	rm -f tryrandombytes.c tryrandombytes
-
 alloc.o: alloc.c log.h alloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
 
@@ -291,5 +283,4 @@ test: $(BINARIES) tlswrapper-tcp
 
 clean:
 	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp
-	rm -f randombytes.h
 
