@@ -4,8 +4,8 @@
   (
     echo "CC?=cc"
     echo "EMPTYDIR?=/var/lib/tlswrapper/empty"
-    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc -DEMPTYDIR=\\\"\$(EMPTYDIR)\\\""
-    echo "LDFLAGS+=-L./bearssl/build -lbearssl"
+    echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -DEMPTYDIR=\\\"\$(EMPTYDIR)\\\""
+    echo "LDFLAGS+=-lbearssl"
     echo "DESTDIR?="
     echo 
 
@@ -27,7 +27,7 @@
     # portable
     headers=`ls *.c-* | sed 's/\.c-.*/.h/' | sort -u`
 
-    echo "all: bearssl \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
+    echo "all: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo 
 
     for hfile in "${headers}"; do
@@ -83,13 +83,6 @@
     done
     echo
 
-    echo "bearssl:"
-    echo "	echo 'int main(){}' > trybearssl.c"
-    echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) \$(LDFLAGS) -o trybearssl trybearssl.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )"
-    echo "	rm -f trybearssl.c trybearssl"
-    echo "	mkdir -p bearssl/inc"
-    echo
-
     echo "tlswrapper-tcp: tlswrapper"
     echo "	ln -s tlswrapper tlswrapper-tcp"
     echo
@@ -105,7 +98,7 @@
     echo "	install -d -m 0755 \$(DESTDIR)/\$(EMPTYDIR)"
     echo
 
-    echo "test: bearssl \$(BINARIES) tlswrapper-tcp"
+    echo "test: \$(BINARIES) tlswrapper-tcp"
     echo "	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp"
     echo "	sh runtest.sh test-ephemeral.sh test-ephemeral.out test-ephemeral.exp"
     echo "	sh runtest.sh test-options.sh test-options.out test-options.exp"
