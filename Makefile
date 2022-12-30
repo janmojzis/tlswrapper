@@ -1,13 +1,13 @@
 CC?=cc
 EMPTYDIR?=/var/lib/tlswrapper/empty
-CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -I./bearssl/inc -DEMPTYDIR=\"$(EMPTYDIR)\"
-LDFLAGS+=-L./bearssl/build -lbearssl
+CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -DEMPTYDIR=\"$(EMPTYDIR)\"
+LDFLAGS+=-lbearssl
 DESTDIR?=
 
 BINARIES=tlswrapper
 BINARIES+=tlswrapper-test
 
-all: bearssl $(BINARIES) tlswrapper-tcp tlswrapper-smtp
+all: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
 randombytes.h:
 	(grep -v "randombytes.h" "randombytes.c-01getentropy"; echo "int main() {}";) > tryrandombytes.c
@@ -267,12 +267,6 @@ tlswrapper-test: tlswrapper-test.o $(OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS)
 
 
-bearssl:
-	echo 'int main(){}' > trybearssl.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o trybearssl trybearssl.c || (sh bearssl.sh; cd bearssl; make; rm build/*.so; )
-	rm -f trybearssl.c trybearssl
-	mkdir -p bearssl/inc
-
 tlswrapper-tcp: tlswrapper
 	ln -s tlswrapper tlswrapper-tcp
 
@@ -285,7 +279,7 @@ install: $(BINARIES) tlswrapper-tcp
 	install -D -m 0755 tlswrapper-smtp $(DESTDIR)/usr/bin/tlswrapper-smtp
 	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
 
-test: bearssl $(BINARIES) tlswrapper-tcp
+test: $(BINARIES) tlswrapper-tcp
 	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp
 	sh runtest.sh test-ephemeral.sh test-ephemeral.out test-ephemeral.exp
 	sh runtest.sh test-options.sh test-options.out test-options.exp
