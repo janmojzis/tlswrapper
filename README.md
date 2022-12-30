@@ -38,6 +38,3 @@ The tlswrapper uses BearSSL. BearSSL is an implementation of the SSL/TLS protoco
 
 # Examples
 - [examples page](examples.md)
-
-
-[![TravisCI status](https://travis-ci.com/janmojzis/tlswrapper.svg?branch=master)](https://travis-ci.com/janmojzis/tlswrapper)
