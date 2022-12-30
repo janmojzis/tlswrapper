@@ -24,28 +24,8 @@
     done
     echo
 
-    # portable
-    headers=`ls *.c-* | sed 's/\.c-.*/.h/' | sort -u`
-
     echo "all: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo 
-
-    for hfile in "${headers}"; do
-      echo "${hfile}:"
-      ls "${hfile}-"* \
-      | sort \
-      | while read hhfile
-      do
-        ccfile=`echo ${hhfile} | sed 's/\.h-/.c-/'`
-        tryfile=`echo ${hhfile} | sed 's/\.h-.*//' | sed 's/^/try/'`
-        echo "	(grep -v \"${hfile}\" \"${ccfile}\"; echo \"int main() {}\";) > ${tryfile}.c"
-        echo "	[ ! -f ${hfile} ] && \$(CC) \$(CFLAGS) \$(CPPFLAGS) \$(LDFLAGS) -o ${tryfile} ${tryfile}.c && cat ${hhfile} > ${hfile} || :"
-        echo "	rm -f ${tryfile}.c ${tryfile}"
-      done
-      touch "${hfile}"
-    done
-    echo
-
 
     for file in `ls *.c`; do
       (
@@ -53,10 +33,6 @@
         echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c ${file}"
         echo
       )
-    done
-
-    for hfile in "${headers}"; do
-      rm -f "${hfile}"
     done
 
     i=0
@@ -111,9 +87,6 @@
 
     echo "clean:"
     echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
-    for hfile in "${headers}"; do
-      echo "	rm -f ${hfile}"
-    done
     echo 
 
   ) > Makefile
