@@ -724,7 +724,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                     break;
                 }
                 ctx.flagdelayedenc = 0;
-                log_d1("child requested encrytion(STARTTLS), start TLS");
+                log_d1("child requested encryption(STARTTLS), start TLS");
                 close(fromchildcontrol[0]);
                 alarm(hstimeout);
             }
