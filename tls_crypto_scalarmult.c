@@ -2,6 +2,9 @@
 #ifdef X448
 #include "crypto_scalarmult_x448.h"
 #endif
+#ifdef USELIB25519
+#include <lib25519.h>
+#endif
 
 /*
 secret key note:
@@ -25,8 +28,14 @@ int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen,
             break;
 #endif
         case tls_ecdhe_X25519:
+#ifdef USELIB25519
+            lib25519_dh_keypair(p, sk);
+            ret = 0;
+            *plen = 32;
+#else
             *plen = br_ec_get_default()->mulgen(p, sk, 32, curve);
             if (*plen == 32) ret = 0;
+#endif
             break;
         case tls_ecdhe_SECP256R1:
             /* secret key note */
@@ -68,7 +77,12 @@ int tls_crypto_scalarmult(int curve, unsigned char *p, size_t *plen,
             break;
 #endif
         case tls_ecdhe_X25519:
+#ifdef USELIB25519
+            lib25519_dh(p, p, sk);
+            ret = 0;
+#else
             if (br_ec_get_default()->mul(p, 32, sk, 32, curve)) ret = 0;
+#endif
             *plen = 32;
             break;
         case tls_ecdhe_SECP256R1:
