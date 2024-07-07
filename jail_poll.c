@@ -54,12 +54,16 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
         if (fd >= (int) (8 * sizeof(fd_set))) continue;
 
         if (x[i].events & POLLIN) {
-            if (FD_ISSET(fd, &rfds)) x[i].revents |= POLLIN;
-            ++r;
+            if (FD_ISSET(fd, &rfds)) {
+                x[i].revents |= POLLIN;
+                ++r;
+            }
         }
         if (x[i].events & POLLOUT) {
-            if (FD_ISSET(fd, &wfds)) x[i].revents |= POLLOUT;
-            ++r;
+            if (FD_ISSET(fd, &wfds)) {
+                x[i].revents |= POLLOUT;
+                ++r;
+            }
         }
     }
 
