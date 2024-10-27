@@ -27,7 +27,7 @@
     echo "all: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo 
 
-    touch haslib25519.h
+    touch haslib25519.h haslibrandombytes.h
     for file in `ls *.c`; do
       (
         gcc -MM "${file}"
@@ -54,8 +54,8 @@
     for file in `ls *.c`; do
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
-        echo "${x}: ${x}.o \$(OBJECTS) lib25519.lib"
-        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o \$(OBJECTS) \$(LDFLAGS) \`cat lib25519.lib\`"
+        echo "${x}: ${x}.o \$(OBJECTS) lib25519.lib librandombytes.lib"
+        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o \$(OBJECTS) \$(LDFLAGS) \`cat lib25519.lib\` \`cat librandombytes.lib\`"
         echo 
       fi
     done
@@ -65,8 +65,15 @@
     echo "	env CC=\$(CC) ./trylib25519.sh && echo '#define HASLIB25519 1' > haslib25519.h || true > haslib25519.h"
     echo
 
+    echo "haslibrandombytes.h: trylibrandombytes.sh"
+    echo "	env CC=\$(CC) ./trylibrandombytes.sh && echo '#define HASLIBRANDOMBYTES 1' > haslibrandombytes.h || true > haslibrandombytes.h"
+
     echo "lib25519.lib: trylib25519.sh"
     echo "	env CC=\$(CC) ./trylib25519.sh && echo '-l25519' > lib25519.lib || true > lib25519.lib"
+    echo
+
+    echo "librandombytes.lib: trylibrandombytes.sh"
+    echo "	env CC=\$(CC) ./trylibrandombytes.sh && echo '-lrandombytes' > librandombytes.lib || true > librandombytes.lib"
     echo
 
     echo "tlswrapper-tcp: tlswrapper"
@@ -96,7 +103,7 @@
     echo
 
     echo "clean:"
-    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp haslib25519.h lib25519.lib"
+    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp haslib25519.h lib25519.lib haslibrandombytes.h librandombytes.lib"
     echo 
 
   ) > Makefile

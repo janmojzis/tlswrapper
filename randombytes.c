@@ -1,3 +1,5 @@
+#include "haslibrandombytes.h"
+#ifndef HASLIBRANDOMBYTES
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -41,3 +43,6 @@ void randombytes(void *xv, long long xlen) {
     }
     __asm__ __volatile__("" : : "r"(xv) : "memory");
 }
+#else
+static void _randombytes_dummy(void) {}
+#endif
