@@ -23,6 +23,7 @@ trap "cleanup" EXIT TERM INT
   echo 'int  main(void) {'
   echo '    lib25519_dh_keypair(pk,sk);'
   echo '    lib25519_dh(k,pk,sk);'
+  echo '    return k[0];'
   echo '}'
 ) > trylib25519.c
 
