@@ -140,7 +140,7 @@ tls_certfile.o: tls_certfile.c tls.h
 tls_cipher.o: tls_cipher.c str.h log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_cipher.c
 
-tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h
+tls_crypto_scalarmult.o: tls_crypto_scalarmult.c tls.h haslib25519.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_crypto_scalarmult.c
 
 tls_ecdhe.o: tls_ecdhe.c str.h tls.h
@@ -246,12 +246,18 @@ OBJECTS+=tls_seccrt.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
 
-tlswrapper: tlswrapper.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS)
+tlswrapper: tlswrapper.o $(OBJECTS) lib25519.lib
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS) `cat lib25519.lib`
 
-tlswrapper-test: tlswrapper-test.o $(OBJECTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS)
+tlswrapper-test: tlswrapper-test.o $(OBJECTS) lib25519.lib
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS) `cat lib25519.lib`
 
+
+haslib25519.h: trylib25519.sh
+	env CC=$(CC) ./trylib25519.sh && echo '#define HASLIB25519 1' > haslib25519.h || true > haslib25519.h
+
+lib25519.lib: trylib25519.sh
+	env CC=$(CC) ./trylib25519.sh && echo '-l25519' > lib25519.lib || true > lib25519.lib
 
 tlswrapper-tcp: tlswrapper
 	ln -s tlswrapper tlswrapper-tcp
@@ -276,5 +282,5 @@ test: $(BINARIES) tlswrapper-tcp
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:
-	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp
+	rm -f *.o *.out $(BINARIES) tlswrapper-tcp tlswrapper-smtp haslib25519.h lib25519.lib
 

@@ -2,6 +2,8 @@
 #ifdef X448
 #include "crypto_scalarmult_x448.h"
 #endif
+
+#include "haslib25519.h"
 #ifdef HASLIB25519
 #include <lib25519.h>
 #endif

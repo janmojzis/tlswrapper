@@ -27,6 +27,7 @@
     echo "all: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo 
 
+    touch haslib25519.h
     for file in `ls *.c`; do
       (
         gcc -MM "${file}"
@@ -34,6 +35,7 @@
         echo
       )
     done
+    rm haslib25519.h
 
     i=0
     for file in `ls *.c`; do
@@ -52,11 +54,19 @@
     for file in `ls *.c`; do
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
-        echo "${x}: ${x}.o \$(OBJECTS)"
-        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o \$(OBJECTS) \$(LDFLAGS)"
+        echo "${x}: ${x}.o \$(OBJECTS) lib25519.lib"
+        echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -o ${x} ${x}.o \$(OBJECTS) \$(LDFLAGS) \`cat lib25519.lib\`"
         echo 
       fi
     done
+    echo
+
+    echo "haslib25519.h: trylib25519.sh"
+    echo "	env CC=\$(CC) ./trylib25519.sh && echo '#define HASLIB25519 1' > haslib25519.h || true > haslib25519.h"
+    echo
+
+    echo "lib25519.lib: trylib25519.sh"
+    echo "	env CC=\$(CC) ./trylib25519.sh && echo '-l25519' > lib25519.lib || true > lib25519.lib"
     echo
 
     echo "tlswrapper-tcp: tlswrapper"
@@ -86,7 +96,7 @@
     echo
 
     echo "clean:"
-    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
+    echo "	rm -f *.o *.out \$(BINARIES) tlswrapper-tcp tlswrapper-smtp haslib25519.h lib25519.lib"
     echo 
 
   ) > Makefile
