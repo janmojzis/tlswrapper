@@ -44,5 +44,5 @@ void randombytes(void *xv, long long xlen) {
     __asm__ __volatile__("" : : "r"(xv) : "memory");
 }
 #else
-static void _randombytes_dummy(void) {}
+__attribute__((unused)) static void _randombytes_dummy(void) {}
 #endif
