@@ -2,7 +2,7 @@
 #ifdef X448
 #include "crypto_scalarmult_x448.h"
 #endif
-#ifdef USELIB25519
+#ifdef HASLIB25519
 #include <lib25519.h>
 #endif
 
@@ -28,7 +28,7 @@ int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen,
             break;
 #endif
         case tls_ecdhe_X25519:
-#ifdef USELIB25519
+#ifdef HASLIB25519
             lib25519_dh_keypair(p, sk);
             ret = 0;
             *plen = 32;
@@ -77,7 +77,7 @@ int tls_crypto_scalarmult(int curve, unsigned char *p, size_t *plen,
             break;
 #endif
         case tls_ecdhe_X25519:
-#ifdef USELIB25519
+#ifdef HASLIB25519
             lib25519_dh(p, p, sk);
             ret = 0;
 #else
