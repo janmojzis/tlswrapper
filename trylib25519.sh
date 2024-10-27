@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ x"${CC}" = x ]; then
+  echo '$CC not set'
+  exit 1
+fi
+
 cleanup() {
   ex=$?
   rm -f try try.c
@@ -22,3 +27,10 @@ trap "cleanup" EXIT TERM INT
 ) > try.c
 
 ${CC} -o try try.c -l25519
+if [ $? -eq 0 ]; then
+  echo "lib25519 detected"
+  exit 0
+else
+  echo "lib25519 not detected"
+  exit 1
+fi

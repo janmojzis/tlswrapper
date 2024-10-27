@@ -97,7 +97,7 @@ proxyprotocol.o: proxyprotocol.c e.h log.h str.h buffer.h stralloc.h \
  jail.h iptostr.h strtoip.h strtoport.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
-randombytes.o: randombytes.c haslibrandombytes.h
+randombytes.o: randombytes.c haslibrandombytes.h randombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c randombytes.c
 
 randommod.o: randommod.c randombytes.h haslibrandombytes.h randommod.h
@@ -259,22 +259,23 @@ tlswrapper-test: tlswrapper-test.o $(OBJECTS) lib25519.lib librandombytes.lib
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS) `cat lib25519.lib` `cat librandombytes.lib`
 
 
-haslib25519.h: trylib25519.sh
-	env CC=$(CC) ./trylib25519.sh && echo '#define HASLIB25519 1' > haslib25519.h || true > haslib25519.h
-
-haslibrandombytes.h: trylibrandombytes.sh
-	env CC=$(CC) ./trylibrandombytes.sh && echo '#define HASLIBRANDOMBYTES 1' > haslibrandombytes.h || true > haslibrandombytes.h
-lib25519.lib: trylib25519.sh
-	env CC=$(CC) ./trylib25519.sh && echo '-l25519' > lib25519.lib || true > lib25519.lib
-
-librandombytes.lib: trylibrandombytes.sh
-	env CC=$(CC) ./trylibrandombytes.sh && echo '-lrandombytes' > librandombytes.lib || true > librandombytes.lib
-
 tlswrapper-tcp: tlswrapper
 	ln -s tlswrapper tlswrapper-tcp
 
 tlswrapper-smtp: tlswrapper
 	ln -s tlswrapper tlswrapper-smtp
+
+haslib25519.h: trylib25519.sh
+	env CC=$(CC) ./trylib25519.sh && echo '#define HASLIB25519 1' > haslib25519.h || true > haslib25519.h
+
+haslibrandombytes.h: trylibrandombytes.sh
+	env CC=$(CC) ./trylibrandombytes.sh && echo '#define HASLIBRANDOMBYTES 1' > haslibrandombytes.h || true > haslibrandombytes.h
+
+lib25519.lib: trylib25519.sh
+	env CC=$(CC) ./trylib25519.sh && echo '-l25519' > lib25519.lib || true > lib25519.lib
+
+librandombytes.lib: trylibrandombytes.sh
+	env CC=$(CC) ./trylibrandombytes.sh && echo '-lrandombytes' > librandombytes.lib || true > librandombytes.lib
 
 install: $(BINARIES) tlswrapper-tcp
 	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper

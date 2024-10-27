@@ -61,12 +61,21 @@
     done
     echo
 
+    echo "tlswrapper-tcp: tlswrapper"
+    echo "	ln -s tlswrapper tlswrapper-tcp"
+    echo
+
+    echo "tlswrapper-smtp: tlswrapper"
+    echo "	ln -s tlswrapper tlswrapper-smtp"
+    echo
+
     echo "haslib25519.h: trylib25519.sh"
     echo "	env CC=\$(CC) ./trylib25519.sh && echo '#define HASLIB25519 1' > haslib25519.h || true > haslib25519.h"
     echo
 
     echo "haslibrandombytes.h: trylibrandombytes.sh"
     echo "	env CC=\$(CC) ./trylibrandombytes.sh && echo '#define HASLIBRANDOMBYTES 1' > haslibrandombytes.h || true > haslibrandombytes.h"
+    echo
 
     echo "lib25519.lib: trylib25519.sh"
     echo "	env CC=\$(CC) ./trylib25519.sh && echo '-l25519' > lib25519.lib || true > lib25519.lib"
@@ -74,14 +83,6 @@
 
     echo "librandombytes.lib: trylibrandombytes.sh"
     echo "	env CC=\$(CC) ./trylibrandombytes.sh && echo '-lrandombytes' > librandombytes.lib || true > librandombytes.lib"
-    echo
-
-    echo "tlswrapper-tcp: tlswrapper"
-    echo "	ln -s tlswrapper tlswrapper-tcp"
-    echo
-
-    echo "tlswrapper-smtp: tlswrapper"
-    echo "	ln -s tlswrapper tlswrapper-smtp"
     echo
 
     echo "install: \$(BINARIES) tlswrapper-tcp"

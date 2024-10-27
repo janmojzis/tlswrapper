@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ x"${CC}" = x ]; then
+  echo '$CC not set'
+  exit 1
+fi
+
 cleanup() {
   ex=$?
   rm -f try try.c
@@ -18,11 +23,6 @@ trap "cleanup" EXIT TERM INT
   echo '    return buf[0];'
   echo '}'
 ) > try.c
-
-if [ x"${CC}" = x ]; then
-  echo '$CC not set'
-  exit 1
-fi
 
 ${CC} -o try try.c -lrandombytes
 if [ $? -eq 0 ]; then
