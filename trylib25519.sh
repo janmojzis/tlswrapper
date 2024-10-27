@@ -7,7 +7,7 @@ fi
 
 cleanup() {
   ex=$?
-  rm -f try try.c
+  rm -f trylib25519 trylib25519.c
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
@@ -24,9 +24,9 @@ trap "cleanup" EXIT TERM INT
   echo '    lib25519_dh_keypair(pk,sk);'
   echo '    lib25519_dh(k,pk,sk);'
   echo '}'
-) > try.c
+) > trylib25519.c
 
-${CC} -o try try.c -l25519
+${CC} -o trylib25519 trylib25519.c -l25519
 if [ $? -eq 0 ]; then
   echo "lib25519 detected"
   exit 0

@@ -7,7 +7,7 @@ fi
 
 cleanup() {
   ex=$?
-  rm -f try try.c
+  rm -f trylibrandombytes trylibrandombytes.c
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
@@ -22,9 +22,9 @@ trap "cleanup" EXIT TERM INT
   echo '    randombytes(buf, sizeof buf);'
   echo '    return buf[0];'
   echo '}'
-) > try.c
+) > trylibrandombytes.c
 
-${CC} -o try try.c -lrandombytes
+${CC} -o trylibrandombytes trylibrandombytes.c -lrandombytes
 if [ $? -eq 0 ]; then
   echo "librandombytes detected"
   exit 0
