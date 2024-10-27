@@ -1,5 +1,6 @@
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
 #include "pipe.h"
 #include "randombytes.h"
 #include "log.h"
@@ -289,9 +290,8 @@ void tls_keyjail(struct tls_context *ctx) {
                         log_d1("decrypt failed");
                     }
                     else {
-                        offset =
-                            (char) (long long) ((unsigned long long) ret -
-                                                (unsigned long long) data - 64);
+                        offset = (char) (intptr_t) ((uintptr_t) ret -
+                                                    (uintptr_t) data - 64);
                         if (pipe_write(1, &offset, sizeof offset) == -1)
                             goto cleanup;
                         if (pipe_write(1, ret, data_len) == -1) goto cleanup;
@@ -317,9 +317,8 @@ void tls_keyjail(struct tls_context *ctx) {
                     ret = cc->eng.out.vtable->encrypt(&cc->eng.out.vtable,
                                                       record_type, version,
                                                       data + 64, &data_len);
-                    offset =
-                        (char) (long long) ((unsigned long long) ret -
-                                            (unsigned long long) data - 64);
+                    offset = (char) (intptr_t) ((uintptr_t) ret -
+                                                (uintptr_t) data - 64);
                     if (pipe_write(1, &offset, sizeof offset) == -1)
                         goto cleanup;
                     if (pipe_write(1, ret, data_len) == -1) goto cleanup;
