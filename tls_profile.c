@@ -135,9 +135,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
                 if (br_ssl_engine_get_version(&cc->eng) < BR_TLS12) {
                     choices->algo_id = 0xFF00 + br_sha1_ID;
                 }
-                else {
-                    choices->algo_id = 0xFF00 + hash_choose(chashes >> 8);
-                }
+                else { choices->algo_id = 0xFF00 + hash_choose(chashes >> 8); }
                 goto ok;
             }
             if ((tt >> 12) == BR_SSLKEYX_ECDHE_RSA &&
@@ -149,9 +147,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
                 if (br_ssl_engine_get_version(&cc->eng) < BR_TLS12) {
                     choices->algo_id = 0xFF00;
                 }
-                else {
-                    choices->algo_id = 0xFF00 + hash_choose(chashes);
-                }
+                else { choices->algo_id = 0xFF00 + hash_choose(chashes); }
                 goto ok;
             }
         }

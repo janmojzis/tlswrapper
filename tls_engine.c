@@ -138,9 +138,7 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         if (tls_engine_recvapp_buf(ctx, &len) != 0) st |= BR_SSL_RECVAPP;
         goto ret;
     }
-    else {
-        st = br_ssl_engine_current_state(&ctx->cc.eng);
-    }
+    else { st = br_ssl_engine_current_state(&ctx->cc.eng); }
 
     if (st & BR_SSL_CLOSED) {
         int err;
@@ -173,9 +171,7 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
                 if (ctx->flaghandshakedone) {
                     log_e2("SSL closed abnormally: ", tls_error_str(err));
                 }
-                else {
-                    log_d2("SSL closed abnormally: ", tls_error_str(err));
-                }
+                else { log_d2("SSL closed abnormally: ", tls_error_str(err)); }
             }
         }
     }

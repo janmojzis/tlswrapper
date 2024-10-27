@@ -108,9 +108,7 @@ static void outsescape(const char *x, int flaglf, long long *counter) {
             outch("0123456789abcdef"[(x[i] >> 4) & 15]);
             outch("0123456789abcdef"[(x[i] >> 0) & 15]);
         }
-        else {
-            outch(x[i]);
-        }
+        else { outch(x[i]); }
     }
 }
 #define outs(x) outsescape((x), 1, 0);

@@ -58,12 +58,8 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
         ret = 1;
         goto cleanup;
     }
-    else if (str_start(buf, "PROXY TCP4 ")) {
-        strtoipop = strtoip4;
-    }
-    else if (str_start(buf, "PROXY TCP6 ")) {
-        strtoipop = strtoip6;
-    }
+    else if (str_start(buf, "PROXY TCP4 ")) { strtoipop = strtoip4; }
+    else if (str_start(buf, "PROXY TCP6 ")) { strtoipop = strtoip6; }
     else {
         log_e3("unable to parse proxy-protocol string '", buforig, "'");
         goto cleanup;
