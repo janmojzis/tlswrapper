@@ -31,7 +31,7 @@ int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen,
 #endif
         case tls_ecdhe_X25519:
 #ifdef HASLIB25519
-            lib25519_dh_keypair(p, sk);
+            lib25519_nG_montgomery25519(p, sk);
             ret = 0;
             *plen = 32;
 #else
@@ -80,7 +80,7 @@ int tls_crypto_scalarmult(int curve, unsigned char *p, size_t *plen,
 #endif
         case tls_ecdhe_X25519:
 #ifdef HASLIB25519
-            lib25519_dh(p, p, sk);
+            lib25519_nP_montgomery25519(p, sk, p);
             ret = 0;
 #else
             if (br_ec_get_default()->mul(p, 32, sk, 32, curve)) ret = 0;
