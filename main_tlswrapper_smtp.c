@@ -141,15 +141,15 @@ static long long _read(int fd, void *xv, long long xlen) {
 }
 
 static char inbuf[8192];
-static buffer sin = buffer_INIT(_read, 0, inbuf, sizeof inbuf);
+static buffer ssin = buffer_INIT(_read, 0, inbuf, sizeof inbuf);
 static char outbuf[128];
-static buffer sout = buffer_INIT(_write, 1, outbuf, sizeof outbuf);
+static buffer ssout = buffer_INIT(_write, 1, outbuf, sizeof outbuf);
 static char outbuf5[32];
-static buffer sout5 = buffer_INIT(_write, 5, outbuf5, sizeof outbuf5);
+static buffer ssout5 = buffer_INIT(_write, 5, outbuf5, sizeof outbuf5);
 static char cinbuf[128];
-static buffer scin;
+static buffer sscin;
 static char coutbuf[8192];
-static buffer scout;
+static buffer sscout;
 
 static stralloc line = {0};
 static stralloc cline = {0};
@@ -179,7 +179,7 @@ static unsigned char greylistip[16];
 static long long greylistiplen;
 static int greylistfd = -1;
 static char greylistbuf[256];
-static buffer gsin;
+static buffer gssin;
 
 static long long _gwrite(int fd, void *xv, long long xlen) {
     long long w = timeoutwrite(crwtimeout, fd, xv, xlen);
@@ -214,22 +214,22 @@ static const char *greylist(void) {
 
     char ch;
 
-    buffer_init(&gsin, _gwrite, greylistfd, greylistbuf, sizeof greylistbuf);
+    buffer_init(&gssin, _gwrite, greylistfd, greylistbuf, sizeof greylistbuf);
 
-    if (buffer_puts(&gsin, "request=smtpd_access_policy\n") == -1) return 0;
-    if (buffer_puts(&gsin, "client_address=") == -1) return 0;
-    if (buffer_puts(&gsin, remoteipstr) == -1) return 0;
-    if (buffer_puts(&gsin, "\nsender=") == -1) return 0;
-    if (buffer_puts(&gsin, mailfrom.s) == -1) return 0;
-    if (buffer_puts(&gsin, "\nrecipient=") == -1) return 0;
-    if (buffer_puts(&gsin, rcptto.s) == -1) return 0;
-    if (buffer_puts(&gsin, "\n\n") == -1) return 0;
-    if (buffer_flush(&gsin)== -1) return 0;
+    if (buffer_puts(&gssin, "request=smtpd_access_policy\n") == -1) return 0;
+    if (buffer_puts(&gssin, "client_address=") == -1) return 0;
+    if (buffer_puts(&gssin, remoteipstr) == -1) return 0;
+    if (buffer_puts(&gssin, "\nsender=") == -1) return 0;
+    if (buffer_puts(&gssin, mailfrom.s) == -1) return 0;
+    if (buffer_puts(&gssin, "\nrecipient=") == -1) return 0;
+    if (buffer_puts(&gssin, rcptto.s) == -1) return 0;
+    if (buffer_puts(&gssin, "\n\n") == -1) return 0;
+    if (buffer_flush(&gssin)== -1) return 0;
 
-    buffer_init(&gsin, _gread, greylistfd, greylistbuf, sizeof greylistbuf);
+    buffer_init(&gssin, _gread, greylistfd, greylistbuf, sizeof greylistbuf);
 
     do {
-        if (buffer_get(&gsin, &ch, 1) != 1) return 0;
+        if (buffer_get(&gssin, &ch, 1) != 1) return 0;
         if (!stralloc_append(&greylistresp, &ch)) die_nomem();
     } while (ch != '\n');
     if (!stralloc_0(&greylistresp)) die_nomem();
@@ -255,15 +255,15 @@ static long long smtpline(char *append, int addlogid) {
 
     if (!stralloc_copys(&cline, "")) die_nomem();
 
-    buffer_GETC(&scin, (char *)&ch); code = ch - '0';
+    buffer_GETC(&sscin, (char *)&ch); code = ch - '0';
     if (!stralloc_append(&cline, &ch)) die_nomem();
-    buffer_GETC(&scin, (char *)&ch); code = code * 10 + (ch - '0');
+    buffer_GETC(&sscin, (char *)&ch); code = code * 10 + (ch - '0');
     if (!stralloc_append(&cline, &ch)) die_nomem();
-    buffer_GETC(&scin, (char *)&ch); code = code * 10 + (ch - '0');
+    buffer_GETC(&sscin, (char *)&ch); code = code * 10 + (ch - '0');
     if (!stralloc_append(&cline, &ch)) die_nomem();
 
     for (;;) {
-        buffer_GETC(&scin, (char *)&ch);
+        buffer_GETC(&sscin, (char *)&ch);
         if (append && code == 250 && ch == ' ') {
             if (!stralloc_cats(&cline, "-")) die_nomem();
         }
@@ -272,18 +272,18 @@ static long long smtpline(char *append, int addlogid) {
         }
         if (ch != '-') break;
         while (ch != '\n') {
-            buffer_GETC(&scin, (char *)&ch);
+            buffer_GETC(&sscin, (char *)&ch);
             if (!stralloc_append(&cline, &ch)) die_nomem();
         }
-        buffer_GETC(&scin, (char *)&ch);
+        buffer_GETC(&sscin, (char *)&ch);
         if (!stralloc_append(&cline, &ch)) die_nomem();
-        buffer_GETC(&scin, (char *)&ch);
+        buffer_GETC(&sscin, (char *)&ch);
         if (!stralloc_append(&cline, &ch)) die_nomem();
-        buffer_GETC(&scin, (char *)&ch);
+        buffer_GETC(&sscin, (char *)&ch);
         if (!stralloc_append(&cline, &ch)) die_nomem();
     }
     while (ch != '\n') {
-        buffer_GETC(&scin, (char *)&ch);
+        buffer_GETC(&sscin, (char *)&ch);
         if (!stralloc_append(&cline, &ch)) die_nomem();
     }
     if (append && code == 250) if (!stralloc_cats(&cline, append)) die_nomem();
@@ -310,7 +310,7 @@ static void readline(void) {
 
     for (;;) {
       char ch;
-      buffer_GETC(&sin, &ch);
+      buffer_GETC(&ssin, &ch);
       if (ch == '\n') break;
       if (!ch) ch = '\n';
       if (!stralloc_append(&line, &ch)) die_nomem();
@@ -350,16 +350,16 @@ static void commands(struct commands *c) {
 static void smtp_greet(void) {
 
     smtpline(0, 1);
-    buffer_putsflush(&sout, cline.s);
+    buffer_putsflush(&ssout, cline.s);
 }
 
 static long long copy(int logid) {
 
     long long code;
 
-    buffer_putsflush(&scout, line.s);
+    buffer_putsflush(&sscout, line.s);
     code = smtpline(0, logid);
-    buffer_putsflush(&sout, cline.s);
+    buffer_putsflush(&ssout, cline.s);
     log_d3(line.s, ": ", cline.s);
     return code;
 }
@@ -377,9 +377,9 @@ static void smtp_data(void) {
 
     long long code;
 
-    buffer_putsflush(&scout, line.s);
+    buffer_putsflush(&sscout, line.s);
     code = smtpline(0, 1);
-    buffer_putsflush(&sout, cline.s);
+    buffer_putsflush(&ssout, cline.s);
     if (code != 354) {
         log_d3(line.s, ": ", cline.s);
         log_w6("F=", mailfrom.s, " T=", rcpttodata.s, ": ", cline.s);
@@ -388,14 +388,14 @@ static void smtp_data(void) {
 
     for (;;) {
         readline();
-        buffer_puts(&scout, line.s);
+        buffer_puts(&sscout, line.s);
         if (line.len > 0) if (line.s[line.len - 1] == '\n') --line.len;
         if (line.len > 0) if (line.s[line.len - 1] == '\r') --line.len;
         if ((line.len == 1) && line.s[0] == '.') break;
     }
-    buffer_flush(&scout);
+    buffer_flush(&sscout);
     code = smtpline(0, 1);
-    buffer_putsflush(&sout, cline.s);
+    buffer_putsflush(&ssout, cline.s);
     log_d2("DATA: ", cline.s);
     if (code != 250) {
         log_w6("F=", mailfrom.s, " T=", rcpttodata.s, ": ", cline.s);
@@ -457,7 +457,7 @@ static void smtp_rcpt(void) {
             if (!_catlogid(&cline)) die_nomem();
             if (!stralloc_cats(&cline, "\r\n")) die_nomem();
             if (!stralloc_0(&cline)) die_nomem();
-            buffer_putsflush(&sout, cline.s);
+            buffer_putsflush(&ssout, cline.s);
             log_d3(line.s, ": ", cline.s);
             log_w6("F=", mailfrom.s, " T=", rcptto.s, ": ", cline.s);
             return;
@@ -474,7 +474,7 @@ static void smtp_ehlo(void) {
 
     struct stat st;
 
-    buffer_putsflush(&scout, line.s);
+    buffer_putsflush(&sscout, line.s);
     if (flagstarttls && fstat(5, &st) == 0) {
         (void) smtpline("250 STARTTLS\r\n", 0);
     }
@@ -482,7 +482,7 @@ static void smtp_ehlo(void) {
         (void) smtpline(0, 0);
     }
     errno = 0;
-    buffer_putsflush(&sout, cline.s);
+    buffer_putsflush(&ssout, cline.s);
     log_d3(line.s, ": ", cline.s);
 }
 
@@ -495,7 +495,7 @@ static void smtp_starttls(void) {
         if (!_catlogid(&cline)) die_nomem();
         if (!stralloc_cats(&cline, "\r\n")) die_nomem();
         if (!stralloc_0(&cline)) die_nomem();
-        buffer_putsflush(&sout, cline.s);
+        buffer_putsflush(&ssout, cline.s);
         log_d3(line.s, ": ", cline.s);
         errno = 0;
         return;
@@ -506,11 +506,11 @@ static void smtp_starttls(void) {
     if (!stralloc_cats(&cline, "\r\n")) die_nomem();
     if (!stralloc_0(&cline)) die_nomem();
 
-    buffer_putsflush(&sout5, cline.s);
+    buffer_putsflush(&ssout5, cline.s);
     close(5);
     log_d3(line.s, ": ", cline.s);
 
-    buffer_putsflush(&scout, "RSET\r\n");
+    buffer_putsflush(&sscout, "RSET\r\n");
     smtpline(0, 1);
 }
 
@@ -632,8 +632,8 @@ int main_tlswrapper_smtp(int argc, char **argv) {
     close(tochild[0]);
     blocking_enable(fromchild[0]);
     blocking_enable(tochild[1]);
-    buffer_init(&scin, _read, fromchild[0], cinbuf, sizeof cinbuf);
-    buffer_init(&scout, _write, tochild[1], coutbuf, sizeof coutbuf);
+    buffer_init(&sscin, _read, fromchild[0], cinbuf, sizeof cinbuf);
+    buffer_init(&sscout, _write, tochild[1], coutbuf, sizeof coutbuf);
 
     /* initialize randombytes */
     {
