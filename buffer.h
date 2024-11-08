@@ -33,6 +33,7 @@ extern int buffer_putsflush(buffer *, const char *);
 /* read */
 extern long long buffer_read(int, void *, long long);
 extern long long buffer_get(buffer *, void *, long long);
+extern long long buffer_feed(buffer *);
 
 #define buffer_PEEK(s) ((s)->x + (s)->n)
 #define buffer_SEEK(s, len) (((s)->p -= (len)), ((s)->n += (len)))
