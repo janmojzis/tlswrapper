@@ -50,38 +50,38 @@ static uint16_t ciphersuite = 0;
 static uint32_t ecdhecurves = 0;
 static br_ec_impl ecdhe;
 
-static int _read(void *ctx, unsigned char *buf, size_t len) {
+static int _read(void *ctx, unsigned char *x, size_t len) {
 
     int r;
     int fd = *(int *)ctx;
 
     for (;;) {
-        r = read(fd, buf, len);
+        r = read(fd, x, len);
         if (r == 0) errno = EPIPE;
         if (r <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            log_f4("read(", lognum(fd), ", buf, len) = ", lognum(r));
+            log_f4("read(", lognum(fd), ", x, len) = ", lognum(r));
             return -1;
         }
-        log_t4("read(", lognum(fd), ", buf, len) = ", lognum(r));
+        log_t4("read(", lognum(fd), ", x, len) = ", lognum(r));
         return r;
     }
 }
 
-static int _write(void *ctx, const unsigned char *buf, size_t len) {
+static int _write(void *ctx, const unsigned char *x, size_t len) {
 
     int w;
     int fd = *(int *)ctx;
 
     for (;;) {
-        w = write(fd, buf, len);
+        w = write(fd, x, len);
         if (w == 0) errno = EPIPE;
         if (w <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            log_f4("write(", lognum(fd), ", buf, len) = ", lognum(w));
+            log_f4("write(", lognum(fd), ", x, len) = ", lognum(w));
             return -1;
         }
-        log_t4("write(", lognum(fd), ", buf, len) = ", lognum(w));
+        log_t4("write(", lognum(fd), ", x, len) = ", lognum(w));
         return w;
     }
 }
