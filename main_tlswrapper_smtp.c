@@ -248,7 +248,7 @@ static const char *greylist(void) {
 }
 
 
-static long long smtpline(char *append, int addlogid) {
+static long long smtpline(const char *append, int addlogid) {
 
     unsigned char ch;
     unsigned long long code;
@@ -323,7 +323,7 @@ static void readline(void) {
 }
 
 struct commands {
-    char *verb;
+    const char *verb;
     void (*action)(void);
 };
 
