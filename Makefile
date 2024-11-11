@@ -253,12 +253,6 @@ OBJECTS+=tls_seccrt.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
 
-haslib25519: haslib25519.o $(OBJECTS) libs
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o haslib25519 haslib25519.o $(OBJECTS) $(LDFLAGS) `cat libs`
-
-haslibrandombytes: haslibrandombytes.o $(OBJECTS) libs
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o haslibrandombytes haslibrandombytes.o $(OBJECTS) $(LDFLAGS) `cat libs`
-
 tlswrapper: tlswrapper.o $(OBJECTS) libs
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS) `cat libs`
 

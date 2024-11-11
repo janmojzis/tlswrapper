@@ -55,7 +55,7 @@
     done
     echo
 
-    for file in `ls *.c`; do
+    for file in `ls *.c | grep -v '^has'`; do
       if grep '^int main(' "${file}" >/dev/null; then
         x=`echo "${file}" | sed 's/\.c$//'`
         echo "${x}: ${x}.o \$(OBJECTS) libs"
