@@ -98,7 +98,7 @@ proxyprotocol.o: proxyprotocol.c e.h log.h str.h buffer.h stralloc.h \
  jail.h iptostr.h strtoip.h strtoport.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
-randombytes.o: randombytes.c haslibrandombytes.h randombytes.h
+randombytes.o: randombytes.c randombytes.h haslibrandombytes.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c randombytes.c
 
 randommod.o: randommod.c randombytes.h haslibrandombytes.h randommod.h
@@ -268,11 +268,8 @@ haslibrandombytes.h: tryfeature.sh haslibrandombytes.c libs
 	env CC="$(CC)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS) `cat libs`" ./tryfeature.sh haslibrandombytes.c > haslibrandombytes.h
 	cat haslibrandombytes.h
 
-libs: trylib.sh
-	rm -f libs
-	env CC="$(CC)" ./trylib.sh -lsocket -lnsl >>libs
-	env CC="$(CC)" ./trylib.sh -lrandombytes >>libs
-	env CC="$(CC)" ./trylib.sh -l25519 >>libs
+libs: trylibs.sh
+	env CC="$(CC)" ./trylibs.sh -lsocket -lnsl -lrandombytes -l25519 >libs 2>libs.log
 	cat libs
 
 tlswrapper-tcp: tlswrapper
@@ -298,5 +295,5 @@ test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:
-	rm -f *.o *.out $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h
+	rm -f *.log *.o *.out $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h
 

@@ -74,11 +74,8 @@
       echo
     done
 
-    echo "libs: trylib.sh"
-    echo "	rm -f libs"
-    echo "	env CC=\"\$(CC)\" ./trylib.sh -lsocket -lnsl >>libs"
-    echo "	env CC=\"\$(CC)\" ./trylib.sh -lrandombytes >>libs"
-    echo "	env CC=\"\$(CC)\" ./trylib.sh -l25519 >>libs"
+    echo "libs: trylibs.sh"
+    echo "	env CC=\"\$(CC)\" ./trylibs.sh -lsocket -lnsl -lrandombytes -l25519 >libs 2>libs.log"
     echo "	cat libs"
     echo
 
@@ -109,7 +106,7 @@
     echo
 
     echo "clean:"
-    echo "	rm -f *.o *.out \$(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h"
+    echo "	rm -f *.log *.o *.out \$(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h"
     echo 
 
   ) > Makefile
