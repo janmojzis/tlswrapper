@@ -285,7 +285,7 @@ tlswrapper-smtp: tlswrapper
 install: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man1
-	mkdir -p $(DESTDIR)$(PREFIX)/$(EMPTYDIR)
+	mkdir -p $(DESTDIR)$(EMPTYDIR)
 	$(INSTALL) -m 0755 tlswrapper $(DESTDIR)$(PREFIX)/bin/tlswrapper
 	$(INSTALL) -m 0755 tlswrapper-tcp $(DESTDIR)$(PREFIX)/bin/tlswrapper-tcp
 	$(INSTALL) -m 0755 tlswrapper-smtp $(DESTDIR)$(PREFIX)/bin/tlswrapper-smtp

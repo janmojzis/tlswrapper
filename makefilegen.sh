@@ -94,7 +94,7 @@
     echo "install: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo "	mkdir -p \$(DESTDIR)\$(PREFIX)/bin"
     echo "	mkdir -p \$(DESTDIR)\$(PREFIX)/share/man/man1"
-    echo "	mkdir -p \$(DESTDIR)\$(PREFIX)/\$(EMPTYDIR)"
+    echo "	mkdir -p \$(DESTDIR)\$(EMPTYDIR)"
     echo "	\$(INSTALL) -m 0755 tlswrapper \$(DESTDIR)\$(PREFIX)/bin/tlswrapper"
     echo "	\$(INSTALL) -m 0755 tlswrapper-tcp \$(DESTDIR)\$(PREFIX)/bin/tlswrapper-tcp"
     echo "	\$(INSTALL) -m 0755 tlswrapper-smtp \$(DESTDIR)\$(PREFIX)/bin/tlswrapper-smtp"
