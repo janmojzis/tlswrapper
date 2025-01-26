@@ -7,7 +7,11 @@
     echo "CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -DEMPTYDIR=\\\"\$(EMPTYDIR)\\\""
     echo "LDFLAGS+=-lbearssl"
     echo "CPPFLAGS?="
+    echo
     echo "DESTDIR?="
+    echo "PREFIX?=/usr/local"
+    echo
+    echo "INSTALL?=install"
     echo 
 
     # binaries
@@ -88,10 +92,15 @@
     echo
 
     echo "install: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
-    echo "	install -D -m 0755 tlswrapper \$(DESTDIR)/usr/bin/tlswrapper"
-    echo "	install -D -m 0755 tlswrapper-tcp \$(DESTDIR)/usr/bin/tlswrapper-tcp"
-    echo "	install -D -m 0755 tlswrapper-smtp \$(DESTDIR)/usr/bin/tlswrapper-smtp"
-    echo "	install -d -m 0755 \$(DESTDIR)/\$(EMPTYDIR)"
+    echo "	mkdir -p \$(DESTDIR)\$(PREFIX)/bin"
+    echo "	mkdir -p \$(DESTDIR)\$(PREFIX)/share/man/man1"
+    echo "	mkdir -p \$(DESTDIR)\$(PREFIX)/\$(EMPTYDIR)"
+    echo "	\$(INSTALL) -m 0755 tlswrapper \$(DESTDIR)\$(PREFIX)/bin/tlswrapper"
+    echo "	\$(INSTALL) -m 0755 tlswrapper-tcp \$(DESTDIR)\$(PREFIX)/bin/tlswrapper-tcp"
+    echo "	\$(INSTALL) -m 0755 tlswrapper-smtp \$(DESTDIR)\$(PREFIX)/bin/tlswrapper-smtp"
+    echo "	\$(INSTALL) -m 0644 man/tlswrapper.1 \$(DESTDIR)\$(PREFIX)/share/man/man1/tlswrapper.1"
+    echo "	\$(INSTALL) -m 0644 man/tlswrapper-smtp.1 \$(DESTDIR)\$(PREFIX)/share/man/man1/tlswrapper-smtp.1"
+    echo "	\$(INSTALL) -m 0644 man/tlswrapper-tcp.1 \$(DESTDIR)\$(PREFIX)/share/man/man1/tlswrapper-tcp.1"
     echo
 
     echo "test: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"

@@ -3,7 +3,11 @@ EMPTYDIR?=/var/lib/tlswrapper/empty
 CFLAGS+=-W -Wall -Os -fPIC -fwrapv -pedantic -DEMPTYDIR=\"$(EMPTYDIR)\"
 LDFLAGS+=-lbearssl
 CPPFLAGS?=
+
 DESTDIR?=
+PREFIX?=/usr/local
+
+INSTALL?=install
 
 BINARIES=tlswrapper
 BINARIES+=tlswrapper-test
@@ -279,10 +283,15 @@ tlswrapper-smtp: tlswrapper
 	ln -s tlswrapper tlswrapper-smtp
 
 install: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
-	install -D -m 0755 tlswrapper $(DESTDIR)/usr/bin/tlswrapper
-	install -D -m 0755 tlswrapper-tcp $(DESTDIR)/usr/bin/tlswrapper-tcp
-	install -D -m 0755 tlswrapper-smtp $(DESTDIR)/usr/bin/tlswrapper-smtp
-	install -d -m 0755 $(DESTDIR)/$(EMPTYDIR)
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man1
+	mkdir -p $(DESTDIR)$(PREFIX)/$(EMPTYDIR)
+	$(INSTALL) -m 0755 tlswrapper $(DESTDIR)$(PREFIX)/bin/tlswrapper
+	$(INSTALL) -m 0755 tlswrapper-tcp $(DESTDIR)$(PREFIX)/bin/tlswrapper-tcp
+	$(INSTALL) -m 0755 tlswrapper-smtp $(DESTDIR)$(PREFIX)/bin/tlswrapper-smtp
+	$(INSTALL) -m 0644 man/tlswrapper.1 $(DESTDIR)$(PREFIX)/share/man/man1/tlswrapper.1
+	$(INSTALL) -m 0644 man/tlswrapper-smtp.1 $(DESTDIR)$(PREFIX)/share/man/man1/tlswrapper-smtp.1
+	$(INSTALL) -m 0644 man/tlswrapper-tcp.1 $(DESTDIR)$(PREFIX)/share/man/man1/tlswrapper-tcp.1
 
 test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp
