@@ -344,7 +344,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         }
 
         if (watchfromremote) {
-            r = read(fd, outbuf + outbuflen, sizeof inbuf - outbuflen);
+            r = read(fd, outbuf + outbuflen, sizeof outbuf - outbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { 
                 if (r < 0) log_d5("read from ", hoststr, ":", portstr, " failed" ); 
