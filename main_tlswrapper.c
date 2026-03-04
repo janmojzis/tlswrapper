@@ -104,7 +104,7 @@ static void cleanup(void) {
     randombytes(localip, sizeof localip);
     randombytes(localport, sizeof localport);
     randombytes(remoteip, sizeof remoteip);
-    randombytes(remoteip, sizeof remoteip);
+    randombytes(remoteport, sizeof remoteport);
     randombytes(remoteipstr, sizeof remoteipstr);
     alloc_freeall();
     {
