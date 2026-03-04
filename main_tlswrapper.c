@@ -126,7 +126,7 @@ static void cleanup(void) {
 #define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
 #define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", (x), " from client certificate: object not found"); die(111); }
 #define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
-#define die_optionUn() { log_f1("option -U is not compatible with -u"); die(100); }
+#define die_optionUn() { log_f1("option -U is not compatible with -n"); die(100); }
 #define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
 
 
