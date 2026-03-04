@@ -20,7 +20,7 @@ Public domain.
 
 /*
 The 'jail' function has 3 purposes:
-1. drops root priviledges to unpriviledged uid/gid
+1. drops root privileges to unprivileged uid/gid
 - if the 'account' is 0, then uid/gid is derived from process id and randomized.
 - if the 'account' is string and the account exist, then uid/gid
   is retrieved from the system user database.
