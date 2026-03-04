@@ -310,7 +310,7 @@ static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type,
 cleanup:
     log_d1("encrypt failed");
     randombytes(datav, *data_len);
-    return datav;
+    return 0;
 }
 
 static void out_chapol_init(const br_sslrec_out_class **cc,
