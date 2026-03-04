@@ -6,7 +6,7 @@ tlswrapper \- TLS encryption wrapper
 .B tlswrapper [ options ] \fIprog\fR
 .SH DESCRIPTION
 .PP
-The \fBtlswrapper\fR is an TLS encryption wrapper between remote client and local program \fIprog\fR.
+The \fBtlswrapper\fR is a TLS encryption wrapper between remote client and local program \fIprog\fR.
 Systemd.socket/inetd/tcpserver/... creates the server connection, \fBtlswrapper\fR encrypts/decrypts data stream and reads/writes data from/to the program \fIprog\fR as follows:
 .PP
 Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-> \fIprog\fR
@@ -97,7 +97,7 @@ It ensures that a vulnerability in the code (e.g. bug in the TLS library) can't 
 .PP
 .B Separate process for network connection and separate process for secret\-key operation
 .PP
-To protect against secret\-information leaks to the network connection (such Heartbleed) \fBtlswrapper\fR  runs two independent processes for every TLS connection.
+To protect against secret\-information leaks to the network connection (such as Heartbleed) \fBtlswrapper\fR runs two independent processes for every TLS connection.
 One process holds secret\-keys and runs secret\-keys operations and second talks to the network. Processes communicate with each other through UNIX pipes.
 .PP
 .B JAIL \- Privilege separation, filesystem isolation, limits
@@ -112,10 +112,10 @@ The \fBtlswrapper\fR uses for simplicity both secret\-key and certificates in on
 When the server starts, runs two independent UNIX processes, one for network communication, second for secret\-key operations.
 The network\-process is immediately jailed and starts TLS handshake.
 Secret\-key\-process starts under root privileges, waits when network\-process receives SNI extension from client\-hello packet.
-Then the network\-process assemble the PEM filename and sends the name to the secret\-key\-process.
-Secret\-key\-process loads the PEM file and immediately is jailed and drops it's privileges.
-Since here both processes runs jailed (see JAIL above).
-Note that PEM files are loaded under root privileges, but parsed in jailed unpriviledged process.
+Then the network\-process assembles the PEM filename and sends the name to the secret\-key\-process.
+Secret\-key\-process loads the PEM file and immediately is jailed and drops its privileges.
+From here on both processes run jailed (see JAIL above).
+Note that PEM files are loaded under root privileges, but parsed in jailed unprivileged process.
 It ensures that a vulnerability in the parsing code can't be used to gain root privileges/information.
 Warning: For security reasons \fBtlswrapper\fR does not allow dots immediately after slashes in file names. It changes these dots to colons before attempting to open the PEM file.
 .PP
