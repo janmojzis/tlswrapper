@@ -1,6 +1,6 @@
 # Description
 
-The tlswrapper is an TLS encryption wrapper between remote client and local program prog. Systemd.socket/inetd/tcpserver/... creates the server connection, tlswrapper encrypts/decrypts data
+The tlswrapper is a TLS encryption wrapper between remote client and local program prog. Systemd.socket/inetd/tcpserver/... creates the server connection, tlswrapper encrypts/decrypts data
 stream and reads/writes data from/to the program prog as follows:
 
 Internet <--> systemd.socket/inetd/tcpserver/... <--> tlswrapper <--> prog
@@ -14,7 +14,7 @@ The tlswrapper is executed from systemd.socket/inetd/tcpserver/... which runs se
 
 ## Separate process for network connection and separate process for secret-key operation
 
-To protect against secret-information leaks to the network connection (such Heartbleed) tlswrapper runs two independent processes for every TLS connection. One process holds secret-keys and
+To protect against secret-information leaks to the network connection (such as Heartbleed) tlswrapper runs two independent processes for every TLS connection. One process holds secret-keys and
 runs secret-keys operations and second talks to the network. Processes communicate with each other through UNIX pipes.
 
 ## JAIL - Privilege separation, filesystem isolation, limits
@@ -24,8 +24,8 @@ The tlswrapper processes run under dedicated non-zero uid to prohibit kill, ptra
 ## PEM files
 
 The tlswrapper uses for simplicity both secret-key and certificates in one PEM file. When the server starts, runs two independent UNIX processes, one for network communication, second for secret-key operations. The network-process is immediately jailed and starts TLS handshake. Secret-key-process starts under root privileges, waits when network-process receives SNI extension from
-client-hello packet. Then the network-process assemble the PEM filename and sends the name to the secret-key-process. Secret-key-process loads the PEM file and immediatelly is jailed and drops it's
-privileges. Since here both processes runs jailed (see JAIL above). Note that PEM files are loaded under root privileges, but parsed in jailed unpriviledged process. It ensures that a vulnerability in the
+client-hello packet. Then the network-process assembles the PEM filename and sends the name to the secret-key-process. Secret-key-process loads the PEM file and immediately is jailed and drops its
+privileges. From here on both processes run jailed (see JAIL above). Note that PEM files are loaded under root privileges, but parsed in jailed unprivileged process. It ensures that a vulnerability in the
 parsing code can't be used to gain root privileges/informations. Warning: For security tlswrapper replaces any slash-dots in PEM filename with slash-colons before opening.
 
 ## TLS library
