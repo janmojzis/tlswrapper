@@ -7,7 +7,7 @@ tlswrapper\-tcp \- TLS encryption wrapper \- tcp client
 .PP
 The \fBtlswrapper\-tcp\fR is TCP client which connects to \fIhost\fR:\fIport\fR and
 transfers data from standard input to the host and from the host to the standard output.
-it's designed to work to together with \fBtlswrapper\fR and is from the \fBtlswrapper\fR executed.
+It is designed to work together with \fBtlswrapper\fR and is executed from \fBtlswrapper\fR.
 Allows you to protect non\-TLS TCP service using TLS similarly to stunnel(8).
 Systemd.socket/inetd/tcpserver/... creates the server connection, tlswrapper encrypts/decrypts data stream and
 \fBtlswrapper\-tcp\fR creates the client connection and sends/receives unencrypted data to/from the \fIhost\fR:\fIport\fR as follows:
@@ -48,7 +48,7 @@ TCP port
 .SH SECURITY
 .B Separate process for network connection and separate process for DNS resolving
 .PP
-To protect against secret\-information leaks to the network connection (such Heartbleed) \fBtlswrapper\-tcp\fR runs two independent processes.
+To protect against secret\-information leaks to the network connection (such as Heartbleed) \fBtlswrapper\-tcp\fR runs two independent processes.
 One process resolves the hostname and second creates a connection to \fIhost\fR:\fIport\fR.
 .PP
 .B JAIL \- Privilege separation, filesystem isolation, limits
