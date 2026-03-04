@@ -5,7 +5,7 @@ tlswrapper\-smtp \- TLS encryption wrapper \- smtp helper
 .B tlswrapper\-smtp [ options ] \fIprog\fR
 .SH DESCRIPTION
 .PP
-The \fBtlswrapper\-smtp\fR adds STARTTLS support to old inetd-style SMTP servers which doesn't support STARTTLS naturally.
+The \fBtlswrapper\-smtp\fR adds STARTTLS support to old inetd\-style SMTP servers which don't support STARTTLS natively.
 Is executed as follows:
 .PP
 Internet <\-\-> systemd.socket/inetd/tcpserver/... <\-\-> \fBtlswrapper\fR <\-\-> \fBtlswrapper\-smtp\fR  <\-\-> smtpprogram
