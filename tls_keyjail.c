@@ -238,7 +238,7 @@ void tls_keyjail(struct tls_context *ctx) {
                                          cc->eng.iaes_cbcenc, 16);
             break;
         default:
-            break;
+            goto cleanup;
     }
 
     randombytes(pk, sizeof pk); /* remove shared secret */
