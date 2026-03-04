@@ -79,7 +79,7 @@ struct tls_context {
     unsigned int version_max;
 
     uint32_t ecdhe_enabled;
-    const br_ec_impl ecdhe_copy;
+    br_ec_impl ecdhe_copy;
 
     size_t cipher_enabled_len;
     uint16_t cipher_enabled[16];

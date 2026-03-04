@@ -81,13 +81,12 @@ static const unsigned char *order(int curve, size_t *len) {
 }
 
 const br_ec_impl *tls_ecdhe_get_default(struct tls_context *ctx) {
-    br_ec_impl *ecdhe_copy_p = (br_ec_impl *) &ctx->ecdhe_copy;
     ecdhe_orig = br_ec_get_default();
-    memcpy(ecdhe_copy_p, br_ec_get_default(), sizeof(br_ec_impl));
-    ecdhe_copy_p->supported_curves = ctx->ecdhe_enabled;
-    ecdhe_copy_p->mulgen = tls_pipe_mulgen;
-    ecdhe_copy_p->mul = tls_pipe_mul;
-    ecdhe_copy_p->xoff = xoff;
-    ecdhe_copy_p->order = order;
+    memcpy(&ctx->ecdhe_copy, br_ec_get_default(), sizeof(br_ec_impl));
+    ctx->ecdhe_copy.supported_curves = ctx->ecdhe_enabled;
+    ctx->ecdhe_copy.mulgen = tls_pipe_mulgen;
+    ctx->ecdhe_copy.mul = tls_pipe_mul;
+    ctx->ecdhe_copy.xoff = xoff;
+    ctx->ecdhe_copy.order = order;
     return &ctx->ecdhe_copy;
 }
