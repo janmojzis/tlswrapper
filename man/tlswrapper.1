@@ -67,7 +67,7 @@ Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
 Extract the user from \fIASN.1 object\fR from the client certificate and run program \fIprog\fR under user's uid and gid. Supported \fIASN.1 object\fR objects are 'commonName' and 'emailAddress'.
 .TP
 .B \-p \fIversion\fR
-Enable incoming proxy\-protocol version \fIversion\fR string. The \fBtlswrapper\fR receives the 
+Enable incoming proxy\-protocol version \fIversion\fR string. The \fBtlswrapper\fR receives the proxy\-protocol header from the upstream proxy and extracts client connection information. Supported versions: 1.
 .TP
 .B \-s
 Enforce TLS server preferences. (default).
@@ -147,7 +147,7 @@ CHACHA20_POLY1305_SHA256	ChaCha20+Poly1305 encryption (TLS 1.2+)	default
 AES_256_GCM_SHA384	AES\-256/GCM encryption (TLS 1.2+)	default
 AES_128_GCM_SHA256	AES\-128/GCM encryption (TLS 1.2+)	default
 AES_256_CBC_SHA384	AES\-256/CBC + SHA\-384 (TLS 1.2+)	optional
-AES_128_CBC_SHA256	AES\-128/CBC + SHA\-384 (TLS 1.2+)	optional
+AES_128_CBC_SHA256	AES\-128/CBC + SHA\-256 (TLS 1.2+)	optional
 AES_256_CBC_SHA	AES\-256/CBC + SHA\-1	optional
 AES_128_CBC_SHA	AES\-128/CBC + SHA\-1	optional
 .TE
