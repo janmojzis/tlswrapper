@@ -94,7 +94,7 @@ static unsigned int my_end_chain(const br_x509_class **ctx) {
     if (r == BR_ERR_X509_NOT_TRUSTED) {
         r = 0;
     }
-    return 0;
+    return r;
 }
 
 static br_x509_class my509vtable;
