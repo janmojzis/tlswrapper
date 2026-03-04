@@ -258,6 +258,7 @@ void tls_keyjail(struct tls_context *ctx) {
                 if (pipe_readall(0, label, sizeof label) == -1) goto cleanup;
                 if (pipe_readall(0, &seed_len, sizeof seed_len) == -1)
                     goto cleanup;
+                if (seed_len > sizeof seed) goto cleanup;
                 if (pipe_readmax(0, seed, &seed_len) == -1) goto cleanup;
                 prf(ctx, data, sizeof data, prf_id, label, seed, seed_len);
                 if (pipe_write(1, data, sizeof data) == -1) goto cleanup;
