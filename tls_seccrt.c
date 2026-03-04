@@ -98,6 +98,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
                         default:
                             log_e5("unknown secret-key type ",
                                    lognum(crt->key_type), " in '", fn, "'");
+                            goto cleanup;
                     }
                 }
                 break;
