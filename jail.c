@@ -164,7 +164,7 @@ int jail(const char *account, const char *dir, int limits) {
 #endif
 #endif
 
-    log_t4("running under uid = ", lognum(gid), ", gid = ", lognum(gid));
+    log_t4("running under uid = ", lognum(uid), ", gid = ", lognum(gid));
 
     ret = 0;
 
