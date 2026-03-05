@@ -216,6 +216,8 @@ static const char *greylist(void) {
 
     char ch;
 
+    if (!stralloc_copys(&greylistresp, "")) die_nomem();
+
     buffer_init(&gssin, _gwrite, greylistfd, greylistbuf, sizeof greylistbuf);
 
     if (buffer_puts(&gssin, "request=smtpd_access_policy\n") == -1) return 0;
