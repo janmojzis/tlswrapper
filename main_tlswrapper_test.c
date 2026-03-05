@@ -60,7 +60,7 @@ static int _read(void *ctx, unsigned char *x, size_t len) {
         if (r == 0) errno = EPIPE;
         if (r <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            log_f4("read(", log_num(fd), ", x, len) = ", log_num(r));
+            log_e4("read(", log_num(fd), ", x, len) = ", log_num(r));
             return -1;
         }
         log_t4("read(", log_num(fd), ", x, len) = ", log_num(r));
@@ -78,7 +78,7 @@ static int _write(void *ctx, const unsigned char *x, size_t len) {
         if (w == 0) errno = EPIPE;
         if (w <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            log_f4("write(", log_num(fd), ", x, len) = ", log_num(w));
+            log_e4("write(", log_num(fd), ", x, len) = ", log_num(w));
             return -1;
         }
         log_t4("write(", log_num(fd), ", x, len) = ", log_num(w));
