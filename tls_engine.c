@@ -176,6 +176,6 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         }
     }
 ret:
-    log_t2("br_ssl_engine_current_state(&ctx->cc.eng) = ", lognum(st));
+    log_t2("br_ssl_engine_current_state(&ctx->cc.eng) = ", log_num(st));
     return st;
 }

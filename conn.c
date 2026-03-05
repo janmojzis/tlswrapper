@@ -78,14 +78,14 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
     }
 
     for (i = 0; i < iplen / 16; ++i) {
-        log_d4("sending connect to [", logip(ip + 16 * i), "]:", logport(port));
+        log_d4("sending connect to [", log_ip(ip + 16 * i), "]:", log_port(port));
         if (socket_connect(fds[i], ip + 16 * i, port, 0) == 0) {
             memcpy(ip, ip + 16 * i, 16);
             return fds[i];
         }
         if (errno != EINPROGRESS && errno != EWOULDBLOCK) {
-            log_w4("unable to connect to [", logip(ip + 16 * i),
-                   "]:", logport(port));
+            log_w4("unable to connect to [", log_ip(ip + 16 * i),
+                   "]:", log_port(port));
             close(fds[i]);
             fds[i] = -1;
         }
@@ -109,8 +109,8 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
             errno = ETIMEDOUT;
             for (i = 0; i < plen; ++i) {
                 log_w4("unable to connect to [",
-                       logip(conn_getip(p[i].fd, ip, iplen)),
-                       "]:", logport(port));
+                       log_ip(conn_getip(p[i].fd, ip, iplen)),
+                       "]:", log_port(port));
             }
             return -1;
         }
@@ -124,8 +124,8 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
                     return p[i].fd;
                 }
                 log_w4("unable to connect to [",
-                       logip(conn_getip(p[i].fd, ip, iplen)),
-                       "]:", logport(port));
+                       log_ip(conn_getip(p[i].fd, ip, iplen)),
+                       "]:", log_port(port));
                 conn_closefd(p[i].fd);
             }
         }

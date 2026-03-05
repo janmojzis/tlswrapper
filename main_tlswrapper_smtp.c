@@ -74,10 +74,10 @@ static void die(int x) {
     } while (r == -1 && errno == EINTR);
     errno = 0;
     if (!WIFEXITED(status)) {
-        log_f2("child process killed by signal ", lognum(WTERMSIG(status)));
+        log_f2("child process killed by signal ", log_num(WTERMSIG(status)));
         _exit(111);
     }
-    log_d2("child exited with status ", lognum(WEXITSTATUS(status)));
+    log_d2("child exited with status ", log_num(WEXITSTATUS(status)));
     _exit(WEXITSTATUS(status));
 }
 
@@ -163,9 +163,9 @@ static stralloc rcpttodata = {0};
 
 static int _catlogid(stralloc *sa) {
 
-    if (log_getid()) {
+    if (log_get_id()) {
         if (!stralloc_cats(sa, " [")) return 0;
-        if (!stralloc_cats(sa, log_getid())) return 0;
+        if (!stralloc_cats(sa, log_get_id())) return 0;
         if (!stralloc_cats(sa, "]")) return 0;
     }
     return 1;
@@ -296,7 +296,7 @@ static long long smtpline(const char *append, int addlogid) {
     log_t3("child line: '", cline.s, "'");
 
     /* add logid */
-    if (addlogid && log_getid()) {
+    if (addlogid && log_get_id()) {
         if (cline.len > 0) if (cline.s[cline.len - 1] == '\n') --cline.len;
         if (cline.len > 0) if (cline.s[cline.len - 1] == '\r') --cline.len;
         if (!_catlogid(&cline)) die_nomem();
@@ -538,8 +538,8 @@ int main_tlswrapper_smtp(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, signalhandler);
     alarm(30);
-    log_name("tlswrapper-smtp");
-    log_id(0);
+    log_set_name("tlswrapper-smtp");
+    log_unset_id();
 
 
     (void) argc;
@@ -551,9 +551,9 @@ int main_tlswrapper_smtp(int argc, char **argv) {
         if (x[0] == '-' && x[1] == 0) break;
         if (x[0] == '-' && x[1] == '-' && x[2] == 0) break;
         while (*++x) {
-            if (*x == 'q') { flagverbose = 0; log_level(flagverbose); continue; }
-            if (*x == 'Q') { flagverbose = 1; log_level(flagverbose); continue; }
-            if (*x == 'v') { log_level(++flagverbose); continue; }
+            if (*x == 'q') { flagverbose = 0; log_set_level(flagverbose); continue; }
+            if (*x == 'Q') { flagverbose = 1; log_set_level(flagverbose); continue; }
+            if (*x == 'v') { log_set_level(++flagverbose); continue; }
             /* user */
             if (*x == 'u') {
                 if (x[1]) { user = x + 1; break; }
@@ -595,7 +595,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
             log_f3("unable to parse greylist host:port from the string: '", greylisthostport, "'");
             die(100);
         }
-        log_t5("greylist address '", greylisthost, ":", logport(greylistport), "'");
+        log_t5("greylist address '", greylisthost, ":", log_port(greylistport), "'");
     }
 
     if (fstat(5, &st) == 0) {
@@ -669,7 +669,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
             log_f3("unable to resolve host '", greylisthost, "': name not exist");
             die(111);
         }
-        log_d4("resolvehost: ", greylisthost, ": ", logip(greylistip));
+        log_d4("resolvehost: ", greylisthost, ": ", log_ip(greylistip));
         resolvehost_close();
 
         greylistfd = conn(crwtimeout, greylistip, greylistiplen, greylistport);
@@ -686,7 +686,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
 
     /* get connection info */
     (void) connectioninfo_get(localip, localport, remoteip, remoteport);
-    log_ip(iptostr(remoteipstr, remoteip));
+    log_set_ip(iptostr(remoteipstr, remoteip));
 
     /* initialize mailfrom, rcptto */
     if (!stralloc_0(&mailfrom)) die_nomem();

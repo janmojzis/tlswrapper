@@ -156,8 +156,8 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     errno = 0;
     signal(SIGPIPE, SIG_IGN);
 
-    log_name("tlswrapper-tcp");
-    log_id(0);
+    log_set_name("tlswrapper-tcp");
+    log_unset_id();
 
     (void) argc;
     if (!argv[0]) usage();
@@ -168,9 +168,9 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         if (x[0] == '-' && x[1] == 0) break;
         if (x[0] == '-' && x[1] == '-' && x[2] == 0) break;
         while (*++x) {
-            if (*x == 'q') { flagverbose = 0; log_level(flagverbose); continue; }
-            if (*x == 'Q') { flagverbose = 1; log_level(flagverbose); continue; }
-            if (*x == 'v') { log_level(++flagverbose); continue; }
+            if (*x == 'q') { flagverbose = 0; log_set_level(flagverbose); continue; }
+            if (*x == 'Q') { flagverbose = 1; log_set_level(flagverbose); continue; }
+            if (*x == 'v') { log_set_level(++flagverbose); continue; }
             /* timeouts */
             if (*x == 'T') {
                 if (x[1]) { connecttimeoutstr =  x + 1; break; }
@@ -232,7 +232,7 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         die(111);
     }
     for (i = 0; i < iplen; i += 16) {
-        log_d3(hoststr, ": ", logip(ip + i));
+        log_d3(hoststr, ": ", log_ip(ip + i));
     }
     resolvehost_close();
 
@@ -258,11 +258,11 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         /* get connection info */
         (void) connectioninfo_get(localip, localport, remoteip, remoteport);
     }
-    log_ip(iptostr(remoteipstr, remoteip));
+    log_set_ip(iptostr(remoteipstr, remoteip));
 
     fd = conn(connecttimeout, ip, iplen, port);
     if (fd == -1) {
-        log_f4("unable to connect to ", hoststr, ":", logport(port));
+        log_f4("unable to connect to ", hoststr, ":", log_port(port));
         die(111);
     }
 
@@ -272,8 +272,8 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         if (inbuflen <= 0) die_ppout(ppoutver);
     }
 
-    log_d4("connected to [", logip(ip), "]:", logport(port));
-    log_i4("connected to ", hoststr, ":", logport(port));
+    log_d4("connected to [", log_ip(ip), "]:", log_port(port));
+    log_i4("connected to ", hoststr, ":", log_port(port));
 
     signal(SIGTERM, signalhandler);
     signal(SIGALRM, signalhandler);

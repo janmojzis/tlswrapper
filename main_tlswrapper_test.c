@@ -60,10 +60,10 @@ static int _read(void *ctx, unsigned char *x, size_t len) {
         if (r == 0) errno = EPIPE;
         if (r <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            log_f4("read(", lognum(fd), ", x, len) = ", lognum(r));
+            log_f4("read(", log_num(fd), ", x, len) = ", log_num(r));
             return -1;
         }
-        log_t4("read(", lognum(fd), ", x, len) = ", lognum(r));
+        log_t4("read(", log_num(fd), ", x, len) = ", log_num(r));
         return r;
     }
 }
@@ -78,10 +78,10 @@ static int _write(void *ctx, const unsigned char *x, size_t len) {
         if (w == 0) errno = EPIPE;
         if (w <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            log_f4("write(", lognum(fd), ", x, len) = ", lognum(w));
+            log_f4("write(", log_num(fd), ", x, len) = ", log_num(w));
             return -1;
         }
-        log_t4("write(", lognum(fd), ", x, len) = ", lognum(w));
+        log_t4("write(", log_num(fd), ", x, len) = ", log_num(w));
         return w;
     }
 }
@@ -241,8 +241,8 @@ int main_tlswrapper_test(int argc, char **argv) {
     long long r;
 
     signal(SIGPIPE, SIG_IGN);
-    log_name("tlswrapper-test");
-    log_id("");
+    log_set_name("tlswrapper-test");
+    log_set_id("");
 
     (void) argc;
     if (!argv[0]) usage();
@@ -253,9 +253,9 @@ int main_tlswrapper_test(int argc, char **argv) {
         if (x[0] == '-' && x[1] == 0) break;
         if (x[0] == '-' && x[1] == '-' && x[2] == 0) break;
         while (*++x) {
-            if (*x == 'q') { flagverbose = 0; log_level(flagverbose); continue; }
-            if (*x == 'Q') { flagverbose = 1; log_level(flagverbose); continue; }
-            if (*x == 'v') { log_level(++flagverbose); continue; }
+            if (*x == 'q') { flagverbose = 0; log_set_level(flagverbose); continue; }
+            if (*x == 'Q') { flagverbose = 1; log_set_level(flagverbose); continue; }
+            if (*x == 'v') { log_set_level(++flagverbose); continue; }
             if (*x == 'r') { flaginput = 1; flagoutput = 0; continue; }
             if (*x == 'w') { flagoutput = 1; flaginput = 0; continue; }
             if (*x == 'f') { flagflush = 1; continue; }
@@ -296,7 +296,7 @@ int main_tlswrapper_test(int argc, char **argv) {
         die(100);
     }
 
-    log_ip("0.0.0.0");
+    log_set_ip("0.0.0.0");
     log_d1("start");
 
     /* run child process */
@@ -343,7 +343,7 @@ int main_tlswrapper_test(int argc, char **argv) {
             log_f3("unable to parse '", daysstr, "'");
             die(100);
         }
-        log_t2("days = ", lognum(days));
+        log_t2("days = ", log_num(days));
         br_x509_minimal_set_time(&xc, days, 0);
     }
     if (ciphersuite) {
@@ -409,7 +409,7 @@ int main_tlswrapper_test(int argc, char **argv) {
     if (flagoutput) {
         for (;;) {
             r = read(0, buf, sizeof buf);
-            log_t2("read(0, buf, sizeof buf) = ", lognum(r));
+            log_t2("read(0, buf, sizeof buf) = ", log_num(r));
             if (r == -1) {
                 if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             }
@@ -418,7 +418,7 @@ int main_tlswrapper_test(int argc, char **argv) {
                 log_f1("unable to write to child");
                 break;
             }
-            log_t3("br_sslio_write_all(&ioc, buf, r = ", lognum(r), ")");
+            log_t3("br_sslio_write_all(&ioc, buf, r = ", log_num(r), ")");
         }
         if (br_sslio_flush(&ioc) == -1) {
             log_f1("unable to write to child");

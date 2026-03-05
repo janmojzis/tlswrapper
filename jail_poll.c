@@ -20,7 +20,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     int fd, r;
     nfds_t i;
 
-    log_t5("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs),
+    log_t5("jail_poll(len = ", log_num(len), ", millisecs = ", log_num(millisecs),
            ")");
 
     for (i = 0; i < len; ++i) x[i].revents = 0;
@@ -68,7 +68,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     }
 
 cleanup:
-    log_t6("jail_poll(len = ", lognum(len), ", millisecs = ", lognum(millisecs),
-           ") = ", lognum(r));
+    log_t6("jail_poll(len = ", log_num(len), ", millisecs = ", log_num(millisecs),
+           ") = ", log_num(r));
     return r;
 }

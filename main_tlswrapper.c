@@ -114,7 +114,7 @@ static void cleanup(void) {
 
 #define die(x) { cleanup(); _exit(x); }
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
-#define die_controlpipe() { log_f3("unable to create control pipe on filedescriptor ", lognum(CONTROLPIPEFD), ": filedescriptor exits"); die(111); }
+#define die_controlpipe() { log_f3("unable to create control pipe on filedescriptor ", log_num(CONTROLPIPEFD), ": filedescriptor exits"); die(111); }
 #define die_devnull() { log_f1("unable to open /dev/null"); die(111); }
 #define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
 #define die_fork() { log_f1("unable to fork"); die(111); }
@@ -203,7 +203,7 @@ static void certfile_add_dir(const char *x) {
         die(100)
     }
     if (!tls_certfile_add_dir(&ctx, x)) {
-        log_f3("unable to add more than ", lognum(tls_CERTFILES), " certdirs+certfiles");
+        log_f3("unable to add more than ", log_num(tls_CERTFILES), " certdirs+certfiles");
         die(100);
     }
 }
@@ -221,7 +221,7 @@ static void certfile_add_file(const char *x) {
         die(100);
     }
     if (!tls_certfile_add_file(&ctx, x)) {
-        log_f3("unable to add more than ", lognum(tls_CERTFILES), " certdirs+certfiles");
+        log_f3("unable to add more than ", log_num(tls_CERTFILES), " certdirs+certfiles");
         die(100);
     }
 }
@@ -301,8 +301,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     signal(SIGTERM, signalhandler);
     alarm(starttimeout);
 
-    log_name("tlswrapper");
-    log_id(0);
+    log_set_name("tlswrapper");
+    log_unset_id();
 
     (void) argc;
     if (!argv[0]) usage();
@@ -313,9 +313,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         if (x[0] == '-' && x[1] == 0) break;
         if (x[0] == '-' && x[1] == '-' && x[2] == 0) break;
         while (*++x) {
-            if (*x == 'q') { flagverbose = 0; log_level(flagverbose); continue; }
-            if (*x == 'Q') { flagverbose = 1; log_level(flagverbose); continue; }
-            if (*x == 'v') { log_level(++flagverbose); continue; }
+            if (*x == 'q') { flagverbose = 0; log_set_level(flagverbose); continue; }
+            if (*x == 'Q') { flagverbose = 1; log_set_level(flagverbose); continue; }
+            if (*x == 'v') { log_set_level(++flagverbose); continue; }
 
             /* server preferences */
             if (*x == 's') { ctx.flags |= tls_flags_ENFORCE_SERVER_PREFERENCES; continue; }
@@ -516,7 +516,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             signal(SIGPIPE, SIG_IGN);
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
-            log_ip(0);
+            log_set_ip(0);
             tls_keyjail(&ctx);
             die(0);
     }
@@ -563,7 +563,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         /* get connection info */
         (void) connectioninfo_get(localip, localport, remoteip, remoteport);
     }
-    log_ip(iptostr(remoteipstr, remoteip));
+    log_set_ip(iptostr(remoteipstr, remoteip));
 
     /* non-blocking stdin/stdout */
     blocking_disable(0);
@@ -654,7 +654,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             r = write(tochild[1], buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to child failed"); break; }
-            log_t4("write(tochild[1], buf, len=", lognum(len), ") = ", lognum(r));
+            log_t4("write(tochild[1], buf, len=", log_num(len), ") = ", log_num(r));
             tls_engine_recvapp_ack(&ctx, r);
             continue;
         }
@@ -665,7 +665,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             r = write(1, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) { log_d1("write to standard output failed"); break; }
-            log_t4("write(1, buf, len=", lognum(len), ") = ", lognum(r));
+            log_t4("write(1, buf, len=", log_num(len), ") = ", log_num(r));
             tls_engine_sendrec_ack(&ctx, r);
             continue;
         }
@@ -681,7 +681,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 ctx.netclosed = 1;
                 break;
             }
-            log_t4("read(0, buf, len=", lognum(len), ") = ", lognum(r));
+            log_t4("read(0, buf, len=", log_num(len), ") = ", log_num(r));
             tls_engine_recvrec_ack(&ctx, r);
             alarm(timeout); /* refresh timeout */
             continue;
@@ -699,7 +699,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 tls_engine_flush(&ctx, 0);
                 continue;
             }
-            log_t4("read(fromchild[0], buf, len=", lognum(len), ") = ", lognum(r));
+            log_t4("read(fromchild[0], buf, len=", log_num(len), ") = ", log_num(r));
             tls_engine_sendapp_ack(&ctx, r);
             tls_engine_flush(&ctx, 0);
             alarm(timeout); /* refresh timeout */
@@ -747,10 +747,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         r = waitpid(keyjailchild, &status, 0);
     } while (r == -1 && errno == EINTR);
     if (!WIFEXITED(status)) {
-        log_t2("keyjail process killed by signal ", lognum(WTERMSIG(status)));
+        log_t2("keyjail process killed by signal ", log_num(WTERMSIG(status)));
     }
     else {
-        log_t2("keyjail exited with status ", lognum(WEXITSTATUS(status)));
+        log_t2("keyjail exited with status ", log_num(WEXITSTATUS(status)));
     }
 
     /* wait for child */
@@ -761,10 +761,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     } while (r == -1 && errno == EINTR);
     errno = 0;
     if (!WIFEXITED(status)) {
-        log_f2("child process killed by signal ", lognum(WTERMSIG(status)));
+        log_f2("child process killed by signal ", log_num(WTERMSIG(status)));
         die(111);
     }
-    log_d2("child exited with status ", lognum(WEXITSTATUS(status)));
+    log_d2("child exited with status ", log_num(WEXITSTATUS(status)));
     die(WEXITSTATUS(status));
 }
 

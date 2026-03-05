@@ -114,7 +114,7 @@ cleanup:
         memcpy(localportx, localport, 2);
         memcpy(remoteportx, remoteport, 2);
     }
-    log_t2("proxyprotocol_v1_get() = ", lognum(ret));
+    log_t2("proxyprotocol_v1_get() = ", log_num(ret));
     return ret;
 }
 

@@ -107,7 +107,7 @@ long long resolvehost(unsigned char *ip, long long iplen, const char *host) {
         for (i = 0; i < iplen - len; ++i) ip[len + i] = ip[i];
     }
 done:
-    log_t4("resolvehost(host = ", host, ") = ", lognum(len));
+    log_t4("resolvehost(host = ", host, ") = ", log_num(len));
     if (res0) freeaddrinfo(res0);
     return len;
 }

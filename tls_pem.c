@@ -131,8 +131,8 @@ int tls_pem_load(struct tls_pem *ctx, const char *fn,
 cleanup:
     if (fd != -1) close(fd);
     if (ret == 0) tls_pem_free(ctx);
-    log_t2("publen = ", lognum(ctx->publen));
-    log_t2("seclen = ", lognum(ctx->seclen));
-    log_t4("tls_pem_load(fn = ", fn, ") = ", lognum(ret));
+    log_t2("publen = ", log_num(ctx->publen));
+    log_t2("seclen = ", log_num(ctx->seclen));
+    log_t4("tls_pem_load(fn = ", fn, ") = ", log_num(ret));
     return ret;
 }

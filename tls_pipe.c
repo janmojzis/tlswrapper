@@ -78,8 +78,8 @@ size_t tls_pipe_dosign(const br_ssl_server_policy_class **pctx,
     unsigned char hash_id = algo_id & 0xff;
     (void) pctx;
 
-    log_t4("tls_pipe_dosign begin: algo_id=", lognum(algo_id),
-           ", len=", lognum(len));
+    log_t4("tls_pipe_dosign begin: algo_id=", log_num(algo_id),
+           ", len=", log_num(len));
 
     /* write hash_id */
     if (pipe_write(tls_pipe_tochild, &hash_id, sizeof hash_id) == -1) goto fail;

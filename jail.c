@@ -72,20 +72,20 @@ int jail(const char *account, const char *dir, int limits) {
 
     /* set gid */
     if (setgid(gid) == -1 || getgid() != gid) {
-        log_e3("setgid(", lognum(gid), ") failed");
+        log_e3("setgid(", log_num(gid), ") failed");
         goto cleanup;
     }
 
     /* init groups */
     if (pw) {
         if (initgroups(name, gid) == -1) {
-            log_e5("initgroups(", pw->pw_name, ", ", lognum(gid), ") failed");
+            log_e5("initgroups(", pw->pw_name, ", ", log_num(gid), ") failed");
             goto cleanup;
         }
     }
     else {
         if (setgroups(1, &gid) == -1) {
-            log_e3("setgroups(1, [", lognum(gid), "]) failed");
+            log_e3("setgroups(1, [", log_num(gid), "]) failed");
             goto cleanup;
         }
     }
@@ -105,7 +105,7 @@ int jail(const char *account, const char *dir, int limits) {
 
     /* set uid */
     if (setuid(uid) == -1 || getuid() != uid) {
-        log_e3("setuid(", lognum(uid), ") failed");
+        log_e3("setuid(", log_num(uid), ") failed");
         goto cleanup;
     }
 
@@ -159,18 +159,18 @@ int jail(const char *account, const char *dir, int limits) {
             log_e1("unable to set RLIMIT_DATA to 0");
             goto cleanup;
         }
-        log_t2("setrlimit RLIMIT_DATA set to ", lognum(DATAMAX));
+        log_t2("setrlimit RLIMIT_DATA set to ", log_num(DATAMAX));
     }
 #endif
 #endif
 
-    log_t4("running under uid = ", lognum(uid), ", gid = ", lognum(gid));
+    log_t4("running under uid = ", log_num(uid), ", gid = ", log_num(gid));
 
     ret = 0;
 
 cleanup:
 
-    log_t2("jail() = ", lognum(ret));
+    log_t2("jail() = ", log_num(ret));
 
     return ret;
 }

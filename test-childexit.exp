@@ -1,14 +1,14 @@
 child killed by SIGHUP
-tlswrapper: fatal: 1.2.3.4: child process killed by signal 1 
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 1
 111
 child killed by SIGINT
-tlswrapper: fatal: 1.2.3.4: child process killed by signal 2 
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 2
 111
 child killed by SIGKILL
-tlswrapper: fatal: 1.2.3.4: child process killed by signal 9 
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 9
 111
 child killed by SIGTERM
-tlswrapper: fatal: 1.2.3.4: child process killed by signal 15 
+tlswrapper: fatal: 1.2.3.4: child process killed by signal 15
 111
 child exited with status 0
 0

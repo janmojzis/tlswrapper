@@ -29,15 +29,15 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
     int err;
     size_t buflenorig = buflen;
 
-    log_t3("tls_seccrt_parse(buflen = ", lognum(buflen), ")");
+    log_t3("tls_seccrt_parse(buflen = ", log_num(buflen), ")");
 
     memset(crt, 0, sizeof *crt);
     br_pem_decoder_init(&pc);
 
     while (buflen > 0) {
         tlen = br_pem_decoder_push(&pc, buf, buflen);
-        log_t4("br_pem_decoder_push(len = ", lognum(buflen),
-               ") = ", lognum(tlen));
+        log_t4("br_pem_decoder_push(len = ", log_num(buflen),
+               ") = ", log_num(tlen));
         buf += tlen;
         buflen -= tlen;
 
@@ -87,17 +87,17 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
                             crt->key = br_skey_decoder_get_rsa(&crt->keydc);
                             rsakey = crt->key;
                             log_t2("key=0, sk=RSA, bits=",
-                                   lognum(rsakey->n_bitlen));
+                                   log_num(rsakey->n_bitlen));
                             break;
                         case BR_KEYTYPE_EC:
                             crt->key = br_skey_decoder_get_ec(&crt->keydc);
                             eckey = crt->key;
-                            log_t2("key=0, sk=EC, id=", lognum(eckey->curve));
+                            log_t2("key=0, sk=EC, id=", log_num(eckey->curve));
                             break;
 
                         default:
                             log_e5("unknown secret-key type ",
-                                   lognum(crt->key_type), " in '", fn, "'");
+                                   log_num(crt->key_type), " in '", fn, "'");
                             goto cleanup;
                     }
                 }
@@ -121,7 +121,7 @@ int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
     ret = 1;
 cleanup:
     randombytes(&pc, sizeof pc);
-    log_t4("tls_seccrt_parse(buflen = ", lognum(buflenorig),
-           ") = ", lognum(ret));
+    log_t4("tls_seccrt_parse(buflen = ", log_num(buflenorig),
+           ") = ", log_num(ret));
     return ret;
 }
