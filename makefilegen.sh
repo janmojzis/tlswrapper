@@ -38,7 +38,7 @@
     done
     for file in `ls -1 *.c | grep -v '^has'`; do
       (
-        gcc -MM "${file}"
+        gcc -isystem /usr/local/include -MM "${file}"
         echo "	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c ${file}"
         echo
       )
