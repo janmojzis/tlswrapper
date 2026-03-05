@@ -90,7 +90,6 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
 
 static void signalhandler(int signum) {
     int w;
-    log_t3("signal ", lognum(signum), " received");
     if (signum == SIGCHLD) {
         alarm(1);
         return;
