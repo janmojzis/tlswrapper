@@ -565,7 +565,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
     log_ip(iptostr(remoteipstr, remoteip));
 
-    /* non-blockning stdin/stdout */
+    /* non-blocking stdin/stdout */
     blocking_disable(0);
     blocking_disable(1);
 
