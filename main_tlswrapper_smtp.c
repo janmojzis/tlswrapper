@@ -118,7 +118,9 @@ static long long timeout_parse(const char *x) {
 
 static void signalhandler(int signum) {
     (void) signum;
-    die(111);
+    /* die(111); */
+    _exit(111);
+
 }
 
 static long long _write(int fd, void *xv, long long xlen) {
