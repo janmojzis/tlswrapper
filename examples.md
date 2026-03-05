@@ -32,6 +32,9 @@ qmail-smtpd
 ~~~python
 #!/usr/bin/env python3
 
+import smtplib
+import ssl
+
 # check if it works
 host=<your host>
 server = smtplib.SMTP(host, 25)
