@@ -457,7 +457,12 @@ finish:
     do {
         r = waitpid(child, &childstatus, 0);
     } while (r == -1 && errno == EINTR);
-    log_d1("finished");
+    errno = 0;
+    if (!WIFEXITED(childstatus)) {
+        log_f2("child process killed by signal ", log_num(WTERMSIG(childstatus)));
+        die(111);
+    }
+    log_d2("child exited with status ", log_num(WEXITSTATUS(childstatus)));
     die(WEXITSTATUS(childstatus));
 }
 
