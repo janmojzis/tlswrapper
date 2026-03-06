@@ -454,7 +454,9 @@ int main_tlswrapper_test(int argc, char **argv) {
     }
 
 finish:
-    while (waitpid(child, &childstatus, 0) != child) {};
+    do {
+        r = waitpid(child, &childstatus, 0);
+    } while (r == -1 && errno == EINTR);
     log_d1("finished");
     die(WEXITSTATUS(childstatus));
 }
