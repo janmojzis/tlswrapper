@@ -323,7 +323,7 @@ int main_tlswrapper_test(int argc, char **argv) {
     close(fromchild[1]);
     close(tochild[0]);
     blocking_enable(fromchild[0]);
-    blocking_enable(tochild[0]);
+    blocking_enable(tochild[1]);
 
 
     /* load and parse anchor PEM file */
