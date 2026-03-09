@@ -17,7 +17,7 @@ long long timeoutread(long long t, int fd, char *buf, long long len) {
     long long deadline, tm;
     fd_set rfds;
 
-    if (t < 0 || len < 0) {
+    if (t < 0 || len < 0 || fd < 0 || fd >= FD_SETSIZE) {
         errno = EINVAL;
         return -1;
     }
@@ -38,7 +38,10 @@ long long timeoutread(long long t, int fd, char *buf, long long len) {
         if (tm > 1000000000LL) tm = 1000000000LL;
         tv.tv_sec = tm / 1000000LL;
         tv.tv_usec = tm % 1000000LL;
-        select(fd + 1, &rfds, (fd_set *) 0, (fd_set *) 0, &tv);
+        if (select(fd + 1, &rfds, (fd_set *) 0, (fd_set *) 0, &tv) == -1) {
+            if (errno == EINTR) continue;
+            return -1;
+        }
         if (FD_ISSET(fd, &rfds)) break;
     }
     return read(fd, buf, len);

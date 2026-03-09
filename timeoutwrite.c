@@ -18,7 +18,7 @@ long long timeoutwrite(long long t, int fd, const char *buf, long long len) {
     long long deadline, tm;
     fd_set wfds;
 
-    if (t < 0 || len < 0) {
+    if (t < 0 || len < 0 || fd < 0 || fd >= FD_SETSIZE) {
         errno = EINVAL;
         return -1;
     }
@@ -39,7 +39,10 @@ long long timeoutwrite(long long t, int fd, const char *buf, long long len) {
         if (tm > 1000000000LL) tm = 1000000000LL;
         tv.tv_sec = tm / 1000000LL;
         tv.tv_usec = tm % 1000000LL;
-        select(fd + 1, (fd_set *) 0, &wfds, (fd_set *) 0, &tv);
+        if (select(fd + 1, (fd_set *) 0, &wfds, (fd_set *) 0, &tv) == -1) {
+            if (errno == EINTR) continue;
+            return -1;
+        }
         if (FD_ISSET(fd, &wfds)) break;
     }
     return write(fd, buf, len);
