@@ -717,15 +717,21 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
                 break;
             }
             tls_engine_sendapp5_ack(&ctx, r);
-            if (r == 0 && ctx.tonet5buflen) {
-                if (writeall(1, ctx.tonet5buf, ctx.tonet5buflen) == -1) {
-                    log_d1("write to standard output failed");
+            if (r == 0) {
+                close(fromchildcontrol[0]);
+                if (ctx.tonet5buflen) {
+                    if (writeall(1, ctx.tonet5buf, ctx.tonet5buflen) == -1) {
+                        log_d1("write to standard output failed");
+                        break;
+                    }
+                    ctx.flagdelayedenc = 0;
+                    log_d1("child requested encryption(STARTTLS), start TLS");
+                    alarm(hstimeout);
+                }
+                else {
+                    log_d1("control pipe closed before STARTTLS");
                     break;
                 }
-                ctx.flagdelayedenc = 0;
-                log_d1("child requested encryption(STARTTLS), start TLS");
-                close(fromchildcontrol[0]);
-                alarm(hstimeout);
             }
             continue;
         }
