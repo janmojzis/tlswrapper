@@ -57,3 +57,7 @@ int socket_connected(int s) {
     }
     return 1;
 }
+
+int socket_shutdown(int s) {
+    return shutdown(s, SHUT_WR);
+}

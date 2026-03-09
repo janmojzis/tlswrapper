@@ -30,6 +30,7 @@ static struct context {
 static unsigned char inbuf[4096];
 static unsigned long long inbuflen = 0;
 static int infinished = 0;
+static int inshutdown = 0;
 static unsigned char outbuf[4096];
 static unsigned long long outbuflen = 0;
 static int outfinished = 0;
@@ -289,14 +290,14 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         struct pollfd *watchtoremote;
         struct pollfd *watchfromselfpipe;
 
-        if ((infinished || outfinished) && inbuflen == 0 && outbuflen == 0) break;
+        if (outfinished && inbuflen == 0 && outbuflen == 0) break;
 
         watch0 = watch1 = watchfromremote = watchtoremote = watchfromselfpipe = 0;
         q = p;
 
         if (!infinished && sizeof inbuf > inbuflen) { watch0 = q; q->fd = 0; q->events = POLLIN; ++q; }
         if (outbuflen > 0) { watch1 = q; q->fd = 1; q->events = POLLOUT; ++q; }
-        if (inbuflen > 0) { watchtoremote = q; q->fd = fd; q->events = POLLOUT; ++q; }
+        if (inbuflen > 0 || (infinished && !inshutdown)) { watchtoremote = q; q->fd = fd; q->events = POLLOUT; ++q; }
         if (!outfinished && sizeof outbuf > outbuflen) { watchfromremote = q; q->fd = fd; q->events = POLLIN; ++q; }
         watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
 
@@ -312,11 +313,20 @@ int main_tlswrapper_tcp(int argc, char **argv) {
         }
 
         if (watchtoremote) {
-            r = write(fd, inbuf, inbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) { log_d5("write to ", hoststr, ":", portstr, " failed" ); break; }
-            memmove(inbuf, inbuf + r, inbuflen - r);
-            inbuflen -= r;
+            if (inbuflen > 0) {
+                r = write(fd, inbuf, inbuflen);
+                if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+                if (r <= 0) { log_d5("write to ", hoststr, ":", portstr, " failed" ); break; }
+                memmove(inbuf, inbuf + r, inbuflen - r);
+                inbuflen -= r;
+            }
+            if (infinished && !inshutdown && inbuflen == 0) {
+                if (socket_shutdown(fd) == -1 && errno != ENOTCONN) {
+                    log_d5("shutdown to ", hoststr, ":", portstr, " failed");
+                    break;
+                }
+                inshutdown = 1;
+            }
             continue;
         }
 
