@@ -7,6 +7,7 @@ warning: poll() handle EBADF in different way
 
 #include <poll.h>
 #include <sys/select.h>
+#include <errno.h>
 #include "log.h"
 #include "jail.h"
 
@@ -17,7 +18,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     fd_set rfds;
     fd_set wfds;
     nfds_t nfds;
-    int fd, r;
+    int fd, r = -1;
     nfds_t i;
 
     log_t5("jail_poll(len = ", log_num(len), ", millisecs = ", log_num(millisecs),
@@ -32,7 +33,11 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     for (i = 0; i < len; ++i) {
         fd = x[i].fd;
         if (fd < 0) continue;
-        if (fd >= (int) (8 * sizeof(fd_set))) continue;
+        if (fd >= FD_SETSIZE) {
+            errno = EINVAL;
+            log_e3("fd ", log_num(fd), " exceeds FD_SETSIZE");
+            goto cleanup;
+        }
         if ((unsigned int) fd >= nfds) nfds = fd + 1;
         if (x[i].events & POLLIN) FD_SET(fd, &rfds);
         if (x[i].events & POLLOUT) FD_SET(fd, &wfds);
@@ -51,7 +56,12 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     for (i = 0; i < len; ++i) {
         fd = x[i].fd;
         if (fd < 0) continue;
-        if (fd >= (int) (8 * sizeof(fd_set))) continue;
+        if (fd >= FD_SETSIZE) {
+            errno = EINVAL;
+            log_e3("fd ", log_num(fd), " exceeds FD_SETSIZE");
+            r = -1;
+            goto cleanup;
+        }
 
         if (x[i].events & POLLIN) {
             if (FD_ISSET(fd, &rfds)) {
