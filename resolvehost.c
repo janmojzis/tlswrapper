@@ -152,8 +152,11 @@ int resolvehost_init(void) {
 
                 buf[255] = 0;
                 iplen = resolvehost(ip + 1, sizeof ip - 1, (char *) buf);
-                ip[0] = iplen;
-                if (iplen == -1) iplen = 0;
+                if (iplen < 0) {
+                    ip[0] = /* -1 */ 255;
+                    iplen = 0;
+                }
+                else ip[0] = (unsigned char) iplen;
                 iplen += 1;
 
                 r = send(sockets[0], ip, iplen, 0);
@@ -196,7 +199,10 @@ long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
 
     r = recv(resolvehost_fd, buf, sizeof buf, 0);
     if (r <= 0) return -1;
-    if (r == 1) return buf[0];
+    if (r == 1) {
+        if ((unsigned char) buf[0] == 255) return -1;
+        return (unsigned char) buf[0];
+    }
     len = r - 1;
     if (iplen < len) len = iplen;
 
