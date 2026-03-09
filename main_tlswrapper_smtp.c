@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <unistd.h>
-#include <string.h>
+#include "str.h"
 #include "randombytes.h"
 #include "log.h"
 #include "iptostr.h"
@@ -99,6 +99,12 @@ static const char *crwtimeoutstr = "15";
 static long long timeout;
 static long long crwtimeout;
 
+#define SMTP_MAX_LINE 4096
+#define SMTP_MAX_MAILFROM 2048
+#define SMTP_MAX_RCPTTO 2048
+#define SMTP_MAX_RCPTS 256
+#define SMTP_MAX_RCPTTODATA 65536
+
 static long long timeout_parse(const char *x) {
     long long ret;
     if (!strtonum(&ret, x)) {
@@ -159,6 +165,7 @@ static stralloc cline = {0};
 static stralloc mailfrom = {0};
 static stralloc rcptto = {0};
 static stralloc rcpttodata = {0};
+static unsigned int rcptcount = 0;
 
 
 static int _catlogid(stralloc *sa) {
@@ -169,6 +176,27 @@ static int _catlogid(stralloc *sa) {
         if (!stralloc_cats(sa, "]")) return 0;
     }
     return 1;
+}
+
+static void stralloc_reset0(stralloc *sa) {
+    if (!stralloc_copys(sa, "")) die_nomem();
+    if (!stralloc_0(sa)) die_nomem();
+    --sa->len;
+}
+
+static void smtp_reset_transaction(void) {
+    stralloc_reset0(&mailfrom);
+    stralloc_reset0(&rcptto);
+    stralloc_reset0(&rcpttodata);
+    rcptcount = 0;
+}
+
+static void smtp_line_append(stralloc *sa, char ch, const char *what) {
+    if (sa->len >= SMTP_MAX_LINE) {
+        log_d2(what, " exceeds configured limit");
+        die(111);
+    }
+    if (!stralloc_append(sa, &ch)) die_nomem();
 }
 
 
@@ -260,37 +288,43 @@ static long long smtpline(const char *append, int addlogid) {
     if (!stralloc_copys(&cline, "")) die_nomem();
 
     buffer_GETC(&sscin, (char *)&ch); code = ch - '0';
-    if (!stralloc_append(&cline, &ch)) die_nomem();
+    smtp_line_append(&cline, ch, "child SMTP reply");
     buffer_GETC(&sscin, (char *)&ch); code = code * 10 + (ch - '0');
-    if (!stralloc_append(&cline, &ch)) die_nomem();
+    smtp_line_append(&cline, ch, "child SMTP reply");
     buffer_GETC(&sscin, (char *)&ch); code = code * 10 + (ch - '0');
-    if (!stralloc_append(&cline, &ch)) die_nomem();
+    smtp_line_append(&cline, ch, "child SMTP reply");
 
     for (;;) {
         buffer_GETC(&sscin, (char *)&ch);
         if (append && code == 250 && ch == ' ') {
-            if (!stralloc_cats(&cline, "-")) die_nomem();
+            smtp_line_append(&cline, '-', "child SMTP reply");
         }
         else {
-            if (!stralloc_append(&cline, &ch)) die_nomem();
+            smtp_line_append(&cline, ch, "child SMTP reply");
         }
         if (ch != '-') break;
         while (ch != '\n') {
             buffer_GETC(&sscin, (char *)&ch);
-            if (!stralloc_append(&cline, &ch)) die_nomem();
+            smtp_line_append(&cline, ch, "child SMTP reply");
         }
         buffer_GETC(&sscin, (char *)&ch);
-        if (!stralloc_append(&cline, &ch)) die_nomem();
+        smtp_line_append(&cline, ch, "child SMTP reply");
         buffer_GETC(&sscin, (char *)&ch);
-        if (!stralloc_append(&cline, &ch)) die_nomem();
+        smtp_line_append(&cline, ch, "child SMTP reply");
         buffer_GETC(&sscin, (char *)&ch);
-        if (!stralloc_append(&cline, &ch)) die_nomem();
+        smtp_line_append(&cline, ch, "child SMTP reply");
     }
     while (ch != '\n') {
         buffer_GETC(&sscin, (char *)&ch);
-        if (!stralloc_append(&cline, &ch)) die_nomem();
+        smtp_line_append(&cline, ch, "child SMTP reply");
     }
-    if (append && code == 250) if (!stralloc_cats(&cline, append)) die_nomem();
+    if (append && code == 250) {
+        if (cline.len + (long long) str_len(append) > SMTP_MAX_LINE) {
+            log_d1("child SMTP reply exceeds configured limit");
+            die(111);
+        }
+        if (!stralloc_cats(&cline, append)) die_nomem();
+    }
     if (!stralloc_0(&cline)) die_nomem();
     --cline.len;
     log_t3("child line: '", cline.s, "'");
@@ -317,7 +351,7 @@ static void readline(void) {
       buffer_GETC(&ssin, &ch);
       if (ch == '\n') break;
       if (!ch) ch = '\n';
-      if (!stralloc_append(&line, &ch)) die_nomem();
+      smtp_line_append(&line, ch, "SMTP command line");
     }
     if (line.len > 0) if (line.s[line.len - 1] == '\r') --line.len;
     if (!stralloc_cats(&line, "\r\n")) die_nomem();
@@ -407,12 +441,14 @@ static void smtp_data(void) {
     else {
         log_i6("F=", mailfrom.s, " T=", rcpttodata.s, ": ", cline.s);
     }
+    smtp_reset_transaction();
 }
 
 static void smtp_mail(void) {
 
     long long code, i;
 
+    smtp_reset_transaction();
     if (line.len >= 10) {
         if (!case_diffb(line.s, 10, "mail from:")) {
             if (!stralloc_copyb(&mailfrom, line.s + 10, line.len - 10)) die_nomem();
@@ -420,6 +456,10 @@ static void smtp_mail(void) {
             if (mailfrom.s[mailfrom.len - 1] == '\r') --mailfrom.len;
             for (i = 0; i < mailfrom.len; ++i) {
                 if (mailfrom.s[i] == ' ') mailfrom.len = i;
+            }
+            if (mailfrom.len > SMTP_MAX_MAILFROM) {
+                log_d1("MAIL FROM exceeds configured limit");
+                die(111);
             }
             if (!stralloc_0(&mailfrom)) die_nomem();
         }
@@ -446,11 +486,24 @@ static void smtp_rcpt(void) {
                     break;
                 }
             }
+            if (rcptto.len > SMTP_MAX_RCPTTO) {
+                log_d1("RCPT TO exceeds configured limit");
+                die(111);
+            }
+            if (rcptcount >= SMTP_MAX_RCPTS) {
+                log_d1("too many recipients in a single transaction");
+                die(111);
+            }
+            if (rcpttodata.len + rcptto.len + 1 > SMTP_MAX_RCPTTODATA) {
+                log_d1("recipient list exceeds configured limit");
+                die(111);
+            }
             if (!stralloc_cat(&rcpttodata, &rcptto)) die_nomem();
             if (!stralloc_cats(&rcpttodata, ",")) die_nomem();
             if (!stralloc_0(&rcptto)) die_nomem();
             if (!stralloc_0(&rcpttodata)) die_nomem();
             --rcpttodata.len;
+            ++rcptcount;
         }
     }
 
@@ -516,6 +569,7 @@ static void smtp_starttls(void) {
 
     buffer_putsflush(&sscout, "RSET\r\n");
     smtpline(0, 1);
+    smtp_reset_transaction();
 }
 
 struct commands smtpcommands[] = {
@@ -688,13 +742,8 @@ int main_tlswrapper_smtp(int argc, char **argv) {
     (void) connectioninfo_get(localip, localport, remoteip, remoteport);
     log_set_ip(iptostr(remoteipstr, remoteip));
 
-    /* initialize mailfrom, rcptto */
-    if (!stralloc_0(&mailfrom)) die_nomem();
-    --mailfrom.len;
-    if (!stralloc_0(&rcptto)) die_nomem();
-    --rcptto.len;
-    if (!stralloc_0(&rcpttodata)) die_nomem();
-    --rcpttodata.len;
+    /* initialize mail transaction state */
+    smtp_reset_transaction();
 
     alarm(timeout);
 
