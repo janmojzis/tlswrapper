@@ -9,8 +9,8 @@ PREFIX?=/usr/local
 
 INSTALL?=install
 
-BINARIES=tlswrapper
-BINARIES+=tlswrapper-test
+BINARIES=tlswrapper-test
+BINARIES+=tlswrapper
 
 all: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
@@ -57,7 +57,7 @@ jail.o: jail.c log.h randommod.h jail.h
 jail_poll.o: jail_poll.c log.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c jail_poll.c
 
-log.o: log.c e.h randommod.h log.h
+log.o: log.c e.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
@@ -66,7 +66,7 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
-main_tlswrapper_smtp.o: main_tlswrapper_smtp.c randombytes.h \
+main_tlswrapper_smtp.o: main_tlswrapper_smtp.c str.h randombytes.h \
  haslibrandombytes.h log.h iptostr.h connectioninfo.h jail.h writeall.h \
  buffer.h stralloc.h open.h e.h tls.h blocking.h resolvehost.h hostport.h \
  conn.h case.h timeoutwrite.h timeoutread.h strtonum.h main.h
@@ -118,11 +118,11 @@ resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
 socket.o: socket.c blocking.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
 
-stralloc.o: stralloc.c alloc.h stralloc.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c stralloc.c
-
 str.o: str.c str.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c str.c
+
+stralloc.o: stralloc.c alloc.h stralloc.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c stralloc.c
 
 strtoip.o: strtoip.c strtoip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
@@ -193,11 +193,11 @@ tls_seccrt.o: tls_seccrt.c log.h randombytes.h haslibrandombytes.h str.h \
 tls_version.o: tls_version.c str.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_version.c
 
-tlswrapper.o: tlswrapper.c str.h main.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
-
 tlswrapper-test.o: tlswrapper-test.c str.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper-test.c
+
+tlswrapper.o: tlswrapper.c str.h main.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c tlswrapper.c
 
 writeall.o: writeall.c e.h jail.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c writeall.c
@@ -232,8 +232,8 @@ OBJECTS+=randommod.o
 OBJECTS+=readall.o
 OBJECTS+=resolvehost.o
 OBJECTS+=socket.o
-OBJECTS+=stralloc.o
 OBJECTS+=str.o
+OBJECTS+=stralloc.o
 OBJECTS+=strtoip.o
 OBJECTS+=strtonum.o
 OBJECTS+=strtoport.o
@@ -257,11 +257,11 @@ OBJECTS+=tls_seccrt.o
 OBJECTS+=tls_version.o
 OBJECTS+=writeall.o
 
-tlswrapper: tlswrapper.o $(OBJECTS) libs
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS) `cat libs`
-
 tlswrapper-test: tlswrapper-test.o $(OBJECTS) libs
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper-test tlswrapper-test.o $(OBJECTS) $(LDFLAGS) `cat libs`
+
+tlswrapper: tlswrapper.o $(OBJECTS) libs
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o tlswrapper tlswrapper.o $(OBJECTS) $(LDFLAGS) `cat libs`
 
 
 haslib25519.h: tryfeature.sh haslib25519.c libs
