@@ -9,14 +9,14 @@ tcpserver -HRDl0 0.0.0.0 465 \
 /usr/sbin/qmail-smtpd
 ~~~
 
-## run dovecot IMAPS service on port 993, authorization using client certs, and run under user extracted from client certificate from commonName
+## run courier IMAPS service on port 993, authorization using client certs, and run under user extracted from client certificate from commonName
 ~~~bash
 #!/bin/sh
 
 exec softlimit -m 64000000 -f 100000000 \
 tcpserver -HRDl0 0.0.0.0 993 \
 /usr/bin/tlswrapper -U commonName -f /etc/ssl/sslcert.pem -a /etc/ssl/ca.pem \
-/usr/lib/dovecot/imap
+/usr/bin/imapd
 ~~~
 
 ## run qmail-smtpd SMTP service on port 25 with STARTTLS enabled (without patching QMAIL)
