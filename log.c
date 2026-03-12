@@ -29,7 +29,6 @@
  * {file:function:line}  included only in debug/tracing verbosity levels
  * [id] ................ optional
  *
- * SPDX-License-Identifier: MIT-0
  */
 
 #include <arpa/inet.h>
