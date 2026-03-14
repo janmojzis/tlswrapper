@@ -304,6 +304,7 @@ test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp tlswrapper-test
 	sh runtest.sh test-badkey.sh test-badkey.out test-badkey.exp
 	sh runtest.sh test-childexit.sh test-childexit.out test-childexit.exp
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
+	sh runtest.sh test-tlswrapper-tcp.sh test-tlswrapper-tcp.out test-tlswrapper-tcp.exp
 
 clean:
 	rm -f *.log *.o *.out $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp tlswrapper-test has*.h

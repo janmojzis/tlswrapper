@@ -114,6 +114,7 @@
     echo "	sh runtest.sh test-badkey.sh test-badkey.out test-badkey.exp"
     echo "	sh runtest.sh test-childexit.sh test-childexit.out test-childexit.exp"
     echo "	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp"
+    echo "	sh runtest.sh test-tlswrapper-tcp.sh test-tlswrapper-tcp.out test-tlswrapper-tcp.exp"
     echo
 
     echo "clean:"

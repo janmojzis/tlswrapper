@@ -1,0 +1,9 @@
+INFO Running client_pings_first
+INFO client_pings_first: OK
+INFO Running client_half_closes_after_pong
+INFO client_half_closes_after_pong: OK
+INFO Running server_pings_first
+INFO server_pings_first: OK
+INFO Running server_half_closes_after_pong
+INFO server_half_closes_after_pong: OK
+INFO All tests passed
