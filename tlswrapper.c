@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     if (!x) _exit(100);
 
     if (str_equal(x, "tlswrapper-tcp")) {
-        return main_tlswrapper_tcp(argc, argv);
+        return main_tlswrapper_tcp(argc, argv, 0);
     }
     if (str_equal(x, "tlswrapper-smtp")) {
         return main_tlswrapper_smtp(argc, argv);

@@ -149,7 +149,7 @@ static void signalhandler(int signum) {
     (void) w;
 }
 
-int main_tlswrapper_tcp(int argc, char **argv) {
+int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
 
     char *x;
     long long i;
@@ -219,11 +219,16 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     }
 
     /* resolve host */
-    if (!resolvehost_init()) {
-        log_f1("unable to create jailed process for DNS resolver");
-        die(111);
+    if (flagnojail) {
+        iplen = resolvehost(ip, sizeof ip, hoststr);
     }
-    iplen = resolvehost_do(ip, sizeof ip, hoststr);
+    else {
+        if (!resolvehost_init()) {
+            log_f1("unable to create jailed process for DNS resolver");
+            die(111);
+        }
+        iplen = resolvehost_do(ip, sizeof ip, hoststr);
+    }
     if (iplen < 0) {
         log_f5("unable to resolve host '", hoststr, "' or port '", portstr, "'");
         die(111);
@@ -247,7 +252,9 @@ int main_tlswrapper_tcp(int argc, char **argv) {
     }
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
-    if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_jail();
+    if (!flagnojail) {
+        if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_jail();
+    }
 
     /* receive proxy-protocol string */
     if (ppin) {

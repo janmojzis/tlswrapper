@@ -103,7 +103,9 @@
     echo "	\$(INSTALL) -m 0644 man/tlswrapper-tcp.1 \$(DESTDIR)\$(PREFIX)/share/man/man1/tlswrapper-tcp.1"
     echo
 
-    echo "test: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
+    echo "test: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp tlswrapper-test"
+    echo "	rm -f tlswrappernojail-tcp"
+    echo "	ln -s tlswrapper-test tlswrappernojail-tcp"
     echo "	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp"
     echo "	sh runtest.sh test-ephemeral.sh test-ephemeral.out test-ephemeral.exp"
     echo "	sh runtest.sh test-options.sh test-options.out test-options.exp"
@@ -115,7 +117,7 @@
     echo
 
     echo "clean:"
-    echo "	rm -f *.log *.o *.out \$(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h"
+    echo "	rm -f *.log *.o *.out \$(BINARIES) libs tlswrapper-tcp tlswrapper-smtp tlswrapper-test has*.h"
     echo 
 
   ) > Makefile

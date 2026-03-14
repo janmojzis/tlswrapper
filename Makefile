@@ -293,7 +293,9 @@ install: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 	$(INSTALL) -m 0644 man/tlswrapper-smtp.1 $(DESTDIR)$(PREFIX)/share/man/man1/tlswrapper-smtp.1
 	$(INSTALL) -m 0644 man/tlswrapper-tcp.1 $(DESTDIR)$(PREFIX)/share/man/man1/tlswrapper-tcp.1
 
-test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
+test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp tlswrapper-test
+	rm -f tlswrappernojail-tcp
+	ln -s tlswrapper-test tlswrappernojail-tcp
 	sh runtest.sh test-cipher.sh test-cipher.out test-cipher.exp
 	sh runtest.sh test-ephemeral.sh test-ephemeral.out test-ephemeral.exp
 	sh runtest.sh test-options.sh test-options.out test-options.exp
@@ -304,5 +306,5 @@ test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 
 clean:
-	rm -f *.log *.o *.out $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h
+	rm -f *.log *.o *.out $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp tlswrapper-test has*.h
 
