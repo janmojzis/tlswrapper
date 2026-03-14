@@ -121,7 +121,6 @@ static void pp_outgoing(const char *x) {
     else {
         log_f3("unable to parse outgoing proxy-protocol version from the string '", x, "'");
         log_f1("available: 1");
-        log_f1("available: 2");
         die(100);
     }
 }
