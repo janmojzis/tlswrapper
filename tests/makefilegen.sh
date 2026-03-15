@@ -101,6 +101,7 @@
     echo "	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp"
     echo "	sh runtest.sh test-tlswrapper-tcp.sh test-tlswrapper-tcp.out test-tlswrapper-tcp.exp"
     echo "	sh runtest.sh test-tlswrapper-smtp.sh test-tlswrapper-smtp.out test-tlswrapper-smtp.exp"
+    echo "	sh runtest.sh test-tlswrapper-starttls.sh test-tlswrapper-starttls.out test-tlswrapper-starttls.exp"
     echo
 
     echo "clean:"
