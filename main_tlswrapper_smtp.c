@@ -584,7 +584,7 @@ struct commands smtpcommands[] = {
 
 
 
-int main_tlswrapper_smtp(int argc, char **argv) {
+int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
 
     char *x;
     struct stat st;
@@ -700,9 +700,11 @@ int main_tlswrapper_smtp(int argc, char **argv) {
     }
 
     if (greylisthostport) {
-        if (!resolvehost_init()) {
-            log_f1("unable to create jailed process for DNS resolver");
-            die(111);
+        if (!flagnojail) {
+            if (!resolvehost_init()) {
+                log_f1("unable to create jailed process for DNS resolver");
+                die(111);
+            }
         }
         if (!conn_init(1)) {
             log_f1("unable to initialize TCP connection");
@@ -711,10 +713,17 @@ int main_tlswrapper_smtp(int argc, char **argv) {
     }
 
     /* create jail */
-    if (jail(jailaccount, jaildir, 1) == -1) die_jail();
+    if (!flagnojail) {
+        if (jail(jailaccount, jaildir, 1) == -1) die_jail();
+    }
 
     if (greylisthostport) {
-        greylistiplen = resolvehost_do(greylistip, sizeof greylistip, greylisthost);
+        if (flagnojail) {
+            greylistiplen = resolvehost(greylistip, sizeof greylistip, greylisthost);
+        }
+        else {
+            greylistiplen = resolvehost_do(greylistip, sizeof greylistip, greylisthost);
+        }
         if (greylistiplen < 0) {
             log_f3("unable to resolve host '", greylisthost, "'");
             die(111);
@@ -724,7 +733,7 @@ int main_tlswrapper_smtp(int argc, char **argv) {
             die(111);
         }
         log_d4("resolvehost: ", greylisthost, ": ", log_ip(greylistip));
-        resolvehost_close();
+        if (!flagnojail) resolvehost_close();
 
         greylistfd = conn(crwtimeout, greylistip, greylistiplen, greylistport);
         if (greylistfd == -1) {

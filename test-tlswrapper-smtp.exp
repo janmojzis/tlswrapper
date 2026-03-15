@@ -1,0 +1,65 @@
+=== short_session ===
+INFO Running short_session
+INFO short_session: OK
+INFO All tests passed
+
+=== data_resets_envelope ===
+INFO Running data_resets_envelope
+INFO data_resets_envelope: OK
+INFO All tests passed
+
+=== line_too_long ===
+INFO Running line_too_long
+INFO line_too_long: OK
+INFO All tests passed
+
+=== mailfrom_too_long ===
+INFO Running mailfrom_too_long
+INFO mailfrom_too_long: OK
+INFO All tests passed
+
+=== mail_resets_previous_rcpts ===
+INFO Running mail_resets_previous_rcpts
+INFO mail_resets_previous_rcpts: OK
+INFO All tests passed
+
+=== rcptto_too_long ===
+INFO Running rcptto_too_long
+INFO rcptto_too_long: OK
+INFO All tests passed
+
+=== starttls_available_advertised ===
+INFO Running starttls_available_advertised
+INFO starttls_available_advertised: OK
+INFO All tests passed
+
+=== starttls_control_pipe_banner ===
+INFO Running starttls_control_pipe_banner
+INFO starttls_control_pipe_banner: OK
+INFO All tests passed
+
+=== starttls_short_session ===
+INFO Running starttls_short_session
+INFO starttls_short_session: OK
+INFO All tests passed
+
+=== starttls_resets_envelope ===
+INFO Running starttls_resets_envelope
+INFO starttls_resets_envelope: OK
+INFO All tests passed
+
+=== starttls_unavailable_rejected ===
+INFO Running starttls_unavailable_rejected
+INFO starttls_unavailable_rejected: OK
+INFO All tests passed
+
+=== too_many_rcpts ===
+INFO Running too_many_rcpts
+INFO too_many_rcpts: OK
+INFO All tests passed
+
+=== rcpttodata_too_large ===
+INFO Running rcpttodata_too_large
+INFO rcpttodata_too_large: OK
+INFO All tests passed
+
