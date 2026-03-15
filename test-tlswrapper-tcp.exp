@@ -1,9 +1,80 @@
+=== client_pings_first ===
 INFO Running client_pings_first
 INFO client_pings_first: OK
-INFO Running client_half_closes_after_pong
-INFO client_half_closes_after_pong: OK
+INFO All tests passed
+
+=== server_pings_first ===
 INFO Running server_pings_first
 INFO server_pings_first: OK
+INFO All tests passed
+
+=== both_sides_ping_simultaneously ===
+INFO Running both_sides_ping_simultaneously
+INFO both_sides_ping_simultaneously: OK
+INFO All tests passed
+
+=== client_half_closes_after_pong ===
+INFO Running client_half_closes_after_pong
+INFO client_half_closes_after_pong: OK
+INFO All tests passed
+
+=== server_half_closes_after_pong ===
 INFO Running server_half_closes_after_pong
 INFO server_half_closes_after_pong: OK
 INFO All tests passed
+
+=== both_sides_half_close_after_pong ===
+INFO Running both_sides_half_close_after_pong
+INFO both_sides_half_close_after_pong: OK
+INFO All tests passed
+
+=== server_half_closes_without_sending_data_client_still_writes ===
+INFO Running server_half_closes_without_sending_data_client_still_writes
+INFO server_half_closes_without_sending_data_client_still_writes: OK
+INFO All tests passed
+
+=== client_half_closes_without_sending_data_server_still_writes ===
+INFO Running client_half_closes_without_sending_data_server_still_writes
+INFO client_half_closes_without_sending_data_server_still_writes: OK
+INFO All tests passed
+
+=== server_half_closes_before_any_client_data ===
+INFO Running server_half_closes_before_any_client_data
+INFO server_half_closes_before_any_client_data: OK
+INFO All tests passed
+
+=== client_half_closes_before_any_server_data ===
+INFO Running client_half_closes_before_any_server_data
+INFO client_half_closes_before_any_server_data: OK
+INFO All tests passed
+
+=== both_sides_half_close_without_data ===
+INFO Running both_sides_half_close_without_data
+INFO both_sides_half_close_without_data: OK
+INFO All tests passed
+
+=== server_half_closes_and_client_sends_large_payload ===
+INFO Running server_half_closes_and_client_sends_large_payload
+INFO server_half_closes_and_client_sends_large_payload: OK
+INFO All tests passed
+
+=== client_half_closes_and_server_sends_large_payload ===
+INFO Running client_half_closes_and_server_sends_large_payload
+INFO client_half_closes_and_server_sends_large_payload: OK
+INFO All tests passed
+
+=== both_sides_large_payload ===
+INFO Running both_sides_large_payload
+INFO both_sides_large_payload: OK
+INFO All tests passed
+
+=== reply_after_client_eof ===
+INFO Running reply_after_client_eof
+INFO reply_after_client_eof: OK
+INFO All tests passed
+
+=== reply_after_empty_client_eof ===
+INFO Running reply_after_empty_client_eof
+INFO reply_after_empty_client_eof: OK
+INFO All tests passed
+
