@@ -17,6 +17,7 @@ both_sides_large_payload
 reply_after_client_eof
 reply_after_empty_client_eof
 remote_silent_close
+chunked_stdin_remote_eof
 "
 
 for t in ${tests}; do
