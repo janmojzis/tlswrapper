@@ -1,5 +1,8 @@
 #!/bin/sh
 
+PATH="./:${PATH}"
+export PATH
+
 tests="client_pings_first
 server_pings_first
 both_sides_ping_simultaneously

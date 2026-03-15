@@ -291,7 +291,7 @@ test: $(BINARIES) tlswrappernojail tlswrappernojail-tcp tlswrappernojail-smtp
 	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp
 	sh runtest.sh test-tlswrapper-tcp.sh test-tlswrapper-tcp.out test-tlswrapper-tcp.exp
 	sh runtest.sh test-tlswrapper-smtp.sh test-tlswrapper-smtp.out test-tlswrapper-smtp.exp
-	sh runtest.sh test-tlswrapper-starttls.sh test-tlswrapper-starttls.out test-tlswrapper-starttls.exp
+	sh runtest.sh test-tlswrapper.sh test-tlswrapper.out test-tlswrapper.exp
 
 clean:
 	rm -f *.log *.o *.out $(BINARIES) libs tlswrappernojail tlswrappernojail-tcp tlswrappernojail-smtp has*.h

@@ -1,14 +1,14 @@
 #!/bin/sh
 
+PATH="./:${PATH}"
+export PATH
+
 cleanup() {
   ex=$?
   rm -rf test-tlswrapper-smtp-child.log
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
-
-PATH="./:${PATH}"
-export PATH
 
 tests="short_session
 data_resets_envelope
