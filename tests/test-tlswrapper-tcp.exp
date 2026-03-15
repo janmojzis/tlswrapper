@@ -78,3 +78,13 @@ INFO Running reply_after_empty_client_eof
 INFO reply_after_empty_client_eof: OK
 INFO All tests passed
 
+=== remote_silent_close ===
+INFO Running remote_silent_close
+INFO remote_silent_close: OK
+INFO All tests passed
+
+=== chunked_stdin_remote_eof ===
+INFO Running chunked_stdin_remote_eof
+INFO chunked_stdin_remote_eof: OK
+INFO All tests passed
+

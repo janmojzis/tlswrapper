@@ -1,5 +1,8 @@
 #!/bin/sh
 
+PATH="./:${PATH}"
+export PATH
+
 tests="client_pings_first
 server_pings_first
 both_sides_ping_simultaneously
@@ -16,6 +19,8 @@ client_half_closes_and_server_sends_large_payload
 both_sides_large_payload
 reply_after_client_eof
 reply_after_empty_client_eof
+remote_silent_close
+chunked_stdin_remote_eof
 "
 
 for t in ${tests}; do

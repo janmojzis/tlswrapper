@@ -366,6 +366,84 @@ def test_reply_after_empty_client_eof() -> None:
     LOGGER.debug("Finished scenario: reply_after_empty_client_eof")
 
 
+def test_remote_silent_close() -> None:
+    """Verify wrapper exits cleanly when the peer closes without replying."""
+
+    LOGGER.debug("Starting scenario: remote_silent_close")
+    with TestTcpServer(HOST, TIMEOUT) as test:
+        request = b"request-before-silent-close"
+
+        test.client_write(request)
+        test.client_half_close()
+        test.server_read(request)
+        test.server_expect_eof()
+        test.server_close_connection()
+        test.client_expect_eof()
+        test.wait_for_exit()
+
+    LOGGER.debug("Finished scenario: remote_silent_close")
+
+
+def test_chunked_stdin_remote_eof() -> None:
+    """Verify stdin keeps draining after the peer sends reply and half-closes."""
+
+    LOGGER.debug("Starting scenario: chunked_stdin_remote_eof")
+    with TestTcpServer(HOST, TIMEOUT) as test:
+        first_chunk = b"chunk-one-"
+        second_chunk = b"chunk-two"
+        reply = b"reply-before-client-eof\n"
+        first_chunk_received = threading.Event()
+        peer_half_closed = threading.Event()
+        errors: list[Exception] = []
+
+        def client_flow() -> None:
+            try:
+                test.client_write(first_chunk)
+                if not peer_half_closed.wait(timeout=test.timeout):
+                    raise TestFailure("Peer did not half-close after the first chunk")
+                test.client_write(second_chunk)
+                test.client_half_close()
+            except Exception as exc:
+                errors.append(exc)
+
+        def server_flow() -> None:
+            try:
+                test.server_read(first_chunk)
+                first_chunk_received.set()
+                test.server_write(reply)
+                test.server_half_close()
+                peer_half_closed.set()
+                test.server_read(second_chunk)
+                test.server_expect_eof()
+            except Exception as exc:
+                errors.append(exc)
+
+        client_thread = threading.Thread(
+            target=client_flow,
+            name="client-chunked-stdin-remote-eof",
+        )
+        server_thread = threading.Thread(
+            target=server_flow,
+            name="server-chunked-stdin-remote-eof",
+        )
+        server_thread.start()
+        client_thread.start()
+        if not first_chunk_received.wait(timeout=test.timeout):
+            raise TestFailure("Peer did not receive the first stdin chunk in time")
+        test.client_read(reply)
+        test.client_expect_eof()
+        client_thread.join(timeout=test.timeout + 1)
+        server_thread.join(timeout=test.timeout + 1)
+
+        if client_thread.is_alive() or server_thread.is_alive():
+            raise TestFailure("Chunked-stdin remote-EOF threads did not finish in time")
+        if errors:
+            raise errors[0]
+        test.wait_for_exit()
+
+    LOGGER.debug("Finished scenario: chunked_stdin_remote_eof")
+
+
 def test_both_sides_ping_simultaneously() -> None:
     """Verify both directions work when both peers start writing together."""
 
@@ -753,6 +831,8 @@ TESTS: dict[str, Callable[[], None]] = {
     "client_pings_first": test_client_pings_first,
     "reply_after_client_eof": test_reply_after_client_eof,
     "reply_after_empty_client_eof": test_reply_after_empty_client_eof,
+    "remote_silent_close": test_remote_silent_close,
+    "chunked_stdin_remote_eof": test_chunked_stdin_remote_eof,
     "both_sides_ping_simultaneously": test_both_sides_ping_simultaneously,
     "both_sides_half_close_after_pong": test_both_sides_half_close_after_pong,
     "server_half_closes_after_pong": test_server_half_closes_after_pong,

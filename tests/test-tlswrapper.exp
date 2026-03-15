@@ -1,3 +1,5 @@
+=== control_pipe_eof_before_starttls ===
 INFO Running control_pipe_eof_before_starttls
 INFO control_pipe_eof_before_starttls: OK
 INFO All tests passed
+
