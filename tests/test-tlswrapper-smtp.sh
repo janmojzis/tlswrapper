@@ -2,16 +2,13 @@
 
 cleanup() {
   ex=$?
-  rm -rf tlswrappernojail-smtp test-tlswrapper-smtp-child.log
+  rm -rf test-tlswrapper-smtp-child.log
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
 
 PATH="./:${PATH}"
 export PATH
-
-rm -f tlswrappernojail-smtp
-ln -s tlswrapper-test tlswrappernojail-smtp
 
 tests="short_session
 data_resets_envelope

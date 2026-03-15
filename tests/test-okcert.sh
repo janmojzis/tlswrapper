@@ -25,12 +25,10 @@ randdata() {
 
 cleanup() {
   ex=$?
-  rm -rf data.in data.out log tlswrappernojail
+  rm -rf data.in data.out log
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
-
-ln -s tlswrapper-test tlswrappernojail
 
 PATH="./:${PATH}"
 export PATH

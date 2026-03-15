@@ -2,7 +2,7 @@
 
 cleanup() {
   ex=$?
-  rm -rf tlswrappernojail testfifo testfile testdir .dottestdir .dottestfile testdirlink testfilelink
+  rm -rf testfifo testfile testdir .dottestdir .dottestfile testdirlink testfilelink
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
@@ -10,7 +10,6 @@ trap "cleanup" EXIT TERM INT
 PATH="./:${PATH}"
 export PATH
 
-ln -s tlswrapper-test tlswrappernojail
 mkfifo testfifo
 mkdir .dottestdir testdir
 touch .dottestfile testfile

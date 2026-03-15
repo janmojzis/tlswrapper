@@ -2,7 +2,7 @@
 
 cleanup() {
   ex=$?
-  rm -rf tlswrappernojail data.in
+  rm -rf data.in
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
@@ -10,7 +10,6 @@ trap "cleanup" EXIT TERM INT
 PATH="./:${PATH}"
 export PATH
 
-ln -s tlswrapper-test tlswrappernojail
 echo 'OK
 ' > data.in
 

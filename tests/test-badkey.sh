@@ -7,7 +7,7 @@ TCPLOCALPORT=0; export TCPLOCALPORT
 
 cleanup() {
   ex=$?
-  rm -rf tlswrappernojail testemptycert
+  rm -rf testemptycert
   exit "${ex}"
 }
 trap "cleanup" EXIT TERM INT
@@ -15,16 +15,18 @@ trap "cleanup" EXIT TERM INT
 PATH="./:${PATH}"
 export PATH
 
-ln -s tlswrapper-test tlswrappernojail
 touch testemptycert
 
+#LANG=C
+#export LANG
 
-ls testcerts | grep '^badcert-' |\
-while read name; do
-  echo $name
-  tlswrapper-test -qr tlswrappernojail -vf "testcerts/${name}" true 2>&1 | sed 's/ (.*)/ /'
-  echo $?
-done
+(
+  ls testcerts | grep '^badkey-' |\
+  while read name; do
+    tlswrapper-test -r tlswrappernojail -vf "testcerts/${name}" true 2>&1
+    echo $?
+  done
+) | sed 's/ (.*)//'
 
 #echo 'tlswrapper rejects empty PEM cert.'
 #tlswrapper-test -qr tlswrappernojail -vf testemptycert true 2>&1
