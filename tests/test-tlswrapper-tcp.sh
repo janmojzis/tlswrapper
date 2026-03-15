@@ -16,6 +16,7 @@ client_half_closes_and_server_sends_large_payload
 both_sides_large_payload
 reply_after_client_eof
 reply_after_empty_client_eof
+remote_silent_close
 "
 
 for t in ${tests}; do

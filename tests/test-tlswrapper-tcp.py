@@ -366,6 +366,24 @@ def test_reply_after_empty_client_eof() -> None:
     LOGGER.debug("Finished scenario: reply_after_empty_client_eof")
 
 
+def test_remote_silent_close() -> None:
+    """Verify wrapper exits cleanly when the peer closes without replying."""
+
+    LOGGER.debug("Starting scenario: remote_silent_close")
+    with TestTcpServer(HOST, TIMEOUT) as test:
+        request = b"request-before-silent-close"
+
+        test.client_write(request)
+        test.client_half_close()
+        test.server_read(request)
+        test.server_expect_eof()
+        test.server_close_connection()
+        test.client_expect_eof()
+        test.wait_for_exit()
+
+    LOGGER.debug("Finished scenario: remote_silent_close")
+
+
 def test_both_sides_ping_simultaneously() -> None:
     """Verify both directions work when both peers start writing together."""
 
@@ -753,6 +771,7 @@ TESTS: dict[str, Callable[[], None]] = {
     "client_pings_first": test_client_pings_first,
     "reply_after_client_eof": test_reply_after_client_eof,
     "reply_after_empty_client_eof": test_reply_after_empty_client_eof,
+    "remote_silent_close": test_remote_silent_close,
     "both_sides_ping_simultaneously": test_both_sides_ping_simultaneously,
     "both_sides_half_close_after_pong": test_both_sides_half_close_after_pong,
     "server_half_closes_after_pong": test_server_half_closes_after_pong,
