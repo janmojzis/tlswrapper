@@ -23,6 +23,7 @@ rcptto_too_long
 rcptto_exact_limit
 starttls_available_advertised
 starttls_control_pipe_banner
+starttls_fresh_transaction
 starttls_short_session
 starttls_resets_envelope
 starttls_unavailable_rejected

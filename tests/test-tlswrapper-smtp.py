@@ -1148,6 +1148,89 @@ def test_starttls_short_session(child_log_path: Path) -> None:
     LOGGER.debug("Finished scenario: starttls_short_session")
 
 
+def test_starttls_fresh_transaction(child_log_path: Path) -> None:
+    """Verify STARTTLS is followed by a fresh MAIL/RCPT/DATA transaction."""
+
+    LOGGER.debug("Starting scenario: starttls_fresh_transaction")
+    session = (
+        b"EHLO client.example\r\n"
+        b"MAIL FROM:<before-starttls@example.com>\r\n"
+        b"RCPT TO:<before-recipient@example.com>\r\n"
+        b"STARTTLS\r\n"
+        b"MAIL FROM:<after-starttls@example.com>\r\n"
+        b"RCPT TO:<after-recipient@example.com>\r\n"
+        b"DATA\r\n"
+        b"Subject: fresh transaction\r\n"
+        b"\r\n"
+        b"body-after-starttls\r\n"
+        b".\r\n"
+        b"QUIT\r\n"
+    )
+    expected_stdout = [
+        "220 ready",
+        "250-ok",
+        "250 STARTTLS",
+        "250 ok",
+        "250 ok",
+        "250 ok",
+        "250 ok",
+        "354 go ahead",
+        "250 queued",
+        "221 bye",
+    ]
+    expected_control_output = b"220 ready to start TLS (#2.0.0)\r\n"
+    expected_child_log = [
+        "reply 220 ready",
+        "cmd EHLO client.example",
+        "reply 250 ok",
+        "cmd MAIL FROM:<before-starttls@example.com>",
+        "reply 250 ok",
+        "cmd RCPT TO:<before-recipient@example.com>",
+        "reply 250 ok",
+        "cmd RSET",
+        "reply 250 reset",
+        "cmd MAIL FROM:<after-starttls@example.com>",
+        "reply 250 ok",
+        "cmd RCPT TO:<after-recipient@example.com>",
+        "reply 250 ok",
+        "cmd DATA",
+        "reply 354 go ahead",
+        "data Subject: fresh transaction",
+        "data ",
+        "data body-after-starttls",
+        "data-end",
+        "reply 250 queued",
+        "cmd QUIT",
+        "reply 221 bye",
+    ]
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(
+            session,
+            with_control_pipe=True,
+        )
+        control_output = test.control_output
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if stdout_lines != expected_stdout:
+        raise TestFailure(
+            f"Unexpected wrapper stdout: {stdout_lines!r}, expected {expected_stdout!r}"
+        )
+    if control_output != expected_control_output:
+        raise TestFailure(
+            f"Unexpected control-pipe output: {control_output!r}, expected {expected_control_output!r}"
+        )
+    if child_log != expected_child_log:
+        raise TestFailure(
+            f"Unexpected fake child log: {child_log!r}, expected {expected_child_log!r}"
+        )
+    LOGGER.debug("Finished scenario: starttls_fresh_transaction")
+
+
 def test_starttls_resets_envelope(child_log_path: Path) -> None:
     """Verify STARTTLS resets envelope state via the internal RSET."""
 
@@ -1290,6 +1373,7 @@ TESTS: dict[str, Callable[[Path], None]] = {
     "short_session": test_short_session,
     "starttls_available_advertised": test_starttls_available_advertised,
     "starttls_control_pipe_banner": test_starttls_control_pipe_banner,
+    "starttls_fresh_transaction": test_starttls_fresh_transaction,
     "starttls_short_session": test_starttls_short_session,
     "starttls_resets_envelope": test_starttls_resets_envelope,
     "starttls_unavailable_rejected": test_starttls_unavailable_rejected,

@@ -63,6 +63,11 @@ INFO Running starttls_control_pipe_banner
 INFO starttls_control_pipe_banner: OK
 INFO All tests passed
 
+=== starttls_fresh_transaction ===
+INFO Running starttls_fresh_transaction
+INFO starttls_fresh_transaction: OK
+INFO All tests passed
+
 === starttls_short_session ===
 INFO Running starttls_short_session
 INFO starttls_short_session: OK
