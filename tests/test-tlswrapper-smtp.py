@@ -11,6 +11,11 @@ from collections.abc import Callable
 from pathlib import Path
 
 TIMEOUT = 4
+SMTP_MAX_LINE = 4096
+SMTP_MAX_MAILFROM = 2048
+SMTP_MAX_RCPTTO = 2048
+SMTP_MAX_RCPTS = 256
+SMTP_MAX_RCPTTODATA = 65536
 WORKSPACE = Path(__file__).resolve().parent
 LOGGER = logging.getLogger(__name__)
 WRAPPER_PATH = WORKSPACE / "tlswrappernojail-smtp"
@@ -284,6 +289,42 @@ def test_line_too_long(child_log_path: Path) -> None:
     LOGGER.debug("Finished scenario: line_too_long")
 
 
+def test_line_exact_limit(child_log_path: Path) -> None:
+    """Verify an SMTP command line exactly at the limit still succeeds."""
+
+    LOGGER.debug("Starting scenario: line_exact_limit")
+    command = b"EHLO " + (b"x" * (SMTP_MAX_LINE - len(b"EHLO ") - 1))
+    expected_stdout = ["220 ready", "250 ok", "221 bye"]
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(command + b"\r\nQUIT\r\n")
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if stdout_lines != expected_stdout:
+        raise TestFailure(
+            f"Unexpected wrapper stdout: {stdout_lines!r}, expected {expected_stdout!r}"
+        )
+    if child_log[0] != "reply 220 ready":
+        raise TestFailure(
+            f"Unexpected first fake child log line: {child_log[0]!r}, expected 'reply 220 ready'"
+        )
+    if not child_log[1].startswith("cmd EHLO "):
+        raise TestFailure(f"Unexpected EHLO log line: {child_log[1]!r}")
+    if len(child_log[1]) != len("cmd ") + len(command):
+        raise TestFailure(
+            f"Unexpected EHLO log line length: {len(child_log[1])!r}, expected {len('cmd ') + len(command)!r}"
+        )
+    if child_log[2:] != ["reply 250 ok", "cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(
+            f"Unexpected fake child log tail: {child_log[2:]!r}, expected clean QUIT sequence"
+        )
+    LOGGER.debug("Finished scenario: line_exact_limit")
+
+
 def test_mailfrom_too_long(child_log_path: Path) -> None:
     """Verify an overlong MAIL FROM value terminates the wrapper."""
 
@@ -314,6 +355,43 @@ def test_mailfrom_too_long(child_log_path: Path) -> None:
             f"Fake child unexpectedly received a command before wrapper failed: {child_log!r}"
         )
     LOGGER.debug("Finished scenario: mailfrom_too_long")
+
+
+def test_mailfrom_exact_limit(child_log_path: Path) -> None:
+    """Verify a MAIL FROM value exactly at the limit still succeeds."""
+
+    LOGGER.debug("Starting scenario: mailfrom_exact_limit")
+    mailfrom = "x" * SMTP_MAX_MAILFROM
+    session = f"MAIL FROM:{mailfrom}\r\nQUIT\r\n".encode("ascii")
+    expected_stdout = ["220 ready", "250 ok", "221 bye"]
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(session)
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if stdout_lines != expected_stdout:
+        raise TestFailure(
+            f"Unexpected wrapper stdout: {stdout_lines!r}, expected {expected_stdout!r}"
+        )
+    if child_log[0] != "reply 220 ready":
+        raise TestFailure(
+            f"Unexpected first fake child log line: {child_log[0]!r}, expected 'reply 220 ready'"
+        )
+    if not child_log[1].startswith("cmd MAIL FROM:"):
+        raise TestFailure(f"Unexpected MAIL FROM log line: {child_log[1]!r}")
+    if len(child_log[1]) != len("cmd MAIL FROM:") + SMTP_MAX_MAILFROM:
+        raise TestFailure(
+            f"Unexpected MAIL FROM log line length: {len(child_log[1])!r}, expected {len('cmd MAIL FROM:') + SMTP_MAX_MAILFROM!r}"
+        )
+    if child_log[2:] != ["reply 250 ok", "cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(
+            f"Unexpected fake child log tail: {child_log[2:]!r}, expected clean QUIT sequence"
+        )
+    LOGGER.debug("Finished scenario: mailfrom_exact_limit")
 
 
 def test_rcptto_too_long(child_log_path: Path) -> None:
@@ -354,6 +432,50 @@ def test_rcptto_too_long(child_log_path: Path) -> None:
             f"Fake child unexpectedly received RCPT TO before wrapper failed: {child_log!r}"
         )
     LOGGER.debug("Finished scenario: rcptto_too_long")
+
+
+def test_rcptto_exact_limit(child_log_path: Path) -> None:
+    """Verify an RCPT TO value exactly at the limit still succeeds."""
+
+    LOGGER.debug("Starting scenario: rcptto_exact_limit")
+    rcptto = "y" * SMTP_MAX_RCPTTO
+    session = (
+        b"MAIL FROM:<alice@example.com>\r\n"
+        + f"RCPT TO:{rcptto}\r\nQUIT\r\n".encode("ascii")
+    )
+    expected_stdout = ["220 ready", "250 ok", "250 ok", "221 bye"]
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(session)
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if stdout_lines != expected_stdout:
+        raise TestFailure(
+            f"Unexpected wrapper stdout: {stdout_lines!r}, expected {expected_stdout!r}"
+        )
+    if child_log[0] != "reply 220 ready":
+        raise TestFailure(
+            f"Unexpected first fake child log line: {child_log[0]!r}, expected 'reply 220 ready'"
+        )
+    if child_log[1:3] != ["cmd MAIL FROM:<alice@example.com>", "reply 250 ok"]:
+        raise TestFailure(
+            f"Unexpected MAIL FROM log lines: {child_log[1:3]!r}"
+        )
+    if not child_log[3].startswith("cmd RCPT TO:"):
+        raise TestFailure(f"Unexpected RCPT TO log line: {child_log[3]!r}")
+    if len(child_log[3]) != len("cmd RCPT TO:") + SMTP_MAX_RCPTTO:
+        raise TestFailure(
+            f"Unexpected RCPT TO log line length: {len(child_log[3])!r}, expected {len('cmd RCPT TO:') + SMTP_MAX_RCPTTO!r}"
+        )
+    if child_log[4:] != ["reply 250 ok", "cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(
+            f"Unexpected fake child log tail: {child_log[4:]!r}, expected clean QUIT sequence"
+        )
+    LOGGER.debug("Finished scenario: rcptto_exact_limit")
 
 
 def test_too_many_rcpts(child_log_path: Path) -> None:
@@ -422,6 +544,71 @@ def test_too_many_rcpts(child_log_path: Path) -> None:
             f"Fake child unexpectedly received RCPT 257: {child_log!r}"
         )
     LOGGER.debug("Finished scenario: too_many_rcpts")
+
+
+def test_exact_rcpt_limit(child_log_path: Path) -> None:
+    """Verify exactly the maximum number of recipients still succeeds."""
+
+    LOGGER.debug("Starting scenario: exact_rcpt_limit")
+    rcpt_lines = [
+        f"RCPT TO:<r{i:03d}@example.com>\r\n".encode("ascii")
+        for i in range(1, SMTP_MAX_RCPTS + 1)
+    ]
+    session = b"MAIL FROM:<alice@example.com>\r\n" + b"".join(rcpt_lines) + b"QUIT\r\n"
+    expected_stdout_len = 1 + 1 + SMTP_MAX_RCPTS + 1
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(session)
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if len(stdout_lines) != expected_stdout_len:
+        raise TestFailure(
+            f"Unexpected wrapper stdout length: {len(stdout_lines)!r}, expected {expected_stdout_len!r}"
+        )
+    if stdout_lines[0] != "220 ready":
+        raise TestFailure(
+            f"Unexpected first wrapper stdout line: {stdout_lines[0]!r}, expected '220 ready'"
+        )
+    if stdout_lines[-1] != "221 bye":
+        raise TestFailure(
+            f"Unexpected final wrapper stdout line: {stdout_lines[-1]!r}, expected '221 bye'"
+        )
+    if any(line != "250 ok" for line in stdout_lines[1:-1]):
+        raise TestFailure(
+            f"Unexpected non-250 reply before QUIT: {stdout_lines[1:-1]!r}"
+        )
+
+    cmd_rcpts = [line for line in child_log if line.startswith("cmd RCPT TO:")]
+    reply_oks = [line for line in child_log if line == "reply 250 ok"]
+    if child_log[0] != "reply 220 ready":
+        raise TestFailure(
+            f"Unexpected first fake child log line: {child_log[0]!r}, expected 'reply 220 ready'"
+        )
+    if child_log[1:3] != ["cmd MAIL FROM:<alice@example.com>", "reply 250 ok"]:
+        raise TestFailure(
+            f"Unexpected MAIL FROM log lines: {child_log[1:3]!r}"
+        )
+    if len(cmd_rcpts) != SMTP_MAX_RCPTS:
+        raise TestFailure(
+            f"Unexpected forwarded RCPT count: {len(cmd_rcpts)!r}, expected {SMTP_MAX_RCPTS}"
+        )
+    if len(reply_oks) != 1 + SMTP_MAX_RCPTS:
+        raise TestFailure(
+            f"Unexpected count of 'reply 250 ok' lines: {len(reply_oks)!r}, expected {1 + SMTP_MAX_RCPTS}"
+        )
+    if cmd_rcpts[0] != "cmd RCPT TO:<r001@example.com>":
+        raise TestFailure(f"Unexpected first RCPT log line: {cmd_rcpts[0]!r}")
+    if cmd_rcpts[-1] != f"cmd RCPT TO:<r{SMTP_MAX_RCPTS:03d}@example.com>":
+        raise TestFailure(f"Unexpected final RCPT log line: {cmd_rcpts[-1]!r}")
+    if child_log[-2:] != ["cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(
+            f"Unexpected fake child log tail: {child_log[-2:]!r}, expected clean QUIT sequence"
+        )
+    LOGGER.debug("Finished scenario: exact_rcpt_limit")
 
 
 def test_rcpttodata_too_large(child_log_path: Path) -> None:
@@ -497,6 +684,77 @@ def test_rcpttodata_too_large(child_log_path: Path) -> None:
             f"Fake child unexpectedly received overflow RCPT: {child_log!r}"
         )
     LOGGER.debug("Finished scenario: rcpttodata_too_large")
+
+
+def test_rcpttodata_exact_limit(child_log_path: Path) -> None:
+    """Verify aggregate RCPT storage exactly at the limit still succeeds."""
+
+    LOGGER.debug("Starting scenario: rcpttodata_exact_limit")
+    rcpt_lines: list[bytes] = []
+
+    for i in range(1, 33):
+        rcptto = f"r{i:03d}" + ("x" * (2047 - len(f"r{i:03d}")))
+        rcpt_lines.append(f"RCPT TO:{rcptto}\r\n".encode("ascii"))
+
+    session = b"MAIL FROM:<alice@example.com>\r\n" + b"".join(rcpt_lines) + b"QUIT\r\n"
+    expected_stdout_len = 1 + 1 + len(rcpt_lines) + 1
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(session)
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if len(stdout_lines) != expected_stdout_len:
+        raise TestFailure(
+            f"Unexpected wrapper stdout length: {len(stdout_lines)!r}, expected {expected_stdout_len!r}"
+        )
+    if stdout_lines[0] != "220 ready":
+        raise TestFailure(
+            f"Unexpected first wrapper stdout line: {stdout_lines[0]!r}, expected '220 ready'"
+        )
+    if stdout_lines[-1] != "221 bye":
+        raise TestFailure(
+            f"Unexpected final wrapper stdout line: {stdout_lines[-1]!r}, expected '221 bye'"
+        )
+    if any(line != "250 ok" for line in stdout_lines[1:-1]):
+        raise TestFailure(
+            f"Unexpected non-250 reply before QUIT: {stdout_lines[1:-1]!r}"
+        )
+
+    cmd_rcpts = [line for line in child_log if line.startswith("cmd RCPT TO:")]
+    reply_oks = [line for line in child_log if line == "reply 250 ok"]
+    if child_log[0] != "reply 220 ready":
+        raise TestFailure(
+            f"Unexpected first fake child log line: {child_log[0]!r}, expected 'reply 220 ready'"
+        )
+    if child_log[1:3] != ["cmd MAIL FROM:<alice@example.com>", "reply 250 ok"]:
+        raise TestFailure(
+            f"Unexpected MAIL FROM log lines: {child_log[1:3]!r}"
+        )
+    if len(cmd_rcpts) != len(rcpt_lines):
+        raise TestFailure(
+            f"Unexpected forwarded RCPT count: {len(cmd_rcpts)!r}, expected {len(rcpt_lines)}"
+        )
+    if len(reply_oks) != 1 + len(rcpt_lines):
+        raise TestFailure(
+            f"Unexpected count of 'reply 250 ok' lines: {len(reply_oks)!r}, expected {1 + len(rcpt_lines)}"
+        )
+    if len(cmd_rcpts[0]) != len("cmd RCPT TO:") + 2047:
+        raise TestFailure(
+            f"Unexpected first RCPT log line length: {len(cmd_rcpts[0])!r}, expected {len('cmd RCPT TO:') + 2047!r}"
+        )
+    if len(cmd_rcpts[-1]) != len("cmd RCPT TO:") + 2047:
+        raise TestFailure(
+            f"Unexpected last RCPT log line length: {len(cmd_rcpts[-1])!r}, expected {len('cmd RCPT TO:') + 2047!r}"
+        )
+    if child_log[-2:] != ["cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(
+            f"Unexpected fake child log tail: {child_log[-2:]!r}, expected clean QUIT sequence"
+        )
+    LOGGER.debug("Finished scenario: rcpttodata_exact_limit")
 
 
 def test_mail_resets_previous_rcpts(child_log_path: Path) -> None:
@@ -1019,10 +1277,15 @@ def test_starttls_resets_envelope(child_log_path: Path) -> None:
 
 TESTS: dict[str, Callable[[Path], None]] = {
     "data_resets_envelope": test_data_resets_envelope,
+    "exact_rcpt_limit": test_exact_rcpt_limit,
     "line_too_long": test_line_too_long,
+    "line_exact_limit": test_line_exact_limit,
+    "mailfrom_exact_limit": test_mailfrom_exact_limit,
     "mailfrom_too_long": test_mailfrom_too_long,
     "mail_resets_previous_rcpts": test_mail_resets_previous_rcpts,
+    "rcpttodata_exact_limit": test_rcpttodata_exact_limit,
     "rcpttodata_too_large": test_rcpttodata_too_large,
+    "rcptto_exact_limit": test_rcptto_exact_limit,
     "rcptto_too_long": test_rcptto_too_long,
     "short_session": test_short_session,
     "starttls_available_advertised": test_starttls_available_advertised,

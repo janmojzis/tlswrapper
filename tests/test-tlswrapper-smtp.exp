@@ -8,9 +8,24 @@ INFO Running data_resets_envelope
 INFO data_resets_envelope: OK
 INFO All tests passed
 
+=== exact_rcpt_limit ===
+INFO Running exact_rcpt_limit
+INFO exact_rcpt_limit: OK
+INFO All tests passed
+
+=== line_exact_limit ===
+INFO Running line_exact_limit
+INFO line_exact_limit: OK
+INFO All tests passed
+
 === line_too_long ===
 INFO Running line_too_long
 INFO line_too_long: OK
+INFO All tests passed
+
+=== mailfrom_exact_limit ===
+INFO Running mailfrom_exact_limit
+INFO mailfrom_exact_limit: OK
 INFO All tests passed
 
 === mailfrom_too_long ===
@@ -23,9 +38,19 @@ INFO Running mail_resets_previous_rcpts
 INFO mail_resets_previous_rcpts: OK
 INFO All tests passed
 
+=== rcpttodata_exact_limit ===
+INFO Running rcpttodata_exact_limit
+INFO rcpttodata_exact_limit: OK
+INFO All tests passed
+
 === rcptto_too_long ===
 INFO Running rcptto_too_long
 INFO rcptto_too_long: OK
+INFO All tests passed
+
+=== rcptto_exact_limit ===
+INFO Running rcptto_exact_limit
+INFO rcptto_exact_limit: OK
 INFO All tests passed
 
 === starttls_available_advertised ===
