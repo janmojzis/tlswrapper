@@ -206,6 +206,8 @@ void tls_keyjail(struct tls_context *ctx) {
     }
 
     br_ssl_engine_set_chacha20(&cc->eng, &br_chacha20_ct_run);
+    br_ssl_engine_set_default_aes_gcm(&cc->eng);
+    br_ssl_engine_set_default_aes_cbc(&cc->eng);
 
     /* scalar multiplication */
     if (pipe_readall(0, pk, pklen) == -1) goto cleanup;
