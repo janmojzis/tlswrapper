@@ -1,8 +1,25 @@
+/*
+ * writeall.c - write an exact byte count to a descriptor
+ *
+ * This helper retries transient write failures and waits for writable
+ * readiness when a nonblocking descriptor would block.
+ */
+
 #include <unistd.h>
 #include "e.h"
 #include "jail.h"
 #include "writeall.h"
 
+/*
+ * writeall - write exactly xlen bytes
+ *
+ * @fd: destination descriptor
+ * @xv: source buffer
+ * @xlen: number of bytes to write
+ *
+ * Returns 0 after the whole buffer is written. Returns -1 on any
+ * non-recoverable write or poll failure.
+ */
 int writeall(int fd, const void *xv, long long xlen) {
 
     const unsigned char *x = xv;

@@ -1,9 +1,23 @@
-/* taken from public-domain nacl-20110221, from curvecp/e.c */
+/*
+ * e.c - map selected errno values to stable log strings
+ *
+ * Provides a small string table derived from NaCl/curvecp code so the
+ * project can log common errno values without relying on strerror().
+ */
+
 #include "e.h"
 
 #define X(e, s)                                                                \
     if (i == e) return s;
 
+/*
+ * e_str - return a fixed string for a known errno value
+ *
+ * @i: errno-style integer code
+ *
+ * Returns a stable English message for selected error codes and
+ * "unknown error" for values outside the built-in table.
+ */
 const char *e_str(int i) {
     X(0, "no error");
     X(EINTR, "interrupted system call")

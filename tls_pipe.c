@@ -1,3 +1,11 @@
+/*
+ * tls_pipe.c - proxy TLS private operations through the keyjail pipe
+ *
+ * This module implements the hooks BearSSL uses for certificate loading,
+ * signatures, key exchange, PRF, and record protection when the sensitive
+ * operations are delegated to the jailed helper process.
+ */
+
 #include "tls.h"
 #include "pipe.h"
 #include "randombytes.h"
@@ -9,6 +17,17 @@ int tls_pipe_fromchild = -1;
 int tls_pipe_tochild = -1;
 br_ssl_engine_context *tls_pipe_eng;
 
+/*
+ * tls_pipe_getcert - fetch and parse a certificate chain from keyjail
+ *
+ * @chain: destination array for parsed certificates
+ * @chain_len: returns the number of parsed certificates
+ * @key_type: returns the certificate public-key type
+ * @fn: PEM file path requested from the child
+ *
+ * Sends the requested path to the child, receives the public PEM payload,
+ * and parses the returned certificate chain into BearSSL structures.
+ */
 int tls_pipe_getcert(br_x509_certificate *chain, size_t *chain_len,
                      char *key_type, const char *fn) {
 
@@ -44,6 +63,18 @@ cleanup:
     return ret;
 }
 
+/*
+ * tls_pipe_mulgen - request the ephemeral ECDHE public point from keyjail
+ *
+ * @R: destination buffer for the encoded public point
+ * @x: ignored private scalar input required by the BearSSL hook signature
+ * @xlen: ignored private scalar length
+ * @curve: BearSSL curve identifier
+ *
+ * Finalizes certificate enumeration, asks the child to generate an
+ * ephemeral keypair for the selected curve, and returns the encoded public
+ * point length.
+ */
 size_t tls_pipe_mulgen(unsigned char *R, const unsigned char *x, size_t xlen,
                        int curve) {
 
@@ -71,6 +102,18 @@ fail:
     return 0;
 }
 
+/*
+ * tls_pipe_dosign - request a handshake signature from keyjail
+ *
+ * @pctx: BearSSL policy context, unused here
+ * @algo_id: BearSSL signature algorithm identifier
+ * @data: digest input buffer, replaced with the signature
+ * @len: digest length in bytes
+ * @max: size of the output buffer in @data
+ *
+ * Sends the digest and signature parameters to the child and returns the
+ * signature length produced there.
+ */
 size_t tls_pipe_dosign(const br_ssl_server_policy_class **pctx,
                        unsigned int algo_id, unsigned char *data, size_t len,
                        size_t max) {
@@ -101,6 +144,18 @@ fail:
     return 0;
 }
 
+/*
+ * tls_pipe_mul - send the peer point and session context to keyjail
+ *
+ * @G: encoded peer public point
+ * @Glen: size of @G in bytes
+ * @x: ignored private scalar input required by the BearSSL hook signature
+ * @xlen: ignored private scalar length
+ * @curve: BearSSL curve identifier, ignored after dispatch
+ *
+ * Forwards the peer point and negotiated session parameters to the child
+ * so it can derive the shared secret and install record keys.
+ */
 uint32_t tls_pipe_mul(unsigned char *G, size_t Glen, const unsigned char *x,
                       size_t xlen, int curve) {
 
@@ -136,6 +191,24 @@ fail:
     return 0;
 }
 
+/*
+ * tls_pipe_prf - proxy TLS Finished PRF output through keyjail
+ *
+ * @dst: output buffer
+ * @len: number of bytes to write to @dst
+ * @secret: ignored secret pointer from BearSSL
+ * @secret_len: ignored secret length
+ * @label: TLS PRF label
+ * @seed_num: number of seed chunks
+ * @seed: seed chunk array
+ *
+ * Requests PRF output from the child for Finished labels only. Any other
+ * use falls back to random output so the hook cannot be reused for general
+ * secret extraction.
+ *
+ * Security:
+ *   - unsupported labels return random bytes instead of derived secrets
+ */
 void tls_pipe_prf(void *dst, size_t len, const void *secret, size_t secret_len,
                   const char *label, size_t seed_num,
                   const br_tls_prf_seed_chunk *seed) {
@@ -218,6 +291,18 @@ static void in_cbc_init(br_sslrec_in_cbc_context *cc,
     }
 }
 
+/*
+ * decrypt - request record decryption from keyjail
+ *
+ * @cc: record-layer context, unused here
+ * @record_type: TLS record type
+ * @version: TLS protocol version
+ * @datav: record buffer, replaced with the plaintext
+ * @data_len: input ciphertext length, replaced with plaintext length
+ *
+ * Serializes the record to the child, receives the plaintext offset and
+ * payload, and returns a pointer into @datav on success.
+ */
 static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type,
                               unsigned version, void *datav, size_t *data_len) {
     unsigned char ch = tls_pipe_DECRYPT;
@@ -244,34 +329,31 @@ fail:
 
 const br_sslrec_in_chapol_class tls_pipe_chapol_in_vtable = {
     {sizeof(br_sslrec_chapol_context),
-     (int (*)(const br_sslrec_in_class *const *, size_t)) & chapol_check_length,
+     (int (*)(const br_sslrec_in_class *const *, size_t)) &chapol_check_length,
      (unsigned char *(*) (const br_sslrec_in_class **, int, unsigned, void *,
                           size_t *) ) &
          decrypt},
     (void (*)(const br_sslrec_in_chapol_class **, br_chacha20_run,
-              br_poly1305_run, const void *, const void *)) &
-        in_chapol_init};
+              br_poly1305_run, const void *, const void *)) &in_chapol_init};
 
 const br_sslrec_in_gcm_class tls_pipe_gcm_in_vtable = {
     {sizeof(br_sslrec_gcm_context),
-     (int (*)(const br_sslrec_in_class *const *, size_t)) & gcm_check_length,
+     (int (*)(const br_sslrec_in_class *const *, size_t)) &gcm_check_length,
      (unsigned char *(*) (const br_sslrec_in_class **, int, unsigned, void *,
                           size_t *) ) &
          decrypt},
     (void (*)(const br_sslrec_in_gcm_class **, const br_block_ctr_class *,
-              const void *, size_t, br_ghash, const void *)) &
-        in_gcm_init};
+              const void *, size_t, br_ghash, const void *)) &in_gcm_init};
 
 const br_sslrec_in_cbc_class tls_pipe_cbc_in_vtable = {
     {sizeof(br_sslrec_in_cbc_context),
-     (int (*)(const br_sslrec_in_class *const *, size_t)) & cbc_check_length,
+     (int (*)(const br_sslrec_in_class *const *, size_t)) &cbc_check_length,
      (unsigned char *(*) (const br_sslrec_in_class **, int, unsigned, void *,
                           size_t *) ) &
          decrypt},
     (void (*)(const br_sslrec_in_cbc_class **, const br_block_cbcdec_class *,
               const void *, size_t, const br_hash_class *, const void *, size_t,
-              size_t, const void *)) &
-        in_cbc_init};
+              size_t, const void *)) &in_cbc_init};
 
 static void chapol_max_plaintext(const br_sslrec_out_class *const *cc,
                                  size_t *start, size_t *end) {
@@ -288,6 +370,21 @@ static void cbc_max_plaintext(const br_sslrec_out_class *const *cc,
     br_sslrec_out_cbc_vtable.inner.max_plaintext(cc, start, end);
 }
 
+/*
+ * encrypt - request record encryption from keyjail
+ *
+ * @cc: record-layer context, unused here
+ * @record_type: TLS record type
+ * @version: TLS protocol version
+ * @datav: plaintext buffer, replaced with the ciphertext
+ * @data_len: input plaintext length, replaced with ciphertext length
+ *
+ * Serializes the plaintext record to the child, receives the ciphertext
+ * and start offset, and returns the pointer BearSSL should send.
+ *
+ * Security:
+ *   - datav is randomized on failure before returning null
+ */
 static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type,
                               unsigned version, void *datav, size_t *data_len) {
     unsigned char ch = tls_pipe_ENCRYPT;
@@ -361,34 +458,31 @@ static void out_cbc_init(br_sslrec_out_cbc_context *cc,
 
 const br_sslrec_out_chapol_class tls_pipe_chapol_out_vtable = {
     {sizeof(br_sslrec_chapol_context),
-     (void (*)(const br_sslrec_out_class *const *, size_t *, size_t *)) &
-         chapol_max_plaintext,
+     (void (*)(const br_sslrec_out_class *const *, size_t *,
+               size_t *)) &chapol_max_plaintext,
      (unsigned char *(*) (const br_sslrec_out_class **, int, unsigned, void *,
                           size_t *) ) &
          encrypt},
     (void (*)(const br_sslrec_out_chapol_class **, br_chacha20_run,
-              br_poly1305_run, const void *, const void *)) &
-        out_chapol_init};
+              br_poly1305_run, const void *, const void *)) &out_chapol_init};
 
 const br_sslrec_out_gcm_class tls_pipe_gcm_out_vtable = {
     {sizeof(br_sslrec_gcm_context),
-     (void (*)(const br_sslrec_out_class *const *, size_t *, size_t *)) &
-         gcm_max_plaintext,
+     (void (*)(const br_sslrec_out_class *const *, size_t *,
+               size_t *)) &gcm_max_plaintext,
      (unsigned char *(*) (const br_sslrec_out_class **, int, unsigned, void *,
                           size_t *) ) &
          encrypt},
     (void (*)(const br_sslrec_out_gcm_class **, const br_block_ctr_class *,
-              const void *, size_t, br_ghash, const void *)) &
-        out_gcm_init};
+              const void *, size_t, br_ghash, const void *)) &out_gcm_init};
 
 const br_sslrec_out_cbc_class tls_pipe_cbc_out_vtable = {
     {sizeof(br_sslrec_out_cbc_context),
-     (void (*)(const br_sslrec_out_class *const *, size_t *, size_t *)) &
-         cbc_max_plaintext,
+     (void (*)(const br_sslrec_out_class *const *, size_t *,
+               size_t *)) &cbc_max_plaintext,
      (unsigned char *(*) (const br_sslrec_out_class **, int, unsigned, void *,
                           size_t *) ) &
          encrypt},
     (void (*)(const br_sslrec_out_cbc_class **, const br_block_cbcenc_class *,
               const void *, size_t, const br_hash_class *, const void *, size_t,
-              size_t, const void *)) &
-        out_cbc_init};
+              size_t, const void *)) &out_cbc_init};

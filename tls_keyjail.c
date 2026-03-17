@@ -1,3 +1,11 @@
+/*
+ * tls_keyjail.c - isolate private-key operations in the jailed child
+ *
+ * This module runs the helper process that loads certificates, performs
+ * signatures, derives ECDHE secrets, and switches record protection after
+ * the process has dropped privileges and entered the jail.
+ */
+
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -33,6 +41,25 @@ extern void br_ssl_engine_switch_cbc_out(br_ssl_engine_context *cc,
 extern br_tls_prf_impl br_ssl_engine_get_PRF(br_ssl_engine_context *cc,
                                              int prf_id);
 
+/*
+ * sign - sign a handshake digest with the configured private key
+ *
+ * @ctx: TLS context containing the selected certificate path
+ * @pem: encrypted PEM contents loaded earlier
+ * @key: symmetric key used to decrypt @pem
+ * @cc: temporary BearSSL server context used for signing
+ * @hash_id: BearSSL hash identifier for the handshake digest
+ * @data: input digest buffer, replaced with the signature output
+ * @hv_len: digest length in bytes
+ * @len: size of the output buffer in @data
+ *
+ * Decrypts the PEM secret section, parses the private key, initializes a
+ * temporary BearSSL signing policy, and signs the supplied digest.
+ *
+ * Security:
+ *   - decrypted key material is cleared before returning
+ *   - pem is freed on both success and failure paths
+ */
 static size_t sign(struct tls_context *ctx, struct tls_pem *pem,
                    unsigned char *key, br_ssl_server_context *cc,
                    unsigned char hash_id, unsigned char *data, size_t hv_len,
@@ -73,6 +100,21 @@ cleanup:
     return ret;
 }
 
+/*
+ * prf - derive handshake PRF output from the active master secret
+ *
+ * @ctx: TLS context containing the negotiated session state
+ * @dst: output buffer
+ * @len: number of bytes to write to @dst
+ * @prf_id: BearSSL PRF selector
+ * @label: TLS PRF label
+ * @seed_data: seed bytes
+ * @seed_data_len: size of @seed_data in bytes
+ *
+ * Runs BearSSL's negotiated PRF over the session master secret stored in
+ * the server engine. The helper is used after keyjail has derived the
+ * shared secret locally.
+ */
 static void prf(struct tls_context *ctx, void *dst, size_t len, int prf_id,
                 const char *label, unsigned char *seed_data,
                 size_t seed_data_len) {
@@ -87,6 +129,20 @@ static void prf(struct tls_context *ctx, void *dst, size_t len, int prf_id,
          sizeof ctx->cc.eng.session.master_secret, label, 1, &seed);
 }
 
+/*
+ * tls_keyjail - serve certificate and private-key operations in the child
+ *
+ * @ctx: TLS context shared with the parent process
+ *
+ * Processes requests from the parent over the keyjail pipe. Before the
+ * jail is entered it returns public certificate chains. After the jail is
+ * active it performs ephemeral key generation, handshake signatures,
+ * shared-secret derivation, record-layer setup, and PRF requests.
+ *
+ * Security:
+ *   - secret scalars and temporary key structures are overwritten
+ *   - pathnames are sanitized before file access
+ */
 void tls_keyjail(struct tls_context *ctx) {
 
     pid_t ppid = getppid();

@@ -1,8 +1,10 @@
 /*
-20171021
-Jan Mojzis
-Public domain.
-*/
+ * resolvehost.c - resolve host names inside a jailed helper process
+ *
+ * Provides synchronous and helper-process-backed DNS lookups that return
+ * addresses as 16-byte network-order values. IPv4 results are encoded as
+ * IPv4-mapped IPv6 addresses so callers can handle one fixed-size format.
+ */
 #include <unistd.h>
 #include <string.h>
 #include <sys/time.h>
@@ -50,6 +52,25 @@ static void sortip(unsigned char *s, long long nn) {
     }
 }
 
+/*
+ * resolvehost - resolve a host name to 16-byte network-order addresses
+ *
+ * @ip: output buffer for resolved addresses
+ * @iplen: size of ip in bytes
+ * @host: host name to resolve
+ *
+ * Resolves host and stores each result as a 16-byte address. IPv4 results
+ * are stored as IPv4-mapped IPv6 addresses. When at least one address is
+ * returned, the function shuffles the result order and places a native IPv6
+ * address first when one is available.
+ *
+ * Constraints:
+ *   - ip must reference a writable buffer of at least 16 bytes
+ *   - host must point to a NUL-terminated string
+ *
+ * Returns the number of bytes written, 0 when the name has no data, and -1
+ * on error.
+ */
 long long resolvehost(unsigned char *ip, long long iplen, const char *host) {
 
     int err;
@@ -73,7 +94,7 @@ long long resolvehost(unsigned char *ip, long long iplen, const char *host) {
         len = -1;
         log_t6("getaddrinfo(host = ", host, ") = ", gai_strerror(err),
                ", errno = ", e_str(errno));
-        /* XXX, getaddrinfo error handling is funny */
+        /* Normalize non-system resolver failures to errno = 0. */
         if (err == EAI_NONAME && errno == EMFILE) err = EAI_SYSTEM;
         if (err != EAI_SYSTEM) errno = 0;
         if (err == EAI_NONAME) len = 0;
@@ -115,6 +136,18 @@ done:
 static pid_t resolvehost_pid = -1;
 static int resolvehost_fd = -1;
 
+/*
+ * resolvehost_init - start the jailed resolver helper
+ *
+ * Creates a socketpair, forks a helper process, and enters the helper into
+ * the local jail before it begins serving lookup requests.
+ *
+ * Security:
+ *   - the child process drops privileges by calling jail() before
+ *     processing requests
+ *
+ * Returns 1 on success and 0 on failure.
+ */
 int resolvehost_init(void) {
 
     int sockets[2] = {-1, -1};
@@ -153,10 +186,11 @@ int resolvehost_init(void) {
                 buf[255] = 0;
                 iplen = resolvehost(ip + 1, sizeof ip - 1, (char *) buf);
                 if (iplen < 0) {
-                    ip[0] = /* -1 */ 255;
+                    ip[0] = 255;
                     iplen = 0;
                 }
-                else ip[0] = (unsigned char) iplen;
+                else
+                    ip[0] = (unsigned char) iplen;
                 iplen += 1;
 
                 r = send(sockets[0], ip, iplen, 0);
@@ -175,6 +209,24 @@ cleanup:
     return 0;
 }
 
+/*
+ * resolvehost_do - resolve a host name through the helper process
+ *
+ * @ip: output buffer for resolved addresses
+ * @iplen: size of ip in bytes
+ * @host: host name to resolve
+ *
+ * Sends host to the helper process created by resolvehost_init() and copies
+ * the returned 16-byte addresses into ip.
+ *
+ * Constraints:
+ *   - ip must reference a writable buffer of at least 16 bytes
+ *   - host must not exceed 255 bytes before the terminating NUL
+ *   - resolvehost_init() must have completed successfully first
+ *
+ * Returns the number of bytes copied to ip, 0 when the name has no data,
+ * and -1 on error.
+ */
 long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
 
     char buf[256] = {0};
@@ -210,13 +262,17 @@ long long resolvehost_do(unsigned char *ip, long long iplen, const char *host) {
     return len;
 }
 
+/*
+ * resolvehost_close - stop the resolver helper process
+ *
+ * Closes the local resolver socket and waits for the helper process to
+ * exit. When the socket is still open, the function sends a shutdown
+ * datagram that the child interprets as an end-of-stream marker.
+ */
 void resolvehost_close(void) {
     if (resolvehost_fd != -1) {
         unsigned char buf[257] = {0};
-        /*
-        we don't have permission to kill the child process,
-        so sending bulfen > 256 signals the end of the child process
-        */
+        /* A datagram larger than 256 bytes tells the child to exit. */
         (void) send(resolvehost_fd, buf, sizeof buf, 0);
         close(resolvehost_fd);
         resolvehost_fd = -1;

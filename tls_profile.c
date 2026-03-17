@@ -1,3 +1,11 @@
+/*
+ * tls_profile.c - build the BearSSL server profile for a context
+ *
+ * This module selects certificates, configures protocol parameters, and
+ * wires the keyjail-backed BearSSL hooks that tlswrapper uses for server
+ * handshakes.
+ */
+
 #include "log.h"
 #include "randombytes.h"
 #include "e.h"
@@ -6,6 +14,14 @@
 #include "fixpath.h"
 #include "tls.h"
 
+/*
+ * hash_choose - pick the strongest hash offered in a bitmask
+ *
+ * @bf: BearSSL hash support bitmask
+ *
+ * Returns the preferred hash identifier from strongest to weakest among
+ * SHA-512, SHA-384, SHA-256, and SHA-1. Returns 0 when none are offered.
+ */
 static int hash_choose(unsigned int bf) {
     const unsigned char pref[] = {br_sha512_ID, br_sha384_ID, br_sha256_ID,
                                   br_sha1_ID};
@@ -19,6 +35,17 @@ static int hash_choose(unsigned int bf) {
     return 0;
 }
 
+/*
+ * copyfn - join a base directory and leaf name into a path buffer
+ *
+ * @buf: destination buffer
+ * @buflen: size of @buf in bytes
+ * @a: base directory or file name
+ * @b: optional leaf name
+ *
+ * Builds the path in a temporary stralloc, normalizes it with fixpath(),
+ * and copies it to @buf when space permits.
+ */
 static int copyfn(char *buf, long long buflen, const char *a, const char *b) {
 
     stralloc sa = {0};
@@ -48,6 +75,18 @@ cleanup:
     return ret;
 }
 
+/*
+ * tls_choose - select the certificate chain and suite for a handshake
+ *
+ * @pctx: policy context, actually the enclosing tls_context
+ * @cc: BearSSL server context for the active handshake
+ * @choices: destination for the selected chain and algorithm
+ *
+ * Iterates over configured certificate sources, optionally resolves an
+ * SNI-based filename, fetches the certificate chain from keyjail, and
+ * chooses the first compatible suite for the client's advertised key
+ * exchange methods and signature hashes.
+ */
 static int tls_choose(const br_ssl_server_policy_class **pctx,
                       const br_ssl_server_context *cc,
                       br_ssl_server_choices *choices) {
@@ -166,6 +205,15 @@ static const br_ssl_server_policy_class tls_policy_vtable = {
     sizeof(struct tls_context), tls_choose, 0, /* keyx */
     tls_pipe_dosign};
 
+/*
+ * tls_profile - initialize the BearSSL server engine for a context
+ *
+ * @ctx: TLS context to configure
+ *
+ * Resets the server engine, applies protocol limits, installs cipher,
+ * curve, X.509, PRF, and record-layer hooks, and seeds BearSSL's entropy
+ * pool before resetting the handshake state machine.
+ */
 void tls_profile(struct tls_context *ctx) {
 
     const char *name;

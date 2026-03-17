@@ -1,3 +1,11 @@
+/*
+ * tls_crypto_scalarmult.c - wrap ECDHE scalar multiplication primitives
+ *
+ * This module normalizes BearSSL and optional X448/lib25519 backends into
+ * the curve operations needed by tlswrapper. It also applies per-curve
+ * scalar shaping required by the short Weierstrass implementations.
+ */
+
 #include "tls.h"
 #ifdef X448
 #include "crypto_scalarmult_x448.h"
@@ -16,6 +24,17 @@ in a "large enough" range. We force the top bit to 0 and (top - 1) bit to 1,
 which does the trick.
 */
 
+/*
+ * tls_crypto_scalarmult_base - derive a public key from a private scalar
+ *
+ * @curve: BearSSL curve identifier
+ * @p: output buffer for the encoded public point
+ * @plen: returns the encoded point length
+ * @sk: in-place private scalar buffer
+ *
+ * Generates the public point for the selected curve. For Weierstrass
+ * curves the scalar is clamped into a valid high-range value before use.
+ */
 int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen,
                                unsigned char *sk) {
 
@@ -64,6 +83,19 @@ int tls_crypto_scalarmult_base(int curve, unsigned char *p, size_t *plen,
     return ret;
 }
 
+/*
+ * tls_crypto_scalarmult - perform ECDHE scalar multiplication in place
+ *
+ * @curve: BearSSL curve identifier
+ * @p: input peer point, replaced with the shared secret output
+ * @plen: returns the shared secret length
+ * @sk: in-place private scalar buffer
+ *
+ * Computes the shared secret for the selected curve. For short Weierstrass
+ * curves the uncompressed point prefix emitted by BearSSL is removed so
+ * the caller receives only the x-coordinate bytes expected by the TLS key
+ * schedule.
+ */
 int tls_crypto_scalarmult(int curve, unsigned char *p, size_t *plen,
                           unsigned char *sk) {
 

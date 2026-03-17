@@ -1,8 +1,8 @@
 /*
-20201122
-Jan Mojzis
-Public domain.
-*/
+ * tls_seccrt.c - parse private keys from PEM input
+ *
+ * This module decodes the secret-key PEM object used by keyjail signing.
+ */
 
 #include "log.h"
 #include "randombytes.h"
@@ -19,6 +19,17 @@ static void parsekey(void *ctx, const void *x, size_t xlen) {
     br_skey_decoder_push((br_skey_decoder_context *) ctx, x, xlen);
 }
 
+/*
+ * tls_seccrt_parse - decode the private key from PEM input
+ *
+ * @crt: destination structure for the decoded key
+ * @buf: PEM input buffer
+ * @buflen: size of @buf in bytes
+ * @fn: source filename used in log messages
+ *
+ * Parses the first supported private-key PEM object and initializes the
+ * BearSSL secret-key decoder state stored in @crt.
+ */
 int tls_seccrt_parse(struct tls_seccrt *crt, const char *buf, size_t buflen,
                      const char *fn) {
 

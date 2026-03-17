@@ -1,3 +1,13 @@
+/*
+ * main_tlswrapper_tcp.c - TCP forwarding front-end with optional PROXY headers
+ *
+ * Implements the TCP mode of tlswrapper. The process resolves a target host,
+ * connects to the first reachable address, optionally consumes an incoming
+ * PROXY protocol header from stdin, and can emit an outgoing PROXY protocol
+ * header toward the remote side before entering a bidirectional forwarding
+ * loop.
+ */
+
 #include <unistd.h>
 #include <signal.h>
 #include "randombytes.h"
@@ -57,6 +67,12 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
 
 static int flagverbose = 1;
 
+/*
+ * cleanup - overwrite connection state and transient buffers before exit
+ *
+ * Closes resolver helpers and randomizes sensitive runtime state so
+ * connection metadata and buffered payloads do not remain in memory.
+ */
 static void cleanup(void) {
     resolvehost_close();
     randombytes(ip, sizeof ip);
@@ -80,7 +96,9 @@ static void cleanup(void) {
 #define die_pipe() { log_f1("unable to create pipe"); die(111); }
 #define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
 #define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
-
+/*
+ * usage - print command usage and exit
+ */
 static void usage(void) {
     log_u1("tlswrapper-tcp [options] host port");
     die(100);
@@ -92,6 +110,11 @@ static const char *ppoutver = 0;
 static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
 static const char *ppinver = 0;
 
+/*
+ * pp_incoming - configure parsing of an incoming PROXY protocol header
+ *
+ * @x: textual protocol version selector
+ */
 static void pp_incoming(const char *x) {
 
     if (str_equal("0", x)) {
@@ -108,6 +131,11 @@ static void pp_incoming(const char *x) {
         die(100);
     }
 }
+/*
+ * pp_outgoing - configure emission of an outgoing PROXY protocol header
+ *
+ * @x: textual protocol version selector
+ */
 static void pp_outgoing(const char *x) {
 
     if (str_equal("0", x)) {
@@ -125,6 +153,14 @@ static void pp_outgoing(const char *x) {
     }
 }
 
+/*
+ * timeout_parse - parse and validate a timeout value in seconds
+ *
+ * @x: decimal timeout string
+ *
+ * Returns the parsed timeout. Invalid values terminate the process with a
+ * usage error.
+ */
 static long long timeout_parse(const char *x) {
     long long ret;
     if (!strtonum(&ret, x)) {
@@ -141,6 +177,14 @@ static long long timeout_parse(const char *x) {
 
 static int selfpipe[2] = {-1, -1};
 
+/*
+ * signalhandler - wake the forwarding loop on asynchronous signals
+ *
+ * @signum: delivered signal number
+ *
+ * SIGCHLD is ignored here; other watched signals write one byte to the
+ * self-pipe so jail_poll() returns promptly.
+ */
 static void signalhandler(int signum) {
     int w;
     if (signum == SIGCHLD) return;
@@ -148,6 +192,18 @@ static void signalhandler(int signum) {
     (void) w;
 }
 
+/*
+ * main_tlswrapper_tcp - run the TCP forwarding front-end
+ *
+ * @argc: process argument count
+ * @argv: process argument vector
+ * @flagnojail: non-zero to skip privilege dropping and jailed helpers
+ *
+ * Parses command-line options, resolves the destination host, connects to the
+ * remote side, optionally handles PROXY protocol headers, and then forwards
+ * bytes between stdin/stdout and the remote socket until either side closes
+ * or a signal interrupts the session.
+ */
 int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
 
     char *x;
@@ -211,13 +267,13 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     timeout = timeout_parse(timeoutstr);
     connecttimeout = timeout_parse(connecttimeoutstr);
 
-    /* initialize randombytes */
+    /* Initialize randombytes before any cleanup path depends on it. */
     {
         char ch[1];
         randombytes(ch, sizeof ch);
     }
 
-    /* resolve host */
+    /* Resolve all candidate addresses before entering the jail. */
     if (flagnojail) {
         iplen = resolvehost(ip, sizeof ip, hoststr);
     }
@@ -241,21 +297,21 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     }
     resolvehost_close();
 
-    /* create selfpipe */
+    /* Create the self-pipe used to interrupt the forwarding loop on signals. */
     if (pipe(selfpipe) == -1) die_pipe();
 
-    /* create sockets */
+    /* Prepare one non-blocking socket per candidate address. */
     if (!conn_init(iplen / 16)) {
         log_f1("unable to create TCP socket");
         die(111);
     }
 
-    /* drop privileges, chroot, set limits, ... NETJAIL starts here */
+    /* NETJAIL starts here: drop privileges and install restrictive limits. */
     if (!flagnojail) {
         if (jail(ctx.account, ctx.empty_dir, 1) == -1) die_jail();
     }
 
-    /* receive proxy-protocol string */
+    /* Load connection metadata from PROXY protocol or the inherited socket. */
     if (ppin) {
         if (!ppin(0, localip, localport, remoteip, remoteport)) {
             die_ppin(ppinver);
@@ -273,7 +329,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         die(111);
     }
 
-    /* write proxy-protocol string */
+    /* Prepend the outgoing PROXY header to the first bytes sent upstream. */
     if (ppout) {
         inbuflen = ppout((char *)inbuf, sizeof outbuf, localip, localport, remoteip, remoteport);
         if (inbuflen <= 0) die_ppout(ppoutver);
@@ -375,7 +431,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             continue;
         }
 
-        /* signal received */
+        /* Stop forwarding after a watched signal wakes the self-pipe. */
         if (watchfromselfpipe) {
             log_d1("signal received");
             break;

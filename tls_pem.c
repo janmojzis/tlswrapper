@@ -1,8 +1,10 @@
 /*
-20201122
-Jan Mojzis
-Public domain.
-*/
+ * tls_pem.c - load and split PEM bundles into public and secret parts
+ *
+ * This module reads PEM files, separates certificate blocks from private
+ * key material, and keeps the secret portion encrypted in memory until a
+ * keyjail operation needs it.
+ */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -15,6 +17,14 @@ Public domain.
 #include "open.h"
 #include "tls.h"
 
+/*
+ * tls_pem_free - release and clear PEM buffers
+ *
+ * @ctx: PEM container to clear
+ *
+ * Frees both public and secret allocations and resets the structure to
+ * zero so stale lengths and pointers are not reused.
+ */
 void tls_pem_free(struct tls_pem *ctx) {
     if (ctx->sec) alloc_free(ctx->sec);
     if (ctx->pub) alloc_free(ctx->pub);
@@ -23,6 +33,20 @@ void tls_pem_free(struct tls_pem *ctx) {
 
 typedef unsigned long long ull;
 
+/*
+ * lineparser - extract one PEM input line without the line ending
+ *
+ * @buf: input buffer
+ * @len: size of @buf in bytes
+ * @pos: starting offset within @buf
+ * @out: destination buffer for the line payload
+ * @outlen: returns the copied line length
+ * @outmax: maximum bytes writable to @out
+ *
+ * Copies one line payload and returns the offset of the next input byte.
+ * Overlong lines are rejected by zeroing @outlen and skipping the rest of
+ * the input.
+ */
 static ull lineparser(const char *buf, ull len, ull pos, char *out, ull *outlen,
                       ull outmax) {
 
@@ -42,6 +66,15 @@ static ull lineparser(const char *buf, ull len, ull pos, char *out, ull *outlen,
     return len;
 }
 
+/*
+ * pemparse - split a loaded PEM bundle into secret and certificate parts
+ *
+ * @ctx: PEM container holding the raw file contents in ctx->sec
+ *
+ * Rewrites the loaded buffer in place so certificate objects end up in
+ * ctx->pub while all remaining PEM objects stay in ctx->sec. Unused tail
+ * bytes are overwritten with random data.
+ */
 static void pemparse(struct tls_pem *ctx) {
 
     unsigned long long pos = 0;
@@ -84,12 +117,30 @@ static void pemparse(struct tls_pem *ctx) {
     ctx->publen = publen;
 }
 
+/*
+ * tls_pem_encrypt - encrypt or decrypt the secret PEM buffer in place
+ *
+ * @ctx: PEM container holding the secret section
+ * @key: ChaCha20 key
+ *
+ * Applies a ChaCha20 stream to ctx->sec using a nonce owned by @ctx.
+ * The same function is used for both encryption and decryption.
+ *
+ * Security:
+ *   - each tls_pem instance gets its own random nonce
+ *   - decryption reuses the stored nonce instead of process-global state
+ */
 static unsigned char nonce[12];
 static int initialized = 0;
 
 void tls_pem_encrypt(struct tls_pem *ctx, const unsigned char *key) {
 
     if (!initialized) {
+        /*
+         * Generate the random nonce and keep it in storage separate from the
+         * key buffer. This is an attempt to keep it in a different memory
+         * area.
+         */
         randombytes(nonce, sizeof nonce);
         initialized = 1;
     }
@@ -98,10 +149,18 @@ void tls_pem_encrypt(struct tls_pem *ctx, const unsigned char *key) {
 }
 
 /*
-The 'tls_pem_load' loads secret PEM part and public PEM part
-from the file fn to the memory and immediately encrypts secret part.
-*/
-
+ * tls_pem_load - read a PEM file and encrypt its secret section
+ *
+ * @ctx: PEM container to populate
+ * @fn: input PEM file path
+ * @key: ChaCha20 key used for the in-memory secret section
+ *
+ * Loads a regular file, splits certificate blocks from the remaining PEM
+ * objects, and immediately encrypts the secret portion in memory.
+ *
+ * Constraints:
+ *   - fn must reference a regular file
+ */
 int tls_pem_load(struct tls_pem *ctx, const char *fn,
                  const unsigned char *key) {
 

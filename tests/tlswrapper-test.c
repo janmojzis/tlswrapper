@@ -1,17 +1,22 @@
 /*
-20181206
-Jan Mojzis
-Public domain.
-*/
-
-/*
-Multi-call binary wrapper
-*/
+ * tlswrapper-test.c - dispatch the multicall tlswrapper test binary
+ *
+ * This module selects the requested tlswrapper test frontend from
+ * argv[0] so one executable can provide several entry points.
+ */
 
 #include <unistd.h>
 #include "str.h"
 #include "main.h"
 
+/*
+ * basename - return the last path component
+ *
+ * @str: mutable path string
+ *
+ * Returns a pointer inside @str to the final component after the last
+ * slash. Null input is returned unchanged.
+ */
 static char *basename(char *str) {
 
     char *s;
@@ -27,6 +32,15 @@ static char *basename(char *str) {
 
 static char *x;
 
+/*
+ * main - dispatch to the selected tlswrapper frontend
+ *
+ * @argc: process argument count
+ * @argv: process argument vector
+ *
+ * Examines argv[0] and calls the matching frontend implementation.
+ * Unknown names fall back to the test harness entry point.
+ */
 int main(int argc, char **argv) {
 
     if (argc < 1) _exit(100);

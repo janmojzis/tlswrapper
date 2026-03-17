@@ -1,3 +1,11 @@
+/*
+ * timeoutread.c - blocking read with a deadline using select()
+ *
+ * Provides a timeout wrapper around read(). The implementation uses
+ * select() because poll() cannot be used after RLIMIT_NOFILE is reduced
+ * to zero in the jailed processes.
+ */
+
 #include <sys/select.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -5,11 +13,23 @@
 #include "timeoutread.h"
 
 /*
-The function 'timeoutread()' attempts to read up to 'len' bytes from file
-descriptor 'fd' into the buffer starting at 'buf' and waits at most 't' seconds.
-In the timeoutread() function is used select(),
-because poll() doesn't work when RLIMIT_NOFILE is set to 0;
-*/
+ * timeoutread - read from a descriptor with a deadline
+ *
+ * @t: timeout in seconds
+ * @fd: descriptor to wait on and read from
+ * @buf: destination buffer
+ * @len: maximum number of bytes to read
+ *
+ * Waits until fd becomes readable or the timeout expires, then performs a
+ * single read() call.
+ *
+ * Constraints:
+ *   - t, len, and fd must be non-negative
+ *   - fd must be smaller than FD_SETSIZE
+ *
+ * Returns the underlying read() result, or -1 with errno set to ETIMEDOUT
+ * when the deadline expires first.
+ */
 
 long long timeoutread(long long t, int fd, char *buf, long long len) {
 

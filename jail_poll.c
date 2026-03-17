@@ -1,9 +1,14 @@
 /*
-Poll() doesn't work when RLIMIT_NOFILE is set to 0;
-Imitate poll() using select().
-
-warning: poll() handle EBADF in different way
-*/
+ * jail_poll.c - poll-like waiting that survives RLIMIT_NOFILE == 0
+ *
+ * Provides a small compatibility wrapper used inside jailed processes.
+ * When RLIMIT_NOFILE is forced to zero, poll() may stop working on some
+ * platforms, so this module emulates the needed POLLIN/POLLOUT subset
+ * with select().
+ *
+ * The behavior is intentionally narrow and does not match poll() in every
+ * edge case. In particular, EBADF handling may differ.
+ */
 
 #include <poll.h>
 #include <sys/select.h>
@@ -11,6 +16,24 @@ warning: poll() handle EBADF in different way
 #include "log.h"
 #include "jail.h"
 
+/*
+ * jail_poll - wait for readable or writable descriptors with select()
+ *
+ * @x: pollfd-style descriptor array
+ * @len: number of entries in @x
+ * @millisecs: timeout in milliseconds, or negative for no timeout
+ *
+ * Clears all revents fields, translates requested POLLIN/POLLOUT events
+ * into fd_sets, and waits with select(). On return, the function writes
+ * back the corresponding POLLIN/POLLOUT readiness bits into @x.
+ *
+ * Constraints:
+ *   - Only POLLIN and POLLOUT are observed.
+ *   - All non-negative descriptors must be smaller than FD_SETSIZE.
+ *
+ * Returns the number of reported readiness flags, 0 on timeout, and -1 on
+ * error.
+ */
 int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
 
     struct timeval *tvp = 0;
@@ -21,8 +44,8 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     int fd, r = -1;
     nfds_t i;
 
-    log_t5("jail_poll(len = ", log_num(len), ", millisecs = ", log_num(millisecs),
-           ")");
+    log_t5("jail_poll(len = ", log_num(len),
+           ", millisecs = ", log_num(millisecs), ")");
 
     for (i = 0; i < len; ++i) x[i].revents = 0;
 
@@ -78,7 +101,7 @@ int jail_poll(struct pollfd *x, nfds_t len, int millisecs) {
     }
 
 cleanup:
-    log_t6("jail_poll(len = ", log_num(len), ", millisecs = ", log_num(millisecs),
-           ") = ", log_num(r));
+    log_t6("jail_poll(len = ", log_num(len),
+           ", millisecs = ", log_num(millisecs), ") = ", log_num(r));
     return r;
 }

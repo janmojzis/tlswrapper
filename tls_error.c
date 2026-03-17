@@ -1,3 +1,10 @@
+/*
+ * tls_error.c - map BearSSL error codes to log strings
+ *
+ * This module keeps the local error table used for diagnostics. The
+ * strings are stable, human-readable summaries suitable for logs.
+ */
+
 #include "tls.h"
 
 /* clang-format off */
@@ -238,6 +245,14 @@ static struct {
 };
 /* clang-format on */
 
+/*
+ * tls_error_str - return the descriptive string for a BearSSL error code
+ *
+ * @err: BearSSL error code
+ *
+ * Looks up the local error table and returns a static description.
+ * Unknown codes are reported as "unknown error".
+ */
 const char *tls_error_str(int err) {
 
     size_t u;

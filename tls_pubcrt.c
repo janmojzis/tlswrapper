@@ -1,8 +1,9 @@
 /*
-20201122
-Jan Mojzis
-Public domain.
-*/
+ * tls_pubcrt.c - parse certificate chains and trust anchors from PEM
+ *
+ * This module decodes public PEM objects, stores the certificate chain
+ * needed by BearSSL, and builds trust-anchor records from the same input.
+ */
 
 #include <errno.h>
 #include "randombytes.h"
@@ -18,6 +19,15 @@ static void parsedummy(void *yv, const void *x, size_t xlen) {
     (void) xlen;
 }
 
+/*
+ * xmemdup - allocate and copy a byte buffer
+ *
+ * @src: source bytes
+ * @len: number of bytes to copy
+ *
+ * Returns a newly allocated copy of the input buffer or null on
+ * allocation failure.
+ */
 static void *xmemdup(const unsigned char *src, size_t len) {
 
     size_t i;
@@ -35,6 +45,16 @@ struct sa {
     int error;
 };
 
+/*
+ * append - append decoder output into a growable byte buffer
+ *
+ * @xv: destination struct sa
+ * @buf: bytes to append
+ * @buflen: number of bytes in @buf
+ *
+ * Uses stralloc growth rules and stores errno in the destination state on
+ * allocation failure so the caller can abort parsing.
+ */
 static void append(void *xv, const void *buf, size_t buflen) {
 
     stralloc s;
@@ -56,6 +76,18 @@ static void append(void *xv, const void *buf, size_t buflen) {
         if (!dst) goto cleanup;                                                \
     }
 
+/*
+ * tls_pubcrt_parse - decode certificates and public keys from PEM input
+ *
+ * @crt: destination structure for certificates and trust anchors
+ * @buf: PEM input buffer
+ * @buflen: size of @buf in bytes
+ * @fn: source filename used in log messages
+ *
+ * Parses PEM certificate objects, stores the DER certificates for
+ * BearSSL's chain API, and extracts trust-anchor public keys and subject
+ * names for optional client authentication.
+ */
 int tls_pubcrt_parse(struct tls_pubcrt *crt, const char *buf, size_t buflen,
                      const char *fn) {
 

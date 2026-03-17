@@ -1,8 +1,24 @@
-/* taken from public-domain nacl-20110221, from curvecp/randommod.c */
+/*
+ * randommod.c - reduce random bytes modulo a caller-provided bound
+ *
+ * Provides a small helper derived from NaCl/curvecp code to sample a
+ * pseudo-uniform value in the range [0, n).
+ */
+
 #include "randombytes.h"
 #include "randommod.h"
 
-/* XXX: current implementation is limited to n<2^55 */
+/*
+ * randommod - return a random value modulo n
+ *
+ * @n: exclusive upper bound
+ *
+ * Folds 32 random bytes into a value in the range [0, n). Returns 0 when
+ * n is 0 or 1.
+ *
+ * Constraints:
+ *   - the current implementation is intended for n < 2^55
+ */
 
 long long randommod(long long n) {
     long long result = 0;

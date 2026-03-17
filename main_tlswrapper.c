@@ -1,3 +1,11 @@
+/*
+ * main_tlswrapper.c - main entry point for the tlswrapper multicall binary
+ *
+ * This module implements the primary tlswrapper program mode. It parses
+ * command-line options, prepares the TLS context, starts the wrapped
+ * child program and helper processes.
+ */
+
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -88,6 +96,15 @@ static unsigned char remoteip[16] = {0};
 static unsigned char remoteport[2] = {0};
 static char remoteipstr[IPTOSTR_LEN] = {0};
 
+/*
+ * signalhandler - convert asynchronous signals into loop wakeups
+ *
+ * @signum: delivered signal number
+ *
+ * SIGCHLD shortens the active alarm so the main loop notices child exit
+ * promptly. Other watched signals write one byte to the self-pipe so the
+ * poll loop can handle shutdown in process context.
+ */
 static void signalhandler(int signum) {
     int w;
     if (signum == SIGCHLD) {
@@ -98,6 +115,15 @@ static void signalhandler(int signum) {
     (void) w;
 }
 
+/*
+ * cleanup - wipe transient state before exiting the process
+ *
+ * Randomizes in-memory connection state and temporary stack storage, then
+ * releases heap allocations tracked by the local allocator.
+ *
+ * Security:
+ *   - overwrites process-local buffers before _exit()
+ */
 static void cleanup(void) {
     randombytes(&ctx, sizeof ctx);
     randombytes(localip, sizeof localip);
@@ -133,6 +159,14 @@ static void cleanup(void) {
 static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
 static const char *ppinver = 0;
 
+/*
+ * pp_incoming - configure incoming proxy-protocol parsing
+ *
+ * @x: requested proxy-protocol version string
+ *
+ * Enables parsing of a supported incoming proxy-protocol header or
+ * disables it when "0" is selected.
+ */
 static void pp_incoming(const char *x) {
 
     if (str_equal("0", x)) {
@@ -149,6 +183,15 @@ static void pp_incoming(const char *x) {
         die(100);
     }
 }
+
+/*
+ * certuser_add - select the client-certificate field used as login name
+ *
+ * @x: ASN.1 field name from the command line
+ *
+ * Maps a supported field name to the certificate OID extracted after
+ * client authentication succeeds.
+ */
 static void certuser_add(const char *x) {
 
     userfromcert = x;
@@ -165,6 +208,14 @@ static void certuser_add(const char *x) {
         die(100);
     }
 }
+
+/*
+ * version_setmax - parse and store the highest allowed TLS version
+ *
+ * @x: version name from the command line
+ *
+ * Exits with usage failure when the supplied version name is unsupported.
+ */
 static void version_setmax(const char *x) {
 
     long long i;
@@ -177,6 +228,14 @@ static void version_setmax(const char *x) {
         die(100);
     }
 }
+
+/*
+ * version_setmin - parse and store the lowest allowed TLS version
+ *
+ * @x: version name from the command line
+ *
+ * Exits with usage failure when the supplied version name is unsupported.
+ */
 static void version_setmin(const char *x) {
 
     long long i;
@@ -189,6 +248,14 @@ static void version_setmin(const char *x) {
         die(100);
     }
 }
+
+/*
+ * certfile_add_dir - register a certificate directory for SNI lookup
+ *
+ * @x: directory path
+ *
+ * Verifies that the path is a directory and stores it in the TLS context.
+ */
 static void certfile_add_dir(const char *x) {
 
     struct stat st;
@@ -207,6 +274,15 @@ static void certfile_add_dir(const char *x) {
         die(100);
     }
 }
+
+/*
+ * certfile_add_file - register a fixed certificate PEM file
+ *
+ * @x: PEM file path
+ *
+ * Verifies that the path is a regular file and stores it in the TLS
+ * context for later certificate selection.
+ */
 static void certfile_add_file(const char *x) {
 
     struct stat st;
@@ -225,6 +301,15 @@ static void certfile_add_file(const char *x) {
         die(100);
     }
 }
+
+/*
+ * anchor_add - register the client-certificate trust anchor
+ *
+ * @x: anchor PEM file path
+ *
+ * Accepts exactly one regular file that will later be parsed and used for
+ * client-certificate verification.
+ */
 static void anchor_add(char *x) {
     struct stat st;
 
@@ -242,6 +327,15 @@ static void anchor_add(char *x) {
         die(100);
     }
 }
+
+/*
+ * ecdhe_add - enable one supported key-exchange curve
+ *
+ * @x: curve name from the command line
+ *
+ * Extends the enabled curve set or exits with usage failure for an
+ * unknown name.
+ */
 static void ecdhe_add(const char *x) {
 
     long long i;
@@ -254,6 +348,15 @@ static void ecdhe_add(const char *x) {
         die(100);
     }
 }
+
+/*
+ * cipher_add - enable one supported TLS cipher suite
+ *
+ * @x: cipher name from the command line
+ *
+ * Extends the enabled cipher list or exits with usage failure for an
+ * unknown name.
+ */
 static void cipher_add(const char *x) {
 
     long long i;
@@ -266,6 +369,14 @@ static void cipher_add(const char *x) {
         die(100);
     }
 }
+
+/*
+ * timeout_parse - parse and validate a timeout value in seconds
+ *
+ * @x: decimal timeout string
+ *
+ * Returns the parsed timeout after enforcing the accepted range.
+ */
 static long long timeout_parse(const char *x) {
     long long ret;
     if (!strtonum(&ret, x)) {
@@ -283,12 +394,28 @@ static long long timeout_parse(const char *x) {
     return ret;
 }
 
+/*
+ * usage - print short command usage and terminate
+ */
 static void usage(void) {
     log_u1("tlswrapper [options] [ -d certdir ] [ -f certfile ] prog");
     die(100);
 }
 
-
+/*
+ * main_tlswrapper - start the wrapper and bridge one TLS session
+ *
+ * @argc: argument count
+ * @argv: argument vector
+ * @flagnojail: non-zero to skip the network jail
+ *
+ * Parses wrapper options, starts helper processes, configures TLS, and
+ * then forwards bytes between standard input/output, the TLS engine, and
+ * the wrapped child process until one side closes or a signal arrives.
+ *
+ * Constraints:
+ *   - argv must contain at least one certificate source and a child command
+ */
 int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     char *x;
@@ -648,7 +775,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (watchfromcontrol) if (!watchfromcontrol->revents) watchfromcontrol = 0;
         }
 
-        /* recvapp */
+        /*
+         * Forward decrypted application data from the TLS engine to the
+         * child process stdin.
+         */
         if (watchtochild) {
             buf = tls_engine_recvapp_buf(&ctx, &len);
             r = write(tochild[1], buf, len);
@@ -659,7 +789,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             continue;
         }
 
-        /* sendrec */
+        /*
+         * Forward encrypted TLS records from the TLS engine to the network
+         * peer on standard output.
+         */
         if (watch1) {
             buf = tls_engine_sendrec_buf(&ctx, &len);
             r = write(1, buf, len);
@@ -670,7 +803,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             continue;
         }
 
-        /* recvrec */
+        /*
+         * Read encrypted TLS records from the network peer on standard
+         * input and feed them into the TLS engine.
+         */
         if (watch0) {
             buf = tls_engine_recvrec_buf(&ctx, &len);
             r = read(0, buf, len);
@@ -687,7 +823,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             continue;
         }
 
-        /* sendapp */
+        /*
+         * Read plaintext output from the child process stdout and queue it
+         * as application data for TLS encryption and network delivery.
+         */
         if (watchfromchild) {
             buf = tls_engine_sendapp_buf(&ctx, &len);
             r = read(fromchild[0], buf, len);
@@ -706,7 +845,11 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             continue;
         }
 
-        /* controlpipe */
+        /*
+         * Read delayed-encryption control bytes from the child. Before
+         * STARTTLS they are copied directly to the network; EOF on this
+         * pipe switches the session from cleartext passthrough to TLS.
+         */
         if (watchfromcontrol) {
 
             buf = tls_engine_sendapp5_buf(&ctx, &len);
@@ -736,7 +879,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             continue;
         }
 
-        /* signal received */
+        /*
+         * Stop the session after a signal wakes the self-pipe.
+         */
         if (watchfromselfpipe) {
             log_d1("signal received");
             break;

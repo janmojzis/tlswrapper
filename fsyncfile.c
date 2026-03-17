@@ -1,8 +1,9 @@
 /*
-20130115
-Jan Mojzis
-Public domain.
-*/
+ * fsyncfile.c - conditionally synchronize regular files
+ *
+ * Provides a small wrapper around fsync() that first checks whether a
+ * file descriptor refers to a regular file.
+ */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,8 +11,13 @@ Public domain.
 #include "fsyncfile.h"
 
 /*
-The 'fsyncfile(fd)' calls fsync when file-descriptor is regular file.
-*/
+ * fsyncfile - fsync a regular file descriptor
+ *
+ * @fd: file descriptor to inspect and synchronize
+ *
+ * Calls fsync() only when fd refers to a regular file. Returns 0 for
+ * non-regular file descriptors without attempting synchronization.
+ */
 int fsyncfile(int fd) {
 
     struct stat st;

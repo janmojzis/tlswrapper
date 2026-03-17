@@ -1,3 +1,10 @@
+/*
+ * randombytes.c - fill buffers from the system random source
+ *
+ * This module reads entropy from /dev/urandom when no external
+ * randombytes provider is available.
+ */
+
 #include "randombytes.h"
 
 #include "haslibrandombytes.h"
@@ -9,6 +16,12 @@
 
 static int fd = -1;
 
+/*
+ * init - open the kernel random source lazily
+ *
+ * Repeats until /dev/urandom can be opened and stores the descriptor
+ * in the module-global state.
+ */
 __attribute__((constructor)) static void init(void) {
     if (fd == -1) {
         for (;;) {
@@ -24,6 +37,15 @@ __attribute__((constructor)) static void init(void) {
     }
 }
 
+/*
+ * randombytes - fill a buffer with random bytes
+ *
+ * @xv: destination buffer
+ * @xlen: number of bytes to write
+ *
+ * Reads from the initialized random source until the whole buffer is
+ * filled. Short or failed reads are retried after a short sleep.
+ */
 void randombytes(void *xv, long long xlen) {
 
     long long i;

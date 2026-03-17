@@ -1,12 +1,24 @@
 /*
-20220222
-Jan Mojzis
-Public domain.
-*/
+ * strtonum.c - parse signed decimal integers from strings
+ *
+ * This module converts NUL-terminated decimal text into long long values
+ * while rejecting malformed input and arithmetic overflow.
+ *
+ * version 20220222
+ */
 
 #include <errno.h>
 #include "strtonum.h"
 
+/*
+ * strtonum - parse a signed decimal integer
+ *
+ * @r: output location
+ * @buf: NUL-terminated decimal string
+ *
+ * Returns 1 on success. Accepts an optional leading sign and rejects
+ * overflow or trailing non-digit input.
+ */
 int strtonum(long long *r, const char *buf) {
 
     char *bufpos = (char *) buf;

@@ -1,8 +1,11 @@
 /*
-20201103
-Jan Mojzis
-Public domain.
-*/
+ * jail.c - privilege drop, chroot, and process hardening
+ *
+ * Provides the runtime jail used by the network-facing processes after
+ * they finish privileged setup. The jail drops privileges to a target
+ * account or a randomized numeric uid/gid, optionally chroots into an
+ * empty directory, and applies conservative resource limits.
+ */
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -19,14 +22,28 @@ Public domain.
 #include "jail.h"
 
 /*
-The 'jail' function has 3 purposes:
-1. drops root privileges to unprivileged uid/gid
-- if the 'account' is 0, then uid/gid is derived from process id and randomized.
-- if the 'account' is string and the account exist, then uid/gid
-  is retrieved from the system user database.
-2. chroots into an empty directory
-3. sets resource limits
-*/
+ * jail - drop privileges and confine the current process
+ *
+ * @account: user name to switch to, or NULL to derive a randomized uid/gid
+ * @dir: directory to chroot into, or NULL to skip chroot
+ * @limits: non-zero to enable resource limits that forbid new files,
+ *          processes, and core dumps
+ *
+ * Resolves the target uid/gid, switches the process credentials, and
+ * updates supplementary groups. When @dir is set, the process changes
+ * into that directory before chrooting to ".".
+ *
+ * When @account names a real system user, the function also exports the
+ * standard HOME, SHELL, USER, and LOGNAME environment variables from the
+ * passwd entry. With @limits enabled, the function applies restrictive
+ * rlimits after privileged setup is complete.
+ *
+ * Security:
+ *   - Drops gid before uid and initializes supplementary groups first.
+ *   - Applies rlimits after chroot and credential changes where possible.
+ *
+ * Returns 0 on success and -1 on failure.
+ */
 int jail(const char *account, const char *dir, int limits) {
 
     int ret = -1;
@@ -60,7 +77,7 @@ int jail(const char *account, const char *dir, int limits) {
         shell = pw->pw_shell;
     }
 
-/* prohibit new files, new sockets, etc. */
+    /* Block creation of new descriptors before entering the jailed workload. */
 #ifdef RLIMIT_NOFILE
     if (limits) {
         if (setrlimit(RLIMIT_NOFILE, &r) == -1) {
@@ -70,13 +87,13 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
-    /* set gid */
+    /* Switch the primary group before touching supplementary groups. */
     if (setgid(gid) == -1 || getgid() != gid) {
         log_e3("setgid(", log_num(gid), ") failed");
         goto cleanup;
     }
 
-    /* init groups */
+    /* Install supplementary groups for the target identity. */
     if (pw) {
         if (initgroups(name, gid) == -1) {
             log_e5("initgroups(", pw->pw_name, ", ", log_num(gid), ") failed");
@@ -90,7 +107,7 @@ int jail(const char *account, const char *dir, int limits) {
         }
     }
 
-    /* chroot */
+    /* Enter the caller-provided empty root, if requested. */
     if (dir) {
         if (chdir(dir) == -1) {
             log_e2("unable to change directory to ", dir);
@@ -103,7 +120,7 @@ int jail(const char *account, const char *dir, int limits) {
         log_t2("chrooted into ", dir);
     }
 
-    /* set uid */
+    /* Drop the remaining user privileges after chroot setup. */
     if (setuid(uid) == -1 || getuid() != uid) {
         log_e3("setuid(", log_num(uid), ") failed");
         goto cleanup;
@@ -116,7 +133,7 @@ int jail(const char *account, const char *dir, int limits) {
         if (setenv("LOGNAME", name, 1) == -1) goto cleanup;
     }
 
-/* prohibit fork */
+    /* Prevent the jailed process from creating child processes. */
 #ifdef RLIMIT_NPROC
     if (limits) {
         if (setrlimit(RLIMIT_NPROC, &r) == -1) {
@@ -126,7 +143,7 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
-/* prohibit core dumping */
+    /* Disable core dumps and mark the process as non-dumpable. */
 #ifdef RLIMIT_CORE
     if (limits) {
         if (setrlimit(RLIMIT_CORE, &r) == -1) {
@@ -144,8 +161,7 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
-/* if memory limit is greater than 128MB */
-/* set memory limit to 128MB             */
+    /* Cap the data segment at 128 MiB when the inherited limit is larger. */
 #define DATAMAX 134217728
 #ifndef __APPLE__
 #ifdef RLIMIT_DATA

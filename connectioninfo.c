@@ -1,8 +1,10 @@
 /*
-20211119
-Jan Mojzis
-Public domain.
-*/
+ * connectioninfo.c - load and export TCP endpoint metadata
+ *
+ * Provides helpers that read local and remote endpoint addresses either
+ * from inherited environment variables or from the connected socket and
+ * export them in the project's normalized binary and string formats.
+ */
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -19,12 +21,16 @@ Public domain.
 #include "connectioninfo.h"
 
 /*
-The connectioninfo_fromfd function gets
-informations about TCP connection from the
-getsockname(), getpeername() libc functions.
-Also sets env. variables TCPREMOTEIP, TCPREMOTEPORT,
-TCPLOCALIP, TCPLOCALPORT.
-*/
+ * connectioninfo_fromfd - read endpoint metadata from the connected socket
+ *
+ * @localip: 16-byte output buffer for the local address
+ * @localport: two-byte output buffer for the local port
+ * @remoteip: 16-byte output buffer for the peer address
+ * @remoteport: two-byte output buffer for the peer port
+ *
+ * Reads socket metadata from descriptor 0 with getsockname() and
+ * getpeername(). IPv4 addresses are stored as IPv4-mapped IPv6 values.
+ */
 static int connectioninfo_fromfd(unsigned char *localip,
                                  unsigned char *localport,
                                  unsigned char *remoteip,
@@ -34,7 +40,6 @@ static int connectioninfo_fromfd(unsigned char *localip,
     struct sockaddr_storage sa;
     socklen_t salen = sizeof sa;
 
-    /* local ip */
     if (getsockname(fd, (struct sockaddr *) &sa, &salen) == -1) return 0;
 
     if (sa.ss_family == AF_INET) {
@@ -49,7 +54,6 @@ static int connectioninfo_fromfd(unsigned char *localip,
         memcpy(localport, &sin6->sin6_port, 2);
     }
 
-    /* remote ip */
     if (getpeername(fd, (struct sockaddr *) &sa, &salen) == -1) return 0;
 
     if (sa.ss_family == AF_INET) {
@@ -70,9 +74,16 @@ static int connectioninfo_fromfd(unsigned char *localip,
 }
 
 /*
-The connectioninfo_fromenv function gets
-informations about TCP connection from the environment.
-*/
+ * connectioninfo_fromenv - read endpoint metadata from environment variables
+ *
+ * @localip: 16-byte output buffer for the local address
+ * @localport: two-byte output buffer for the local port
+ * @remoteip: 16-byte output buffer for the peer address
+ * @remoteport: two-byte output buffer for the peer port
+ *
+ * Parses TCPLOCALIP, TCPLOCALPORT, TCPREMOTEIP, and TCPREMOTEPORT into the
+ * project's normalized binary formats.
+ */
 static int connectioninfo_fromenv(unsigned char *localip,
                                   unsigned char *localport,
                                   unsigned char *remoteip,
@@ -88,6 +99,19 @@ static int connectioninfo_fromenv(unsigned char *localip,
     return 1;
 }
 
+/*
+ * connectioninfo_get - populate endpoint metadata from env or socket state
+ *
+ * @localip: 16-byte output buffer for the local address
+ * @localport: two-byte output buffer for the local port
+ * @remoteip: 16-byte output buffer for the peer address
+ * @remoteport: two-byte output buffer for the peer port
+ *
+ * First attempts to load the endpoint data from environment variables and
+ * falls back to querying descriptor 0 when the variables are unavailable.
+ *
+ * Returns 1 on success and 0 on failure.
+ */
 int connectioninfo_get(unsigned char *localip, unsigned char *localport,
                        unsigned char *remoteip, unsigned char *remoteport) {
     if (connectioninfo_fromenv(localip, localport, remoteip, remoteport))
@@ -98,6 +122,17 @@ int connectioninfo_get(unsigned char *localip, unsigned char *localport,
     return 0;
 }
 
+/*
+ * connectioninfo_set - export endpoint metadata to environment variables
+ *
+ * @localip: 16-byte local address in normalized binary form
+ * @localport: two-byte local port in network byte order
+ * @remoteip: 16-byte peer address in normalized binary form
+ * @remoteport: two-byte peer port in network byte order
+ *
+ * Converts the binary endpoint data to strings and updates the standard
+ * TCPLOCAL* and TCPREMOTE* environment variables.
+ */
 void connectioninfo_set(unsigned char *localip, unsigned char *localport,
                         unsigned char *remoteip, unsigned char *remoteport) {
     (void) setenv("TCPREMOTEIP", iptostr(0, remoteip), 1);

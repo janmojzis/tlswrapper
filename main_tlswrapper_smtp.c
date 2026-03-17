@@ -1,3 +1,16 @@
+/*
+ * main_tlswrapper_smtp.c - SMTP front-end with optional STARTTLS and greylist
+ *
+ * Implements the SMTP-speaking wrapper process used in front of a child
+ * program. The wrapper proxies SMTP commands and replies, tracks the current
+ * mail transaction for logging, optionally consults a greylist policy server,
+ * and can advertise and switch to STARTTLS when a TLS control channel is
+ * available on file descriptor 5.
+ *
+ * The process can drop privileges, enter the runtime jail, and run the child
+ * service under a separate user before the SMTP session starts.
+ */
+
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -46,6 +59,12 @@ static unsigned char remoteip[16] = {0};
 static unsigned char remoteport[2] = {0};
 static char remoteipstr[IPTOSTR_LEN] = {0};
 
+/*
+ * cleanup - overwrite connection state and temporary stack storage
+ *
+ * Randomizes sensitive process state before exit so connection metadata does
+ * not remain in memory longer than necessary.
+ */
 static void cleanup(void) {
     randombytes(localip, sizeof localip);
     randombytes(localport, sizeof localport);
@@ -57,6 +76,14 @@ static void cleanup(void) {
     }
 }
 
+/*
+ * die - terminate the wrapper and reap the child when needed
+ *
+ * @x: process exit status
+ *
+ * Cleans up local state, optionally waits for the SMTP child, and mirrors the
+ * child's exit status on clean shutdown.
+ */
 static void die(int x) {
 
     int r;
@@ -88,7 +115,9 @@ static void die(int x) {
 #define die_nomem() { log_f1("unable to allocate memory"); die(111); }
 #define die_droppriv(x) { log_f3("unable to drop privileges to '", (x), "'"); die(111); }
 
-
+/*
+ * usage - print command usage and exit
+ */
 static void usage(void) {
     log_u1("tlswrapper-smtp [options] child");
     die(100);
@@ -105,6 +134,14 @@ static long long crwtimeout;
 #define SMTP_MAX_RCPTS 256
 #define SMTP_MAX_RCPTTODATA 65536
 
+/*
+ * timeout_parse - parse and validate a timeout value in seconds
+ *
+ * @x: decimal timeout string
+ *
+ * Returns the parsed timeout. Invalid values terminate the process with a
+ * usage error.
+ */
 static long long timeout_parse(const char *x) {
     long long ret;
     if (!strtonum(&ret, x)) {
@@ -122,6 +159,11 @@ static long long timeout_parse(const char *x) {
     return ret;
 }
 
+/*
+ * signalhandler - abort on session timeout or fatal signal delivery
+ *
+ * @signum: delivered signal number, unused
+ */
 static void signalhandler(int signum) {
     (void) signum;
     /* die(111); */
@@ -129,6 +171,15 @@ static void signalhandler(int signum) {
 
 }
 
+/*
+ * _write - write with the configured client read/write timeout
+ *
+ * @fd: destination file descriptor
+ * @xv: source buffer
+ * @xlen: number of bytes to write
+ *
+ * Returns the number of bytes written. Failures terminate the session.
+ */
 static long long _write(int fd, void *xv, long long xlen) {
     long long w = timeoutwrite(crwtimeout, fd, xv, xlen);
     if (w <= 0) {
@@ -138,6 +189,15 @@ static long long _write(int fd, void *xv, long long xlen) {
     return w;
 }
 
+/*
+ * _read - read with the configured client read/write timeout
+ *
+ * @fd: source file descriptor
+ * @xv: destination buffer
+ * @xlen: number of bytes to read
+ *
+ * Returns the number of bytes read. Failures terminate the session.
+ */
 static long long _read(int fd, void *xv, long long xlen) {
 
     long long r = timeoutread(crwtimeout, fd, xv, xlen);
@@ -167,7 +227,13 @@ static stralloc rcptto = {0};
 static stralloc rcpttodata = {0};
 static unsigned int rcptcount = 0;
 
-
+/*
+ * _catlogid - append the current log id in bracket form
+ *
+ * @sa: destination string accumulator
+ *
+ * Returns 1 on success and 0 on allocation failure.
+ */
 static int _catlogid(stralloc *sa) {
 
     if (log_get_id()) {
@@ -178,12 +244,23 @@ static int _catlogid(stralloc *sa) {
     return 1;
 }
 
+/*
+ * stralloc_reset0 - reset a string accumulator to an empty string
+ *
+ * @sa: string accumulator to reset
+ */
 static void stralloc_reset0(stralloc *sa) {
     if (!stralloc_copys(sa, "")) die_nomem();
     if (!stralloc_0(sa)) die_nomem();
     --sa->len;
 }
 
+/*
+ * smtp_reset_transaction - clear per-message SMTP transaction state
+ *
+ * Resets MAIL FROM, RCPT TO aggregation, and recipient counters after RSET,
+ * QUIT, or completion of DATA.
+ */
 static void smtp_reset_transaction(void) {
     stralloc_reset0(&mailfrom);
     stralloc_reset0(&rcptto);
@@ -191,6 +268,13 @@ static void smtp_reset_transaction(void) {
     rcptcount = 0;
 }
 
+/*
+ * smtp_line_append - append one byte while enforcing a line length limit
+ *
+ * @sa: destination string accumulator
+ * @ch: byte to append
+ * @what: human-readable item name for error logging
+ */
 static void smtp_line_append(stralloc *sa, char ch, const char *what) {
     if (sa->len >= SMTP_MAX_LINE) {
         log_d2(what, " exceeds configured limit");
@@ -211,6 +295,16 @@ static int greylistfd = -1;
 static char greylistbuf[256];
 static buffer gssin;
 
+/*
+ * _gwrite - write to the greylist service with timeout handling
+ *
+ * @fd: greylist socket
+ * @xv: source buffer
+ * @xlen: number of bytes to write
+ *
+ * In fail-closed mode, errors terminate the process. Otherwise they are
+ * logged and returned to the caller.
+ */
 static long long _gwrite(int fd, void *xv, long long xlen) {
     long long w = timeoutwrite(crwtimeout, fd, xv, xlen);
     if (w <= 0) {
@@ -225,6 +319,16 @@ static long long _gwrite(int fd, void *xv, long long xlen) {
     return w;
 }
 
+/*
+ * _gread - read from the greylist service with timeout handling
+ *
+ * @fd: greylist socket
+ * @xv: destination buffer
+ * @xlen: number of bytes to read
+ *
+ * In fail-closed mode, errors terminate the process. Otherwise they are
+ * logged and returned to the caller.
+ */
 static long long _gread(int fd, void *xv, long long xlen) {
 
     long long r = timeoutread(crwtimeout, fd, xv, xlen);
@@ -240,6 +344,14 @@ static long long _gread(int fd, void *xv, long long xlen) {
     return r;
 }
 
+/*
+ * greylist - query the policy service for the current sender and recipient
+ *
+ * Sends a postfix-style access policy request to the configured greylist
+ * server and returns a static SMTP reply string when the recipient should be
+ * deferred or rejected. A null result means the command should continue to
+ * the child SMTP server.
+ */
 static const char *greylist(void) {
 
     char ch;
@@ -279,7 +391,15 @@ static const char *greylist(void) {
     return "450 greylisted (#4.3.0)";
 }
 
-
+/*
+ * smtpline - read one SMTP reply from the child process
+ *
+ * @append: optional extra reply line appended to successful EHLO replies
+ * @addlogid: non-zero to append the current log id to the emitted reply
+ *
+ * Reads one SMTP reply, including multiline replies, into cline and returns
+ * the numeric reply code.
+ */
 static long long smtpline(const char *append, int addlogid) {
 
     unsigned char ch;
@@ -341,7 +461,12 @@ static long long smtpline(const char *append, int addlogid) {
     }
     return code;
 }
-
+/*
+ * readline - read one SMTP command line from the client
+ *
+ * Normalizes NUL bytes to LF, enforces the configured line limit, and stores
+ * the result in line terminated with CRLF.
+ */
 static void readline(void) {
 
     if (!stralloc_copys(&line, "")) die_nomem();
@@ -365,6 +490,11 @@ struct commands {
     void (*action)(void);
 };
 
+/*
+ * commands - dispatch SMTP commands in a loop
+ *
+ * @c: command table terminated by a null verb entry
+ */
 static void commands(struct commands *c) {
 
     long long i, len;
@@ -385,12 +515,22 @@ static void commands(struct commands *c) {
     }
 }
 
+/*
+ * smtp_greet - forward the child's initial greeting to the client
+ */
 static void smtp_greet(void) {
 
     smtpline(0, 1);
     buffer_putsflush(&ssout, cline.s);
 }
 
+/*
+ * copy - proxy one client command to the child and one reply back
+ *
+ * @logid: non-zero to append the current log id to the returned reply
+ *
+ * Returns the child's numeric SMTP status code.
+ */
 static long long copy(int logid) {
 
     long long code;
@@ -402,15 +542,27 @@ static long long copy(int logid) {
     return code;
 }
 
+/*
+ * smtp_default - pass unhandled commands through unchanged
+ */
 static void smtp_default(void) {
     copy(0);
 }
 
+/*
+ * smtp_quit - proxy QUIT and terminate the wrapper cleanly
+ */
 static void smtp_quit(void) {
     copy(1);
     die(0);
 }
 
+/*
+ * smtp_data - proxy DATA and log the final transaction result
+ *
+ * Streams the message body to the child until the terminating dot line and
+ * resets the tracked transaction state after the final reply.
+ */
 static void smtp_data(void) {
 
     long long code;
@@ -444,6 +596,12 @@ static void smtp_data(void) {
     smtp_reset_transaction();
 }
 
+/*
+ * smtp_mail - process MAIL FROM and start a new transaction context
+ *
+ * Extracts the envelope sender for logging and greylist queries before the
+ * command is proxied to the child.
+ */
 static void smtp_mail(void) {
 
     long long code, i;
@@ -471,6 +629,12 @@ static void smtp_mail(void) {
     }
 }
 
+/*
+ * smtp_rcpt - process RCPT TO with optional greylist enforcement
+ *
+ * Tracks recipients for logging, enforces per-transaction limits, and may
+ * short-circuit the command with a greylist reply before contacting the child.
+ */
 static void smtp_rcpt(void) {
 
     long long code, i;
@@ -527,6 +691,9 @@ static void smtp_rcpt(void) {
     }
 }
 
+/*
+ * smtp_ehlo - proxy EHLO and advertise STARTTLS when available
+ */
 static void smtp_ehlo(void) {
 
     struct stat st;
@@ -543,6 +710,12 @@ static void smtp_ehlo(void) {
     log_d3(line.s, ": ", cline.s);
 }
 
+/*
+ * smtp_starttls - switch the client side to TLS when supported
+ *
+ * Sends the STARTTLS readiness reply on descriptor 5, closes the plaintext
+ * control descriptor, and resets the child SMTP state with RSET.
+ */
 static void smtp_starttls(void) {
 
     struct stat st;
@@ -583,7 +756,17 @@ struct commands smtpcommands[] = {
 } ;
 
 
-
+/*
+ * main_tlswrapper_smtp - run the SMTP wrapper front-end
+ *
+ * @argc: process argument count
+ * @argv: process argument vector
+ * @flagnojail: non-zero to skip privilege dropping and jailed helpers
+ *
+ * Parses command-line options, starts the SMTP child, optionally resolves and
+ * connects to the greylist service, enters the jail, and then proxies the
+ * SMTP session until QUIT or failure.
+ */
 int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
 
     char *x;

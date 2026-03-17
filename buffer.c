@@ -1,11 +1,28 @@
 /*
-version 20220222
-*/
+ * buffer.c - buffered I/O helpers for descriptors
+ *
+ * This module provides reusable input and output buffers with retry-aware
+ * read and write helpers for descriptor-based I/O.
+ *
+ * version 20220222
+ */
 
 #include <unistd.h>
 #include <errno.h>
 #include "buffer.h"
 
+/*
+ * buffer_init - initialize a buffer structure
+ *
+ * @s: buffer state to initialize
+ * @op: backend read or write callback
+ * @fd: descriptor used by @op
+ * @x: caller-provided storage
+ * @xlen: size of @x in bytes
+ *
+ * Resets the buffer state to use the provided callback, descriptor, and
+ * storage area. Negative storage sizes are clamped to zero.
+ */
 void buffer_init(buffer *s, long long (*op)(int, void *, long long), int fd,
                  void *x, long long xlen) {
 
@@ -17,6 +34,15 @@ void buffer_init(buffer *s, long long (*op)(int, void *, long long), int fd,
     if (s->n < 0) s->n = 0;
 }
 
+/*
+ * buffer_write - default write backend for output buffers
+ *
+ * @fd: destination descriptor
+ * @x: source bytes
+ * @xlen: number of bytes to write
+ *
+ * Returns the underlying write() result and rejects negative lengths.
+ */
 long long buffer_write(int fd, void *x, long long xlen) {
 
     if (xlen < 0) {
@@ -46,6 +72,13 @@ static int allwrite(long long (*op)(int, void *, long long), int fd,
     return 0;
 }
 
+/*
+ * buffer_flush - write buffered output to the descriptor
+ *
+ * @s: buffer state
+ *
+ * Returns 0 on success and resets the buffered byte count.
+ */
 int buffer_flush(buffer *s) {
 
     if (allwrite(s->op, s->fd, s->x, s->p) < 0) return -1;
@@ -53,6 +86,15 @@ int buffer_flush(buffer *s) {
     return 0;
 }
 
+/*
+ * buffer_put - append bytes to an output buffer
+ *
+ * @s: buffer state
+ * @xv: source bytes
+ * @xlen: number of bytes to append
+ *
+ * Flushes as needed and falls back to direct writes for large payloads.
+ */
 int buffer_put(buffer *s, const void *xv, long long xlen) {
 
     char *x = (char *) xv;
@@ -75,6 +117,14 @@ int buffer_put(buffer *s, const void *xv, long long xlen) {
     return 0;
 }
 
+/*
+ * buffer_puts - append a NUL-terminated string to an output buffer
+ *
+ * @s: buffer state
+ * @x: source string
+ *
+ * Returns buffer_put() for the string length excluding the trailing NUL.
+ */
 int buffer_puts(buffer *s, const char *x) {
 
     long long xlen;
@@ -84,6 +134,15 @@ int buffer_puts(buffer *s, const char *x) {
     return buffer_put(s, x, xlen);
 }
 
+/*
+ * buffer_putflush - flush pending output and write a new payload
+ *
+ * @s: buffer state
+ * @xv: source bytes
+ * @xlen: number of bytes to write
+ *
+ * Returns 0 on success and leaves no buffered output behind.
+ */
 int buffer_putflush(buffer *s, const void *xv, long long xlen) {
 
     if (xlen < 0) {
@@ -94,6 +153,14 @@ int buffer_putflush(buffer *s, const void *xv, long long xlen) {
     return allwrite(s->op, s->fd, xv, xlen);
 }
 
+/*
+ * buffer_putsflush - flush pending output and write a string
+ *
+ * @s: buffer state
+ * @x: source string
+ *
+ * Returns buffer_putflush() for the string length excluding the trailing NUL.
+ */
 int buffer_putsflush(buffer *s, const char *x) {
 
     long long xlen;
@@ -103,6 +170,15 @@ int buffer_putsflush(buffer *s, const char *x) {
     return buffer_putflush(s, x, xlen);
 }
 
+/*
+ * buffer_read - default read backend for input buffers
+ *
+ * @fd: source descriptor
+ * @x: destination bytes
+ * @xlen: maximum bytes to read
+ *
+ * Returns the underlying read() result and rejects negative lengths.
+ */
 long long buffer_read(int fd, void *x, long long xlen) {
 
     if (xlen < 0) {
@@ -124,6 +200,14 @@ static long long oneread(long long (*op)(int, void *, long long), int fd,
     }
 }
 
+/*
+ * buffer_feed - refill buffered input
+ *
+ * @s: buffer state
+ *
+ * Returns the number of bytes now available in the internal buffer, or a
+ * read result <= 0 on EOF or failure.
+ */
 long long buffer_feed(buffer *s) {
 
     long long i, r;
@@ -138,6 +222,15 @@ long long buffer_feed(buffer *s) {
     return r;
 }
 
+/*
+ * getthis - copy bytes out of the buffered input window
+ *
+ * @s: buffer state
+ * @x: destination buffer
+ * @xlen: requested byte count
+ *
+ * Returns the number of bytes copied and advances the buffered read cursor.
+ */
 static long long getthis(buffer *s, char *x, long long xlen) {
 
     long long i;
@@ -149,6 +242,15 @@ static long long getthis(buffer *s, char *x, long long xlen) {
     return xlen;
 }
 
+/*
+ * buffer_get - read bytes from a buffered input stream
+ *
+ * @s: buffer state
+ * @xv: destination buffer
+ * @xlen: requested byte count
+ *
+ * Returns the number of bytes copied or a read result <= 0 on EOF or failure.
+ */
 long long buffer_get(buffer *s, void *xv, long long xlen) {
 
     long long r;
@@ -164,6 +266,14 @@ long long buffer_get(buffer *s, void *xv, long long xlen) {
     return getthis(s, xv, xlen);
 }
 
+/*
+ * buffer_copy - copy all data from one buffer to another
+ *
+ * @bout: destination buffer
+ * @bin: source buffer
+ *
+ * Returns 0 on EOF, -2 on input failure, and -3 on output failure.
+ */
 int buffer_copy(buffer *bout, buffer *bin) {
 
     long long n;

@@ -1,6 +1,14 @@
 /*
-version 20220222
-*/
+ * alloc.c - small allocator with tracked heap fallback
+ *
+ * This module provides aligned allocations from a static arena first and
+ * falls back to malloc() when the arena is exhausted.
+ *
+ * Heap-backed allocations are tracked so callers can wipe and release all
+ * outstanding memory through alloc_freeall().
+ *
+ * version 20220222
+ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -16,6 +24,14 @@ static void **ptr = 0;
 static unsigned long long ptrlen = 0;
 static unsigned long long ptralloc = 0;
 
+/*
+ * ptr_add - remember a heap allocation for bulk cleanup
+ *
+ * @x: allocation returned to the caller
+ *
+ * Returns 1 on success. Null pointers are ignored so callers can keep
+ * cleanup code simple.
+ */
 static int ptr_add(void *x) {
 
     void **newptr;
@@ -36,6 +52,13 @@ static int ptr_add(void *x) {
     return 1;
 }
 
+/*
+ * ptr_remove - forget a tracked heap allocation
+ *
+ * @x: allocation to remove from the tracker
+ *
+ * Returns 1 when @x was present in the tracking array.
+ */
 static int ptr_remove(void *x) {
 
     unsigned long long i;
@@ -50,6 +73,18 @@ ok:
     return 1;
 }
 
+/*
+ * cleanup - wipe a buffer through a volatile view
+ *
+ * @xv: buffer to clear
+ * @xlen: buffer size in bytes
+ *
+ * Clears whole machine words and uses an asm barrier to keep the write
+ * from being optimized away.
+ *
+ * Security:
+ *   - attempts to preserve the memory wipe
+ */
 static void cleanup(void *xv, unsigned long long xlen) {
 
     volatile unsigned long *x = (volatile unsigned long *) xv;
@@ -60,6 +95,22 @@ static void cleanup(void *xv, unsigned long long xlen) {
     __asm__ __volatile__("" : : "r"(xv) : "memory");
 }
 
+/*
+ * alloc - allocate aligned storage from the arena or heap
+ *
+ * @norig: requested allocation size in bytes
+ *
+ * Returns aligned storage for at least @norig bytes. Zero-length requests
+ * are rounded up to one alignment unit. When the static arena has no room,
+ * the function allocates from the heap and stores the block length in a
+ * prefix used by alloc_free().
+ *
+ * Constraints:
+ *   - @norig must be non-negative
+ *
+ * Security:
+ *   - heap-backed allocations are wiped before first use
+ */
 void *alloc(long long norig) {
 
     unsigned char *x;
@@ -115,6 +166,14 @@ inval:
     return (void *) 0;
 }
 
+/*
+ * alloc_free - release memory allocated by alloc
+ *
+ * @xv: pointer returned by alloc()
+ *
+ * Heap allocations are wiped and freed. Pointers into the static arena
+ * are left untouched.
+ */
 void alloc_free(void *xv) {
 
     unsigned char *x = xv;
@@ -139,6 +198,12 @@ void alloc_free(void *xv) {
     free(x);
 }
 
+/*
+ * alloc_freeall - release all tracked heap allocations
+ *
+ * Wipes and frees every outstanding heap block and clears the static
+ * arena used for small allocations.
+ */
 void alloc_freeall(void) {
 
     while (ptrlen > 0) { alloc_free(ptr[0]); }

@@ -1,3 +1,11 @@
+/*
+ * timeoutwrite.c - blocking write with a deadline using select()
+ *
+ * Provides a timeout wrapper around write(). The implementation uses
+ * select() because poll() cannot be used after RLIMIT_NOFILE is reduced
+ * to zero in the jailed processes.
+ */
+
 #include <sys/select.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -5,12 +13,23 @@
 #include "timeoutwrite.h"
 
 /*
-The function 'timeoutwrite()' writes up to 'len' bytes from the buffer starting
-at 'buf' to the file referred to by the file descriptor 'fd' and waits at most
-'t' seconds.
-In the timeoutwrite() function is used select(),
-because poll() doesn't work when RLIMIT_NOFILE is set to 0;
-*/
+ * timeoutwrite - write to a descriptor with a deadline
+ *
+ * @t: timeout in seconds
+ * @fd: descriptor to wait on and write to
+ * @buf: source buffer
+ * @len: maximum number of bytes to write
+ *
+ * Waits until fd becomes writable or the timeout expires, then performs a
+ * single write() call.
+ *
+ * Constraints:
+ *   - t, len, and fd must be non-negative
+ *   - fd must be smaller than FD_SETSIZE
+ *
+ * Returns the underlying write() result, or -1 with errno set to ETIMEDOUT
+ * when the deadline expires first.
+ */
 
 long long timeoutwrite(long long t, int fd, const char *buf, long long len) {
 

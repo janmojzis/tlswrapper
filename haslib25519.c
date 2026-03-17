@@ -1,3 +1,10 @@
+/*
+ * haslib25519.c - verify the external lib25519 feature set
+ *
+ * This probe is compiled during feature detection to confirm that the
+ * linked lib25519 API provides the expected DH and signature behavior.
+ */
+
 #include <lib25519.h>
 
 #if lib25519_nP_montgomery25519_SCALARBYTES != lib25519_dh_SECRETKEYBYTES
@@ -30,7 +37,14 @@ static unsigned char signs[lib25519_sign_BYTES + /*m*/ lib25519_dh_BYTES];
 static long long signslen;
 static long long klen;
 
-/* return zero for all inputs */
+/*
+ * z - map any non-zero byte to zero
+ *
+ * @x: byte to normalize
+ *
+ * Returns 0 for every possible input value. The probe uses this helper
+ * to fold arbitrary output bytes into a single success accumulator.
+ */
 static unsigned char z(unsigned char x) {
 
     unsigned long long z = (unsigned long long) x + 1ULL;
@@ -45,6 +59,15 @@ static unsigned char z(unsigned char x) {
     return t - 1;
 }
 
+/*
+ * main - probe whether the external lib25519 API matches expectations
+ *
+ * @argc: unused
+ * @argv: unused
+ *
+ * Exercises the DH and signature entry points and returns 0 when the
+ * linked implementation behaves as expected for build-time detection.
+ */
 int main(int argc, char **argv) {
     unsigned char ret = 0;
     long long i;

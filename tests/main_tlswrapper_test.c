@@ -1,3 +1,10 @@
+/*
+ * main_tlswrapper_test.c - TLS client test frontend for wrapped child processes
+ *
+ * This module drives a child process through a BearSSL client connection
+ * and exposes command-line switches used by the repository test harness.
+ */
+
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -50,6 +57,16 @@ static uint16_t ciphersuite = 0;
 static uint32_t ecdhecurves = 0;
 static br_ec_impl ecdhe;
 
+/*
+ * _read - BearSSL read callback for the child transport
+ *
+ * @ctx: pointer to the source file descriptor
+ * @x: destination buffer
+ * @len: maximum bytes to read
+ *
+ * Retries transient read errors and returns -1 only for permanent
+ * failures reported through the transport logs.
+ */
 static int _read(void *ctx, unsigned char *x, size_t len) {
 
     int r;
@@ -68,6 +85,16 @@ static int _read(void *ctx, unsigned char *x, size_t len) {
     }
 }
 
+/*
+ * _write - BearSSL write callback for the child transport
+ *
+ * @ctx: pointer to the destination file descriptor
+ * @x: source buffer
+ * @len: number of bytes to write
+ *
+ * Retries transient write errors and returns -1 only for permanent
+ * failures reported through the transport logs.
+ */
 static int _write(void *ctx, const unsigned char *x, size_t len) {
 
     int w;
@@ -87,6 +114,14 @@ static int _write(void *ctx, const unsigned char *x, size_t len) {
 }
 
 
+/*
+ * my_end_chain - relax the untrusted-anchor verification result
+ *
+ * @ctx: BearSSL x509 verifier state
+ *
+ * Converts BR_ERR_X509_NOT_TRUSTED into success so tests can run without
+ * a configured trust store.
+ */
 static unsigned int my_end_chain(const br_x509_class **ctx) {
     unsigned int r;
 
@@ -98,6 +133,13 @@ static unsigned int my_end_chain(const br_x509_class **ctx) {
 }
 
 static br_x509_class my509vtable;
+
+/*
+ * getvtable - build a temporary x509 vtable for test verification
+ *
+ * Returns a copy of the minimal x509 vtable with end_chain replaced by
+ * the local test hook that accepts untrusted anchors.
+ */
 static const br_x509_class *getvtable(void) {
     memcpy(&my509vtable, &br_x509_minimal_vtable, sizeof br_x509_minimal_vtable);
     my509vtable.end_chain = my_end_chain;
@@ -105,6 +147,12 @@ static const br_x509_class *getvtable(void) {
 }
 
 
+/*
+ * cleanup - overwrite stack scratch space before exit
+ *
+ * Generates random data into a local buffer so recent stack contents are
+ * less likely to remain intact after process termination.
+ */
 static void cleanup(void) {
     {
         unsigned char stack[4096];
@@ -122,6 +170,11 @@ static void cleanup(void) {
 #define die_parsepem(x) { log_f2("unable to parse PEM public-object from the file ", (x)); die(111); }
 #define die_write() { log_f1("unable to write output"); die(111); }
 
+/*
+ * usage - print the command line synopsis and exit
+ *
+ * Terminates with the usage exit code expected by the test frontend.
+ */
 static void usage(void) {
     log_u1("tlswrapper-test [options] prog");
     die(100);
@@ -198,6 +251,14 @@ struct {
     { 0, 0 }
 };
 
+/*
+ * cipher_get - parse a cipher suite name from the CLI
+ *
+ * @x: configured cipher suite name
+ *
+ * Stores the matching BearSSL cipher suite id or terminates on invalid
+ * input.
+ */
 static void cipher_get(const char *x) {
 
     long long i;
@@ -222,6 +283,14 @@ struct {
     { 0, 0 }
 };
 
+/*
+ * ecdhe_add - enable one named ECDHE curve from the CLI
+ *
+ * @x: configured curve name
+ *
+ * Sets the matching bit in the supported curve mask or terminates on
+ * invalid input.
+ */
 static void ecdhe_add(const char *x) {
 
     long long i;
@@ -235,6 +304,15 @@ static void ecdhe_add(const char *x) {
     die(100);
 }
 
+/*
+ * main_tlswrapper_test - run the tlswrapper integration test frontend
+ *
+ * @argc: process argument count
+ * @argv: process argument vector
+ *
+ * Parses options, launches the child process, wires it through the TLS
+ * client, and copies test traffic between stdio and the wrapped child.
+ */
 int main_tlswrapper_test(int argc, char **argv) {
 
     char *x;

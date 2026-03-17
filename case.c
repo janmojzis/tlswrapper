@@ -1,9 +1,24 @@
 /*
-version 20220221
-*/
+ * case.c - ASCII-only case-insensitive string helpers
+ *
+ * This module provides comparisons, prefix checks, and lowercase
+ * conversions for ASCII text used throughout the codebase.
+ *
+ * version 20220221
+ */
 
 #include "case.h"
 
+/*
+ * case_diffb - compare fixed-length strings case-insensitively
+ *
+ * @s: first byte string
+ * @len: number of bytes to compare
+ * @t: second byte string
+ *
+ * Returns the first ASCII case-insensitive byte difference, or 0 when
+ * the first @len bytes match.
+ */
 int case_diffb(const char *s, long long len, const char *t) {
 
     unsigned char x, y;
@@ -25,6 +40,15 @@ int case_diffb(const char *s, long long len, const char *t) {
     return 0;
 }
 
+/*
+ * case_diffs - compare NUL-terminated strings case-insensitively
+ *
+ * @s: first string
+ * @t: second string
+ *
+ * Returns the first ASCII case-insensitive character difference, or 0
+ * when both strings are equal.
+ */
 int case_diffs(const char *s, const char *t) {
 
     unsigned char x, y;
@@ -46,6 +70,15 @@ int case_diffs(const char *s, const char *t) {
     return ((int) (unsigned int) x) - ((int) (unsigned int) y);
 }
 
+/*
+ * case_startb - test a fixed-length prefix case-insensitively
+ *
+ * @s: candidate buffer
+ * @len: available bytes in @s
+ * @t: NUL-terminated prefix
+ *
+ * Returns 1 when @t matches the start of @s within @len bytes.
+ */
 int case_startb(const char *s, long long len, const char *t) {
 
     unsigned char x, y;
@@ -68,6 +101,14 @@ int case_startb(const char *s, long long len, const char *t) {
     }
 }
 
+/*
+ * case_starts - test a string prefix case-insensitively
+ *
+ * @s: candidate string
+ * @t: NUL-terminated prefix
+ *
+ * Returns 1 when @t matches the beginning of @s.
+ */
 int case_starts(const char *s, const char *t) {
 
     unsigned char x, y;
@@ -88,6 +129,15 @@ int case_starts(const char *s, const char *t) {
     }
 }
 
+/*
+ * case_lowerb - lowercase a fixed-length ASCII buffer
+ *
+ * @s: buffer to modify in place
+ * @len: number of bytes to process
+ *
+ * Converts ASCII uppercase letters to lowercase and leaves other bytes
+ * unchanged.
+ */
 void case_lowerb(char *s, long long len) {
 
     unsigned char x;
@@ -100,6 +150,13 @@ void case_lowerb(char *s, long long len) {
     }
 }
 
+/*
+ * case_lowers - lowercase a NUL-terminated ASCII string
+ *
+ * @s: string to modify in place
+ *
+ * Converts ASCII uppercase letters until the terminating NUL byte.
+ */
 void case_lowers(char *s) {
 
     unsigned char x;

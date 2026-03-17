@@ -1,3 +1,11 @@
+/*
+ * tls_cipher.c - define supported TLS cipher suites
+ *
+ * This module exposes the cipher suite table used for configuration and
+ * logging. It maps user-facing names to the BearSSL suite identifiers
+ * required for both ECDSA and RSA certificate variants.
+ */
+
 #include "str.h"
 #include "log.h"
 #include "tls.h"
@@ -54,6 +62,14 @@ const tls_cipher tls_ciphers[] = {
     },
     {0, 0, 0, 0, 0}};
 
+/*
+ * tls_cipher_str - return a human-readable cipher suite description
+ *
+ * @s: BearSSL cipher suite identifier
+ *
+ * Looks up the configured cipher table and returns a static descriptive
+ * string for either the ECDSA or RSA suite variant.
+ */
 const char *tls_cipher_str(uint16_t s) {
 
     long long i;
@@ -66,6 +82,20 @@ const char *tls_cipher_str(uint16_t s) {
 }
 
 static int use_default = 1;
+
+/*
+ * tls_cipher_add - enable a cipher suite pair by configuration name
+ *
+ * @ctx: TLS context to update
+ * @x: configured cipher name
+ *
+ * Resolves the requested cipher name and appends both certificate-type
+ * variants to the enabled suite list. The first explicit add clears the
+ * default list before appending user-selected suites.
+ *
+ * Constraints:
+ *   - ctx must have space for two more suite identifiers
+ */
 int tls_cipher_add(struct tls_context *ctx, const char *x) {
 
     unsigned long long i;

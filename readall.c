@@ -1,7 +1,24 @@
+/*
+ * readall.c - read an exact byte count from a descriptor
+ *
+ * This helper hides EINTR and transient nonblocking retries for callers
+ * that expect a fixed-size read to complete.
+ */
+
 #include <unistd.h>
 #include "e.h"
 #include "readall.h"
 
+/*
+ * readall - read exactly xlen bytes
+ *
+ * @fd: source descriptor
+ * @xv: destination buffer
+ * @xlen: number of bytes to read
+ *
+ * Returns 0 after filling the destination buffer. Returns -1 on EOF or
+ * on any non-recoverable read error.
+ */
 int readall(int fd, void *xv, long long xlen) {
 
     long long r;

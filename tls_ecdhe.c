@@ -1,3 +1,11 @@
+/*
+ * tls_ecdhe.c - configure supported ECDHE curves
+ *
+ * This module maps curve names to BearSSL identifiers and prepares a
+ * customized EC implementation table. The customized table restricts the
+ * enabled curves and routes scalar multiplication through the keyjail pipe.
+ */
+
 #include "str.h"
 #include "tls.h"
 
@@ -14,6 +22,14 @@ const tls_ecdhe tls_ecdhes[] = {
 };
 /* clang-format on */
 
+/*
+ * tls_ecdhe_str - return the configuration name for a curve id
+ *
+ * @curve: BearSSL curve identifier
+ *
+ * Returns the configured curve name or "unknown" when the identifier is
+ * not present in the local table.
+ */
 const char *tls_ecdhe_str(unsigned char curve) {
 
     long long i;
@@ -25,6 +41,16 @@ const char *tls_ecdhe_str(unsigned char curve) {
 }
 
 static int use_default = 1;
+
+/*
+ * tls_ecdhe_add - enable an ECDHE curve by configuration name
+ *
+ * @ctx: TLS context to update
+ * @x: configured curve name
+ *
+ * Enables the named curve in the context bitmask. The first explicit add
+ * clears the default bitmask before applying user selections.
+ */
 int tls_ecdhe_add(struct tls_context *ctx, const char *x) {
 
     size_t i;
@@ -45,6 +71,15 @@ int tls_ecdhe_add(struct tls_context *ctx, const char *x) {
 
 static const br_ec_impl *ecdhe_orig;
 
+/*
+ * xoff - report the x-coordinate offset for a curve encoding
+ *
+ * @curve: BearSSL curve identifier
+ * @len: returns the x-coordinate length
+ *
+ * Delegates to the default BearSSL implementation except for X448, whose
+ * fixed-width encoding is supplied locally.
+ */
 static size_t xoff(int curve, size_t *len) {
 
     size_t ret = 0;
@@ -64,6 +99,15 @@ static size_t xoff(int curve, size_t *len) {
 /* fake X448 order, not used */
 static const unsigned char _o[56] = {0xff};
 
+/*
+ * order - report the encoded subgroup order for a curve
+ *
+ * @curve: BearSSL curve identifier
+ * @len: returns the order length
+ *
+ * Provides a placeholder order for X448 so the custom EC vtable remains
+ * structurally complete. Other curves reuse the default BearSSL metadata.
+ */
 static const unsigned char *order(int curve, size_t *len) {
 
     const unsigned char *ret = 0;
@@ -80,6 +124,15 @@ static const unsigned char *order(int curve, size_t *len) {
     return ret;
 }
 
+/*
+ * tls_ecdhe_get_default - build the EC implementation used by BearSSL
+ *
+ * @ctx: TLS context holding the mutable EC implementation copy
+ *
+ * Clones BearSSL's default EC implementation, restricts it to the curves
+ * enabled in ctx, and replaces multiplication hooks with the keyjail pipe
+ * helpers used by tlswrapper.
+ */
 const br_ec_impl *tls_ecdhe_get_default(struct tls_context *ctx) {
     ecdhe_orig = br_ec_get_default();
     memcpy(&ctx->ecdhe_copy, br_ec_get_default(), sizeof(br_ec_impl));
