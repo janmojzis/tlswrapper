@@ -150,7 +150,8 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
         log_d4("sending connect to [", log_ip(ip + 16 * i),
                "]:", log_port(port));
         if (socket_connect(fds[i], ip + 16 * i, port, 0) == 0) {
-            memcpy(ip, ip + 16 * i, 16);
+            conn_copyip(fds[i], ip, iplen);
+            errno = 0;
             return fds[i];
         }
         if (errno != EINPROGRESS && errno != EWOULDBLOCK) {
@@ -186,7 +187,11 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
             }
             return -1;
         }
-        jail_poll(p, plen, tm);
+        if (jail_poll(p, plen, tm) == -1) {
+            if (errno == EINTR) continue;
+            for (i = 0; i < plen; ++i) conn_closefd(p[i].fd);
+            return -1;
+        }
 
         /* Check completion and keep the first socket that really connected. */
         for (i = 0; i < plen; ++i) {
