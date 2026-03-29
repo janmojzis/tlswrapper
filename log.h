@@ -1,11 +1,14 @@
 #ifndef LOG_H____
 #define LOG_H____
 
-#define log_VERSION "20260221"
+#include <signal.h>
+
+#define log_VERSION "20260329"
 
 extern int log_whitelist_add(const char *);
+extern void log_whitelist_free(void);
 
-extern int log_level;
+extern volatile sig_atomic_t log_level;
 #define log_level_USAGE 0
 #define log_level_FATAL 1
 #define log_level_BUG 1
@@ -21,7 +24,6 @@ extern void log_dec_level(int);
 extern void log_set_name(const char *);
 extern void log_set_time(int);
 extern void log_set_color(int);
-extern void log_set_limit(long long);
 extern void log_set_ip(const char *);
 extern void log_unset_id(void);
 extern void log_set_id(const char *);
@@ -74,7 +76,7 @@ extern void log_9_(int, int, const char *, unsigned long long, const char *,
 #define log_b2(a, b) log_b3(a, b, 0)
 #define log_b1(a) log_b2(a, 0)
 #define log_B9(a, b, c, d, e, f, g, h, i, j, k)                                \
-    log_b(a, b, c, d, e, f, g, h, i, j, k)
+    log_b(a, b, c, d, e, f, g, h, i, j, k, 0)
 #define log_B8(a, b, c, d, e, f, g, h, i, j)                                   \
     log_B9(a, b, c, d, e, f, g, h, i, j, 0)
 #define log_B7(a, b, c, d, e, f, g, h, i) log_B8(a, b, c, d, e, f, g, h, i, 0)
@@ -119,7 +121,7 @@ extern void log_9_(int, int, const char *, unsigned long long, const char *,
 #define log_e2(a, b) log_e3(a, b, 0)
 #define log_e1(a) log_e2(a, 0)
 #define log_E9(a, b, c, d, e, f, g, h, i, j, k)                                \
-    log_e(a, b, c, d, e, f, g, h, i, j, k)
+    log_e(a, b, c, d, e, f, g, h, i, j, k, 0)
 #define log_E8(a, b, c, d, e, f, g, h, i, j)                                   \
     log_E9(a, b, c, d, e, f, g, h, i, j, 0)
 #define log_E7(a, b, c, d, e, f, g, h, i) log_E8(a, b, c, d, e, f, g, h, i, 0)
@@ -181,7 +183,7 @@ extern void log_9_(int, int, const char *, unsigned long long, const char *,
 #define log_d2(a, b) log_d3(a, b, 0)
 #define log_d1(a) log_d2(a, 0)
 #define log_D9(a, b, c, d, e, f, g, h, i, j, k)                                \
-    log_d(a, b, c, d, e, f, g, h, i, j, k)
+    log_d(a, b, c, d, e, f, g, h, i, j, k, 0)
 #define log_D8(a, b, c, d, e, f, g, h, i, j)                                   \
     log_D9(a, b, c, d, e, f, g, h, i, j, 0)
 #define log_D7(a, b, c, d, e, f, g, h, i) log_D8(a, b, c, d, e, f, g, h, i, 0)
