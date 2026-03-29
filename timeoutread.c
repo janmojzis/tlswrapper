@@ -64,5 +64,5 @@ long long timeoutread(long long t, int fd, char *buf, long long len) {
         }
         if (FD_ISSET(fd, &rfds)) break;
     }
-    return read(fd, buf, len);
+    return read(fd, buf, (size_t) len);
 }
