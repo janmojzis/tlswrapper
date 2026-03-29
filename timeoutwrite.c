@@ -64,5 +64,5 @@ long long timeoutwrite(long long t, int fd, const char *buf, long long len) {
         }
         if (FD_ISSET(fd, &wfds)) break;
     }
-    return write(fd, buf, len);
+    return write(fd, buf, (size_t) len);
 }
