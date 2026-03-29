@@ -1,86 +1,77 @@
 /*
- * alloc.c - small allocator with tracked heap fallback
+ * alloc.c - memory allocator with tracked cleanup
  *
- * This module provides aligned allocations from a static arena first and
- * falls back to malloc() when the arena is exhausted.
- *
- * Heap-backed allocations are tracked so callers can wipe and release all
- * outstanding memory through alloc_freeall().
- *
- * version 20220222
+ * This module provides zero-initialized memory allocations.
+ * Every allocation is tracked in a small linked list so callers can
+ * wipe individual blocks and reset all outstanding allocations.
  */
 
-#include <stdlib.h>
-#include <errno.h>
-#include "log.h"
 #include "alloc.h"
+#include "log.h"
+#include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+struct alloc_node {
+    void *ptr;
+    long long len;
+    struct alloc_node *next;
+};
 
 static unsigned char space[alloc_STATICSPACE]
     __attribute__((aligned(alloc_ALIGNMENT)));
 static unsigned long long avail = sizeof space;
-static unsigned long long allocated = 0;
-
-static void **ptr = 0;
-static unsigned long long ptrlen = 0;
-static unsigned long long ptralloc = 0;
+static long long allocated = 0;
+static struct alloc_node *alloc_head = 0;
 
 /*
- * ptr_add - remember a heap allocation for bulk cleanup
+ * alloc_aligned_len - compute the backing size for a logical length
  *
- * @x: allocation returned to the caller
+ * @len: logical allocation length in bytes
  *
- * Returns 1 on success. Null pointers are ignored so callers can keep
- * cleanup code simple.
+ * Returns the aligned backing allocation size used by alloc().
  */
-static int ptr_add(void *x) {
+static unsigned long long alloc_aligned_len(long long len) {
 
-    void **newptr;
-    unsigned long long i;
+    unsigned long long n;
 
-    if (!x) return 1;
-    if (ptrlen + 1 > ptralloc) {
-        while (ptrlen + 1 > ptralloc) ptralloc = 2 * ptralloc + 1;
-        newptr = (void **) malloc(ptralloc * sizeof(void *));
-        if (!newptr) return 0;
-        if (ptr) {
-            for (i = 0; i < ptrlen; ++i) newptr[i] = ptr[i];
-            free(ptr);
-        }
-        ptr = newptr;
-    }
-    ptr[ptrlen++] = x;
-    return 1;
+    if (len <= 0) return (unsigned long long) alloc_ALIGNMENT;
+
+    n = (unsigned long long) len;
+    return ((n + alloc_ALIGNMENT - 1) / alloc_ALIGNMENT) * alloc_ALIGNMENT;
 }
 
 /*
- * ptr_remove - forget a tracked heap allocation
+ * alloc_is_static - test whether a pointer is inside the static arena
  *
- * @x: allocation to remove from the tracker
+ * @ptr: pointer returned by alloc()
  *
- * Returns 1 when @x was present in the tracking array.
+ * Returns 1 when @ptr points into the static allocation buffer.
  */
-static int ptr_remove(void *x) {
+static int alloc_is_static(const void *ptr) {
 
-    unsigned long long i;
+    uintptr_t start = (uintptr_t) space;
+    uintptr_t end = start + sizeof space;
+    uintptr_t p = (uintptr_t) ptr;
 
-    for (i = 0; i < ptrlen; ++i) {
-        if (ptr[i] == x) goto ok;
-    }
-    return 0;
-ok:
-    --ptrlen;
-    ptr[i] = ptr[ptrlen];
-    return 1;
+    return p >= start && p < end;
 }
 
 /*
- * cleanup - wipe a buffer through a volatile view
+ * cleanup - wipe a buffer through a volatile machine-word view
  *
  * @xv: buffer to clear
  * @xlen: buffer size in bytes
  *
- * Clears whole machine words and uses an asm barrier to keep the write
- * from being optimized away.
+ * Clears the whole buffer in machine-word chunks. This is safe because
+ * alloc_ALIGNMENT is a whole-number multiple of machine-word size, and
+ * cleanup() is only used with lengths rounded to alloc_ALIGNMENT or
+ * with other machine-word-sized buffers. Uses an asm barrier to keep
+ * the writes from being optimized away.
+ *
+ * Constraints:
+ *   - @xv must point to storage that is machine-word aligned
+ *   - @xlen must be a whole-number multiple of machine-word size
  *
  * Security:
  *   - attempts to preserve the memory wipe
@@ -89,129 +80,208 @@ static void cleanup(void *xv, unsigned long long xlen) {
 
     volatile unsigned long *x = (volatile unsigned long *) xv;
 
-    xlen /= sizeof(unsigned long);
+    xlen /= sizeof(*x);
     while (xlen-- > 0) *x++ = 0;
 
+#ifdef __GNUC__
     __asm__ __volatile__("" : : "r"(xv) : "memory");
+#endif
 }
 
 /*
- * alloc - allocate aligned storage from the arena or heap
+ * alloc_add - track a memory allocation
+ *
+ * @ptr: allocation returned to the caller
+ * @len: requested allocation size in bytes
+ *
+ * Returns 1 on success, 0 on failure.
+ */
+static int alloc_add(void *ptr, long long len) {
+
+    struct alloc_node *node;
+
+    node = (struct alloc_node *) malloc(sizeof(*node));
+    if (!node) return 0;
+    node->ptr = ptr;
+    node->len = len;
+    node->next = alloc_head;
+    alloc_head = node;
+    return 1;
+}
+
+/*
+ * alloc_remove - detach a tracked allocation
+ *
+ * @ptr: allocation to remove from the tracker
+ *
+ * Returns the detached node when @ptr is present, 0 when not found.
+ */
+static struct alloc_node *alloc_remove(void *ptr) {
+
+    struct alloc_node *prev = 0;
+    struct alloc_node *node = alloc_head;
+
+    while (node) {
+        if (node->ptr == ptr) {
+            if (prev)
+                prev->next = node->next;
+            else
+                alloc_head = node->next;
+            return node;
+        }
+        prev = node;
+        node = node->next;
+    }
+    return 0;
+}
+
+/*
+ * alloc - allocate zero-initialized memory storage
  *
  * @norig: requested allocation size in bytes
  *
- * Returns aligned storage for at least @norig bytes. Zero-length requests
- * are rounded up to one alignment unit. When the static arena has no room,
- * the function allocates from the heap and stores the block length in a
- * prefix used by alloc_free().
+ * Returns memory storage for at least @norig bytes. Zero-length requests
+ * are rounded up to alloc_ALIGNMENT so the result can still be passed
+ * to alloc_free().
  *
  * Constraints:
  *   - @norig must be non-negative
  *
  * Security:
- *   - heap-backed allocations are wiped before first use
+ *   - returned memory is zero-initialized
  */
 void *alloc(long long norig) {
 
     unsigned char *x;
-    unsigned long long i, n = norig;
+    unsigned long long n;
 
     if (norig < 0) {
-        log_e3("alloc(", log_num(norig), ") ... failed, < 0");
-        goto inval;
+        errno = EINVAL;
+        log_e3("alloc(", log_num(norig), ") ... failed, requested length < 0");
+        return (void *) 0;
     }
-    if (n == 0) {
-        log_t3("alloc(0), will allocate ", log_num(alloc_ALIGNMENT), " bytes");
-        n = alloc_ALIGNMENT;
+    /*
+     * Check for signed integer overflow before rounding the requested
+     * length up to alloc_ALIGNMENT.
+     */
+    if ((unsigned long long) norig >
+        ((((unsigned long long) (-1)) >> 1) - (alloc_ALIGNMENT - 1))) {
+        errno = ENOMEM;
+        log_e3("alloc(", log_num(norig),
+               ") ... failed, too large to align safely");
+        return (void *) 0;
     }
-    n = ((n + alloc_ALIGNMENT - 1) / alloc_ALIGNMENT) * alloc_ALIGNMENT;
+
+    if (norig == 0) {
+        log_t3("alloc(0), will round up to ", log_num(alloc_ALIGNMENT),
+               " bytes");
+    }
+
+    n = alloc_aligned_len(norig);
     if (n <= avail) {
         avail -= n;
+        errno = 0;
         log_t3("alloc(", log_num(norig), ") ... ok, static");
         return (void *) (space + avail);
     }
 
-    n += alloc_ALIGNMENT;
-    allocated += n;
-
-    if (n != (unsigned long long) (size_t) n) {
-        log_e3("alloc(", log_num(norig), ") ... failed, size_t overflow");
-        goto nomem;
+    /*
+     * Check for signed integer overflow before updating the tracked
+     * total size of outstanding heap allocations.
+     */
+    if ((unsigned long long) allocated + (unsigned long long) norig >
+        (((unsigned long long) (-1)) >> 1)) {
+        errno = ENOMEM;
+        log_e3("alloc(", log_num(norig),
+               ") ... failed, tracked allocation total would overflow");
+        return (void *) 0;
     }
 
-    x = (unsigned char *) malloc(n);
+    if ((unsigned long long) (size_t) n != n) {
+        errno = ENOMEM;
+        log_e3("alloc(", log_num(norig),
+               ") ... failed, requested length does not fit in size_t");
+        return (void *) 0;
+    }
+
+    x = (unsigned char *) malloc((size_t) n);
     if (!x) {
-        log_e3("alloc(", log_num(norig), ") ... failed, malloc() failed");
-        goto nomem;
+        errno = ENOMEM;
+        log_e3("alloc(", log_num(norig), ") ... failed, malloc() returned 0");
+        return (void *) 0;
     }
     cleanup(x, n);
 
-    for (i = 0; i < alloc_ALIGNMENT; ++i) {
-        *x++ = n;
-        n >>= 8;
+    if (!alloc_add(x, norig)) {
+        cleanup(x, n);
+        free(x);
+        errno = ENOMEM;
+        log_e3("alloc(", log_num(norig),
+               ") ... failed, allocation tracking failed");
+        return (void *) 0;
     }
 
-    if (!ptr_add(x)) {
-        log_e3("alloc(", log_num(norig), ") ... failed, malloc() failed");
-        goto nomem;
-    }
+    allocated += norig;
+    errno = 0;
     log_t5("alloc(", log_num(norig), ") ... ok, using malloc(), total ",
            log_num(allocated), " bytes");
-    return (void *) x;
-nomem:
-    errno = ENOMEM;
-    return (void *) 0;
-inval:
-    errno = EINVAL;
-    return (void *) 0;
+    return x;
 }
 
 /*
- * alloc_free - release memory allocated by alloc
+ * alloc_free - wipe and detach memory allocated by alloc
  *
  * @xv: pointer returned by alloc()
  *
- * Heap allocations are wiped and freed. Pointers into the static arena
- * are left untouched.
+ * Memory allocations are wiped using their tracked logical length and
+ * then detached from the allocator state. Heap-backed blocks are freed
+ * immediately. Static-arena blocks remain unavailable until
+ * alloc_freeall() resets the arena.
  */
 void alloc_free(void *xv) {
 
-    unsigned char *x = xv;
-    unsigned long long i, n = 0;
+    struct alloc_node *node;
+    unsigned long long n;
 
-    if (!x) {
-        log_w1("alloc_free(0)");
+    if (!xv) {
+        log_t1("alloc_free(0)");
+        return;
+    }
+    if (alloc_is_static(xv)) return;
+
+    node = alloc_remove(xv);
+    if (!node) {
+        log_b1("alloc_free() called for untracked pointer");
         return;
     }
 
-    if (x >= space)
-        if (x < space + sizeof space) return;
-
-    ptr_remove(x);
-
-    for (i = 0; i < alloc_ALIGNMENT; ++i) {
-        n <<= 8;
-        n |= *--x;
-    }
-
-    cleanup(x, n);
-    free(x);
+    n = alloc_aligned_len(node->len);
+    allocated -= node->len;
+    cleanup(xv, n);
+    free(xv);
+    free(node);
 }
 
 /*
- * alloc_freeall - release all tracked heap allocations
+ * alloc_freeall - release all tracked memory allocations
  *
- * Wipes and frees every outstanding heap block and clears the static
- * arena used for small allocations.
+ * Wipes and frees every outstanding memory block.
  */
 void alloc_freeall(void) {
 
-    while (ptrlen > 0) { alloc_free(ptr[0]); }
-    if (ptr) {
-        free(ptr);
-        ptr = 0;
-        ptrlen = ptralloc = 0;
+    struct alloc_node *node = alloc_head;
+    struct alloc_node *next;
+
+    alloc_head = 0;
+    while (node) {
+        next = node->next;
+        cleanup(node->ptr, alloc_aligned_len(node->len));
+        free(node->ptr);
+        free(node);
+        node = next;
     }
 
     cleanup(space, sizeof space);
+    avail = sizeof space;
+    allocated = 0;
 }

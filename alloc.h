@@ -1,8 +1,10 @@
-#ifndef _ALLOC_H____
-#define _ALLOC_H____
+#ifndef ALLOC_H____
+#define ALLOC_H____
+
+#define alloc_VERSION "20260329"
 
 #ifndef alloc_ALIGNMENT
-#define alloc_ALIGNMENT 16
+#define alloc_ALIGNMENT (4 * sizeof(unsigned long))
 #endif
 #ifndef alloc_STATICSPACE
 #define alloc_STATICSPACE (4096 * alloc_ALIGNMENT)
