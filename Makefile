@@ -13,7 +13,7 @@ BINARIES=tlswrapper
 
 all: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
-alloc.o: alloc.c log.h alloc.h
+alloc.o: alloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
 
 blocking.o: blocking.c blocking.h
