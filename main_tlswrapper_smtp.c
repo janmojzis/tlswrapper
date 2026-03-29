@@ -36,6 +36,7 @@
 #include "timeoutwrite.h"
 #include "timeoutread.h"
 #include "parsenum.h"
+#include "alloc.h"
 #include "main.h"
 
 /* clang-format off */
@@ -70,6 +71,7 @@ static void cleanup(void) {
     randombytes(localport, sizeof localport);
     randombytes(remoteip, sizeof remoteip);
     randombytes(remoteport, sizeof remoteport);
+    alloc_freeall();
     {
         unsigned char stack[4096];
         randombytes(stack, sizeof stack);

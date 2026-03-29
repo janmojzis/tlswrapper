@@ -64,13 +64,13 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c str.h randombytes.h \
  haslibrandombytes.h log.h iptostr.h connectioninfo.h jail.h writeall.h \
  buffer.h stralloc.h open.h e.h tls.h blocking.h resolvehost.h hostport.h \
- conn.h case.h timeoutwrite.h timeoutread.h parsenum.h main.h
+ conn.h case.h timeoutwrite.h timeoutread.h parsenum.h alloc.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h \
  haslibrandombytes.h iptostr.h proxyprotocol.h connectioninfo.h \
  resolvehost.h strtoport.h socket.h e.h log.h conn.h str.h tls.h jail.h \
- randommod.h parsenum.h main.h
+ randommod.h parsenum.h alloc.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \

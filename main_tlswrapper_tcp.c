@@ -25,6 +25,7 @@
 #include "jail.h"
 #include "randommod.h"
 #include "parsenum.h"
+#include "alloc.h"
 #include "main.h"
 
 /* clang-format off */
@@ -85,6 +86,7 @@ static void cleanup(void) {
     randombytes(remoteip, sizeof remoteip);
     randombytes(remoteipstr, sizeof remoteipstr);
     randombytes(&ctx, sizeof ctx);
+    alloc_freeall();
     {
         unsigned char stack[4096];
         randombytes(stack, sizeof stack);
