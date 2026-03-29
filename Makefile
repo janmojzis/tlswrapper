@@ -60,7 +60,7 @@ log.o: log.c e.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
- strtonum.h randombytes.h haslibrandombytes.h alloc.h connectioninfo.h \
+ parsenum.h randombytes.h haslibrandombytes.h alloc.h connectioninfo.h \
  proxyprotocol.h iptostr.h writeall.h fixname.h fixpath.h str.h tls.h \
  open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
@@ -68,13 +68,13 @@ main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c str.h randombytes.h \
  haslibrandombytes.h log.h iptostr.h connectioninfo.h jail.h writeall.h \
  buffer.h stralloc.h open.h e.h tls.h blocking.h resolvehost.h hostport.h \
- conn.h case.h timeoutwrite.h timeoutread.h strtonum.h main.h
+ conn.h case.h timeoutwrite.h timeoutread.h parsenum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h \
  haslibrandombytes.h iptostr.h proxyprotocol.h connectioninfo.h \
  resolvehost.h strtoport.h socket.h e.h log.h conn.h str.h tls.h jail.h \
- randommod.h strtonum.h main.h
+ randommod.h parsenum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 milliseconds.o: milliseconds.c milliseconds.h
@@ -85,6 +85,9 @@ open_pipe.o: open_pipe.c open.h blocking.h
 
 open_read.o: open_read.c open.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c open_read.c
+
+parsenum.o: parsenum.c e.h log.h parsenum.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c parsenum.c
 
 pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
@@ -120,9 +123,6 @@ stralloc.o: stralloc.c alloc.h stralloc.h
 
 strtoip.o: strtoip.c strtoip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
-
-strtonum.o: strtonum.c strtonum.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtonum.c
 
 strtoport.o: strtoport.c strtoport.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoport.c
@@ -214,6 +214,7 @@ OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=milliseconds.o
 OBJECTS+=open_pipe.o
 OBJECTS+=open_read.o
+OBJECTS+=parsenum.o
 OBJECTS+=pipe.o
 OBJECTS+=porttostr.o
 OBJECTS+=proxyprotocol.o
@@ -225,7 +226,6 @@ OBJECTS+=socket.o
 OBJECTS+=str.o
 OBJECTS+=stralloc.o
 OBJECTS+=strtoip.o
-OBJECTS+=strtonum.o
 OBJECTS+=strtoport.o
 OBJECTS+=timeoutread.o
 OBJECTS+=timeoutwrite.o

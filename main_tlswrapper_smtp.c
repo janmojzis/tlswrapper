@@ -35,7 +35,7 @@
 #include "case.h"
 #include "timeoutwrite.h"
 #include "timeoutread.h"
-#include "strtonum.h"
+#include "parsenum.h"
 #include "main.h"
 
 /* clang-format off */
@@ -144,16 +144,8 @@ static long long crwtimeout;
  */
 static long long timeout_parse(const char *x) {
     long long ret;
-    if (!strtonum(&ret, x)) {
-        log_f3("unable to parse timeout from the string '", x, "'");
-        die(100);
-    }
-    if (ret < 1) {
-        log_f3("timeout must be a number > 0, not '", x, "'");
-        die(100);
-    }
-    if (ret > 86400) {
-        log_f3("timeout must be a number < 86400, not '", x, "'");
+    if (!parsenum(&ret, 1, 86400, x)) {
+        log_f3("unable to parse timeout from the string '", x, "', timeout must be a number in the range <1,86400>");
         die(100);
     }
     return ret;

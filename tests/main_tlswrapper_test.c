@@ -18,7 +18,7 @@
 #include "tls.h"
 #include "open.h"
 #include "blocking.h"
-#include "strtonum.h"
+#include "parsenum.h"
 #include "main.h"
 
 /* clang-format off */
@@ -417,7 +417,7 @@ int main_tlswrapper_test(int argc, char **argv) {
         br_ssl_engine_set_x509(&cc->eng, &xcp->vtable);
     }
     if (daysstr) {
-        if (!strtonum(&days, daysstr)) {
+        if (!parsenum(&days, 0, parsenum_MAX, daysstr)) {
             log_f3("unable to parse '", daysstr, "'");
             die(100);
         }
