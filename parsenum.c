@@ -5,8 +5,6 @@
  * against an inclusive range. Leading zeros are rejected except for the
  * single-digit value 0. The low-level parser returns 1/0; the public wrapper
  * logs and sets errno on error.
- *
- * SPDX-License-Identifier: MIT-0
  */
 
 #include "e.h"
