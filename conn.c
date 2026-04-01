@@ -147,16 +147,15 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
 
     /* Start all connects first so the fastest address wins the race. */
     for (i = 0; i < iplen / 16; ++i) {
-        log_d4("sending connect to [", log_ip(ip + 16 * i),
-               "]:", log_port(port));
+        log_t2("sending connect to ", log_ipport(ip + 16 * i, port));
         if (socket_connect(fds[i], ip + 16 * i, port, 0) == 0) {
+            log_d2("connected to ", log_ipport(ip + 16 * i, port));
             conn_copyip(fds[i], ip, iplen);
             errno = 0;
             return fds[i];
         }
         if (errno != EINPROGRESS && errno != EWOULDBLOCK) {
-            log_w4("unable to connect to [", log_ip(ip + 16 * i),
-                   "]:", log_port(port));
+            log_w2("unable to connect to ", log_ipport(ip + 16 * i, port));
             close(fds[i]);
             fds[i] = -1;
         }
@@ -181,9 +180,8 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
         if (tm <= 0) {
             errno = ETIMEDOUT;
             for (i = 0; i < plen; ++i) {
-                log_w4("unable to connect to [",
-                       log_ip(conn_getip(p[i].fd, ip, iplen)),
-                       "]:", log_port(port));
+                log_w2("unable to connect to ",
+                       log_ipport(conn_getip(p[i].fd, ip, iplen), port));
             }
             return -1;
         }
@@ -197,13 +195,14 @@ int conn(long long timeout, unsigned char *ip, long long iplen,
         for (i = 0; i < plen; ++i) {
             if (p[i].revents) {
                 if (socket_connected(p[i].fd)) {
+                    log_d2("connected to ",
+                           log_ipport(conn_getip(p[i].fd, ip, iplen), port));
                     conn_copyip(p[i].fd, ip, iplen);
                     errno = 0;
                     return p[i].fd;
                 }
-                log_w4("unable to connect to [",
-                       log_ip(conn_getip(p[i].fd, ip, iplen)),
-                       "]:", log_port(port));
+                log_w2("unable to connect to ",
+                       log_ipport(conn_getip(p[i].fd, ip, iplen), port));
                 conn_closefd(p[i].fd);
             }
         }
