@@ -350,9 +350,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         struct pollfd *watchtoremote;
         struct pollfd *watchfromselfpipe;
 
-        if (outfinished && infinished && inshutdown && inbuflen == 0 &&
-            outbuflen == 0)
-            break;
+        if (outfinished && inbuflen == 0 && outbuflen == 0) break;
 
         watch0 = watch1 = watchfromremote = watchtoremote = watchfromselfpipe = 0;
         q = p;
