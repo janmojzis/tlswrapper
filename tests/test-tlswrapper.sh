@@ -1,8 +1,5 @@
 #!/bin/sh
 
-PATH="./:${PATH}"
-export PATH
-
 cleanup() {
   ex=$?
   rm -f test-tlswrapper-child.log
@@ -10,7 +7,36 @@ cleanup() {
 }
 trap "cleanup" EXIT TERM INT
 
-tests="control_pipe_eof_before_starttls"
+tests="control_pipe_eof_before_starttls
+delayed_plaintext_reply_after_network_eof
+delayed_plaintext_reply_after_network_eof_without_payload
+delayed_plaintext_reply_after_network_eof_large_payload
+delayed_plaintext_reply_after_network_eof_multiple_writes
+delayed_network_eof_then_child_silent_exit
+delayed_child_half_closes_without_plaintext_client_still_writes
+child-eof
+socket-halfclose
+delayed_idle_before_starttls_timeout
+delayed_post_activity_idle_timeout
+tls_reply_after_network_eof
+tls_reply_after_network_eof_without_plaintext
+tls_reply_after_network_eof_large_payload
+tls_reply_after_network_eof_multiple_writes
+tls_network_eof_then_child_silent_exit
+tls_child_half_closes_without_plaintext_client_still_writes
+tls_only_stalled_handshake_timeout
+tls_only_idle_after_handshake_timeout
+tls_only_post_handshake_activity_idle_timeout
+hybrid_starttls_then_tls_reply_after_network_eof
+hybrid_starttls_then_tls_reply_after_network_eof_without_plaintext
+hybrid_starttls_then_tls_reply_after_network_eof_large_payload
+hybrid_starttls_then_tls_reply_after_network_eof_multiple_writes
+hybrid_starttls_then_tls_network_eof_child_silent_exit
+hybrid_starttls_then_child_half_closes_without_plaintext_client_still_writes
+hybrid_starttls_flushes_plaintext_before_tls
+hybrid_stalled_after_starttls_request_timeout
+hybrid_idle_after_handshake_timeout
+hybrid_post_handshake_activity_idle_timeout"
 
 for t in ${tests}; do
   echo "=== ${t} ==="
