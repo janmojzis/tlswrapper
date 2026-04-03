@@ -33,8 +33,8 @@ trap "cleanup" EXIT TERM INT
 PATH="./:${PATH}"
 export PATH
 
-CMD="tlswrapper-test -vvv"
-CMD="${CMD} -d `cat testcerts/days`"
+BASECMD="tlswrapper-test -vvv"
+BASECMD="${BASECMD} -d `cat testcerts/days`"
 
 ls testcerts | grep '^okcert-' |\
 while read name; do
@@ -45,8 +45,9 @@ while read name; do
   type=`echo ${name} | cut -d- -f4`
   size=`echo ${name} | cut -d- -f5`
 
+  CMD="${BASECMD} -a ${caname} -h ${name}"
+
   randdata
-  CMD="${CMD} -a ${caname} -h "${name}""
   ${CMD} -w tlswrappernojail -vvv -d "testcerts" bash -c 'cat > data.out' < data.in  2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), upload"
 
@@ -55,7 +56,6 @@ while read name; do
   check "CA=${catype}-${casize}, cert=${type}-${size}, certdir (-d), download"
 
   randdata
-  CMD="${CMD} -a ${caname} -h "${name}""
   ${CMD} -w tlswrappernojail -v -f "testcerts/${name}" bash -c 'cat > data.out' < data.in  2>log
   check "CA=${catype}-${casize}, cert=${type}-${size}, certfile (-f), upload"
 
