@@ -67,9 +67,8 @@ static int connectioninfo_fromfd(unsigned char *localip,
         memcpy(remoteip, &sin6->sin6_addr, 16);
         memcpy(remoteport, &sin6->sin6_port, 2);
     }
-    log_t8("connectioninfo_fromfd(): localip=", log_ip(localip),
-           ", localport=", log_port(localport), ", remote=", log_ip(remoteip),
-           ", remoteport=", log_port(remoteport));
+    log_t4("connectioninfo_fromfd(): local=", log_ipport(localip, localport),
+           ", remote=", log_ipport(remoteip, remoteport));
     return 1;
 }
 
@@ -93,9 +92,8 @@ static int connectioninfo_fromenv(unsigned char *localip,
     if (!strtoport(localport, getenv("TCPLOCALPORT"))) return 0;
     if (!strtoip(remoteip, getenv("TCPREMOTEIP"))) return 0;
     if (!strtoport(remoteport, getenv("TCPREMOTEPORT"))) return 0;
-    log_t8("connectioninfo_fromenv(): localip=", log_ip(localip),
-           ", localport=", log_port(localport), ", remote=", log_ip(remoteip),
-           ", remoteport=", log_port(remoteport));
+    log_t4("connectioninfo_fromenv(): local=", log_ipport(localip, localport),
+           ", remote=", log_ipport(remoteip, remoteport));
     return 1;
 }
 
@@ -139,7 +137,6 @@ void connectioninfo_set(unsigned char *localip, unsigned char *localport,
     (void) setenv("TCPREMOTEPORT", porttostr(0, remoteport), 1);
     (void) setenv("TCPLOCALIP", iptostr(0, localip), 1);
     (void) setenv("TCPLOCALPORT", porttostr(0, localport), 1);
-    log_t8("connectioninfo_set(): localip=", log_ip(localip),
-           ", localport=", log_port(localport), ", remote=", log_ip(remoteip),
-           ", remoteport=", log_port(remoteport));
+    log_t4("connectioninfo_set(): local=", log_ipport(localip, localport),
+           ", remote=", log_ipport(remoteip, remoteport));
 }

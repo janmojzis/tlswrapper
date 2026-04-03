@@ -2,7 +2,7 @@
 #define _CONN_H____
 
 extern int conn_init(long long);
-extern int conn(long long timeout, unsigned char *ip, long long iplen,
-                unsigned char *port);
+extern int conn(int connfds[2], long long timeout, unsigned char *ip,
+                long long iplen, unsigned char *port);
 
 #endif

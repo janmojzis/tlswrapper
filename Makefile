@@ -61,8 +61,8 @@ log.o: log.c e.h log.h
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
  parsenum.h randombytes.h haslibrandombytes.h alloc.h connectioninfo.h \
- proxyprotocol.h iptostr.h writeall.h fixname.h fixpath.h str.h tls.h \
- open.h main.h
+ proxyprotocol.h iptostr.h writeall.h fixname.h fixpath.h socket.h str.h \
+ tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c str.h randombytes.h \
@@ -151,7 +151,7 @@ tls_ecdhe.o: tls_ecdhe.c str.h tls.h
 tls_ecdsa.o: tls_ecdsa.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_ecdsa.c
 
-tls_engine.o: tls_engine.c writeall.h log.h tls.h
+tls_engine.o: tls_engine.c log.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_engine.c
 
 tls_error.o: tls_error.c tls.h

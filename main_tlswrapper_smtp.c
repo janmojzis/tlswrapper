@@ -765,6 +765,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
 
     char *x;
     struct stat st;
+    int greylistfds[2];
 
     signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, signalhandler);
@@ -912,8 +913,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
         log_d4("resolvehost: ", greylisthost, ": ", log_ip(greylistip));
         if (!flagnojail) resolvehost_close();
 
-        greylistfd = conn(crwtimeout, greylistip, greylistiplen, greylistport);
-        if (greylistfd == -1) {
+        if (!conn(greylistfds, crwtimeout, greylistip, greylistiplen, greylistport)) {
             if (flaggreyfailclosed) {
                 log_f2("unable to connect to ", greylisthostport);
                 die(111);
@@ -921,6 +921,10 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
             else {
                 log_w2("unable to connect to ", greylisthostport);
             }
+        }
+        else {
+            greylistfd = greylistfds[0];
+            close(greylistfds[1]);
         }
     }
 

@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <string.h>
 #include <unistd.h>
 #include "blocking.h"
 #include "pipe.h"
@@ -25,6 +26,7 @@
 #include "writeall.h"
 #include "fixname.h"
 #include "fixpath.h"
+#include "socket.h"
 #include "str.h"
 #include "tls.h"
 #include "open.h"
@@ -89,6 +91,19 @@ static int tokeyjail[2] = {-1, -1};
 static pid_t keyjailchild = -1;
 
 static int selfpipe[2] = {-1, -1};
+static int netinfd = -1;
+static int netoutfd = -1;
+static int childoutfd = -1;
+static int childinfd = -1;
+static int controlfd = -1;
+
+#define CLEARTEXT_BUFSIZE 8192
+static unsigned char cleartext_tochildbuf[CLEARTEXT_BUFSIZE];
+static size_t cleartext_tochildbuflen = 0;
+static unsigned char cleartext_tonetbuf[CLEARTEXT_BUFSIZE];
+static size_t cleartext_tonetbuflen = 0;
+static unsigned char cleartext_tonet5buf[CLEARTEXT_BUFSIZE];
+static size_t cleartext_tonet5buflen = 0;
 
 static unsigned char localip[16] = {0};
 static unsigned char localport[2] = {0};
@@ -131,6 +146,12 @@ static void cleanup(void) {
     randombytes(remoteip, sizeof remoteip);
     randombytes(remoteport, sizeof remoteport);
     randombytes(remoteipstr, sizeof remoteipstr);
+    randombytes(cleartext_tochildbuf, sizeof cleartext_tochildbuf);
+    randombytes(&cleartext_tochildbuflen, sizeof cleartext_tochildbuflen);
+    randombytes(cleartext_tonetbuf, sizeof cleartext_tonetbuf);
+    randombytes(&cleartext_tonetbuflen, sizeof cleartext_tonetbuflen);
+    randombytes(cleartext_tonet5buf, sizeof cleartext_tonet5buf);
+    randombytes(&cleartext_tonet5buflen, sizeof cleartext_tonet5buflen);
     alloc_freeall();
     {
         unsigned char stack[4096];
@@ -387,6 +408,453 @@ static long long timeout_parse(const char *x) {
 }
 
 /*
+ * consume_buffer - drop bytes from the front of a pending buffer
+ *
+ * @buf: buffer storage
+ * @buflen: current number of valid bytes
+ * @len: number of bytes already consumed
+ */
+static void consume_buffer(unsigned char *buf, size_t *buflen, size_t len) {
+    if (!len) return;
+    memmove(buf, buf + len, *buflen - len);
+    *buflen -= len;
+}
+
+/*
+ * close_rfd - close a tracked read descriptor and mark it inactive
+ *
+ * @fd: descriptor slot to close
+ */
+static void close_rfd(int *fd) {
+    if (*fd != -1) {
+        close(*fd);
+        *fd = -1;
+    }
+}
+
+/*
+ * close_wfd - close a tracked write descriptor and mark it inactive
+ *
+ * @fd: descriptor slot to close
+ *
+ * Uses shutdown(SHUT_WR) for socket-backed transports and falls back to a
+ * plain close when the descriptor is not a socket.
+ */
+static int close_wfd(int *fd) {
+    if (*fd == -1) return 1;
+    if (socket_shutdown(*fd) == -1) {
+        if (errno != ENOTCONN && errno != EBADF &&
+            errno != ENOTSOCK && errno != EINVAL) return 0;
+    }
+    close_rfd(fd);
+    return 1;
+}
+
+/*
+ * report_tls_user - send the one-shot login/account record to the child
+ *
+ * @userstr: NUL-terminated value to forward
+ * @flaguserreported: tracks whether the record was already delivered
+ */
+static void report_tls_user(const char *userstr, int *flaguserreported) {
+    if (pipe_write(childinfd, userstr, str_len(userstr) + 1) == -1) {
+        die_writetopipe();
+    }
+    *flaguserreported = 1;
+}
+
+/*
+ * report_tls_handshake - publish post-handshake metadata once
+ *
+ * @st: current BearSSL engine state flags
+ * @flaguserreported: tracks whether the child already received the login string
+ */
+static void report_tls_handshake(unsigned int st, int *flaguserreported) {
+
+    if (ctx.flaghandshakedone) return;
+    if (!(st & BR_SSL_SENDAPP)) return;
+    ctx.flaghandshakedone = 1;
+
+    /* CN from anchor certificate */
+    if (!*flaguserreported) {
+        ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
+        if (userfromcert) {
+            if (!ctx.clientcrt.status) die_extractcn(userfromcert);
+            log_d4(userfromcert, " from the client certificate '",
+                   ctx.clientcrtbuf, "'");
+            fixname(ctx.clientcrtbuf);
+        }
+        report_tls_user((char *)ctx.clientcrtbuf, flaguserreported);
+    }
+
+    log_i9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)),
+           ", ", tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ",
+           tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
+           ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
+
+    alarm(timeout);
+}
+
+/*
+ * run_cleartext_phase - forward plaintext until the child requests STARTTLS
+ *
+ * Returns 1 when the delayed-encryption control pipe requests STARTTLS and
+ * 0 when the session should terminate without entering TLS.
+ */
+static int run_cleartext_phase(void) {
+    cleartext_tochildbuflen = 0;
+    cleartext_tonetbuflen = 0;
+    cleartext_tonet5buflen = 0;
+    log_t1("cleartext phase entered");
+
+    for (;;) {
+        struct pollfd p[6];
+        struct pollfd *q;
+        struct pollfd *watchfromnet;
+        struct pollfd *watchtonet;
+        struct pollfd *watchfromchild;
+        struct pollfd *watchtochild;
+        struct pollfd *watchfromselfpipe;
+        struct pollfd *watchfromcontrol;
+        long long r;
+
+        if (netinfd == -1 && childinfd != -1 && !cleartext_tochildbuflen) {
+            if (!close_wfd(&childinfd)) {
+                log_d1("write side close to child failed");
+                return 0;
+            }
+            log_t1("network peer closed the connection, cleartext phase propagated network EOF to child");
+        }
+        if (childoutfd == -1 && netoutfd != -1 && !cleartext_tonetbuflen) {
+            if (!close_wfd(&netoutfd)) {
+                log_d1("write side close to remote failed");
+                return 0;
+            }
+            log_d1("child closed the connection, cleartext phase propagated child EOF to network");
+        }
+        if (netinfd == -1 && childinfd == -1 && childoutfd == -1 && netoutfd == -1) {
+            log_t1("cleartext phase finished");
+            return 0;
+        }
+
+        watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
+        watchfromcontrol = 0;
+        q = p;
+
+        if (netoutfd != -1 && cleartext_tonetbuflen) {
+            watchtonet = q;
+            q->fd = netoutfd;
+            q->events = POLLOUT;
+            ++q;
+        }
+        if (cleartext_tochildbuflen && childinfd != -1) {
+            watchtochild = q;
+            q->fd = childinfd;
+            q->events = POLLOUT;
+            ++q;
+        }
+        if (netinfd != -1 &&
+            cleartext_tochildbuflen < sizeof cleartext_tochildbuf &&
+            childinfd != -1) {
+            watchfromnet = q;
+            q->fd = netinfd;
+            q->events = POLLIN;
+            ++q;
+        }
+        if (childoutfd != -1 && cleartext_tonetbuflen < sizeof cleartext_tonetbuf) {
+            watchfromchild = q;
+            q->fd = childoutfd;
+            q->events = POLLIN;
+            ++q;
+        }
+        if (childoutfd != -1 && netoutfd != -1 &&
+            controlfd != -1 &&
+            cleartext_tonet5buflen < sizeof cleartext_tonet5buf) {
+            watchfromcontrol = q;
+            q->fd = controlfd;
+            q->events = POLLIN;
+            ++q;
+        }
+        watchfromselfpipe = q;
+        q->fd = selfpipe[0];
+        q->events = POLLIN;
+        ++q;
+
+        if (jail_poll(p, q - p, -1) < 0) {
+            watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
+            watchfromcontrol = 0;
+        }
+        else {
+            if (watchtonet) if (!watchtonet->revents) watchtonet = 0;
+            if (watchtochild) if (!watchtochild->revents) watchtochild = 0;
+            if (watchfromnet) if (!watchfromnet->revents) watchfromnet = 0;
+            if (watchfromchild) if (!watchfromchild->revents) watchfromchild = 0;
+            if (watchfromcontrol) if (!watchfromcontrol->revents) watchfromcontrol = 0;
+            if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
+        }
+
+        if (watchtochild) {
+            r = write(childinfd, cleartext_tochildbuf, cleartext_tochildbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                (void)close_wfd(&childinfd);
+                log_d1("write to child failed");
+                return 0;
+            }
+            log_t4("write(childinfd, cleartext_tochildbuf, len=",
+                   log_num(cleartext_tochildbuflen), ") = ", log_num(r));
+            consume_buffer(cleartext_tochildbuf, &cleartext_tochildbuflen, (size_t) r);
+            continue;
+        }
+
+        if (watchtonet) {
+            r = write(netoutfd, cleartext_tonetbuf, cleartext_tonetbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                (void)close_wfd(&netoutfd);
+                log_d1("write to standard output failed");
+                return 0;
+            }
+            log_t4("write(netoutfd, cleartext_tonetbuf, len=", log_num(cleartext_tonetbuflen),
+                   ") = ", log_num(r));
+            consume_buffer(cleartext_tonetbuf, &cleartext_tonetbuflen, (size_t) r);
+            continue;
+        }
+
+        if (watchfromnet) {
+            r = read(netinfd, cleartext_tochildbuf + cleartext_tochildbuflen,
+                     sizeof cleartext_tochildbuf - cleartext_tochildbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                if (r < 0) log_d1("read from standard input failed");
+                if (r == 0) log_t1("read from standard input failed, connection closed");
+                close_rfd(&netinfd);
+                continue;
+            }
+            log_t4("read(netinfd, cleartext_tochildbuf + len, free=",
+                   log_num(sizeof cleartext_tochildbuf - cleartext_tochildbuflen),
+                   ") = ", log_num(r));
+            cleartext_tochildbuflen += (size_t) r;
+            alarm(timeout);
+            continue;
+        }
+
+        if (watchfromchild) {
+            r = read(childoutfd, cleartext_tonetbuf + cleartext_tonetbuflen,
+                     sizeof cleartext_tonetbuf - cleartext_tonetbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                if (r < 0) log_d1("read from child failed");
+                if (r == 0) log_t1("read from child failed, connection closed");
+                close_rfd(&childoutfd);
+                continue;
+            }
+            log_t4("read(childoutfd, cleartext_tonetbuf + len, free=",
+                   log_num(sizeof cleartext_tonetbuf - cleartext_tonetbuflen),
+                   ") = ", log_num(r));
+            cleartext_tonetbuflen += (size_t) r;
+            alarm(timeout);
+            continue;
+        }
+
+        if (watchfromcontrol) {
+            r = read(controlfd, cleartext_tonet5buf + cleartext_tonet5buflen,
+                     sizeof cleartext_tonet5buf - cleartext_tonet5buflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r == -1) {
+                close_rfd(&controlfd);
+                log_d1("read from child failed");
+                return 0;
+            }
+            if (r == 0) {
+                close_rfd(&controlfd);
+                if (!cleartext_tonet5buflen) {
+                    log_d1("control pipe closed before STARTTLS, cleartext phase ended");
+                    return 0;
+                }
+                if (writeall(netoutfd, cleartext_tonet5buf, cleartext_tonet5buflen) == -1) {
+                    log_d1("write to standard output failed");
+                    return 0;
+                }
+                log_d2("child requested encryption(STARTTLS), flushed bytes ",
+                       log_num(cleartext_tonet5buflen));
+                return 1;
+            }
+            cleartext_tonet5buflen += (size_t) r;
+            continue;
+        }
+
+        if (watchfromselfpipe) {
+            log_d1("signal received, cleartext phase interrupted");
+            return 0;
+        }
+    }
+}
+
+/*
+ * run_tls_phase - forward bytes between BearSSL, the network, and the child
+ *
+ * @flaguserreported: tracks whether the child already received the login string
+ */
+static void run_tls_phase(int *flaguserreported) {
+    log_t1("tls phase entered");
+    for (;;) {
+        unsigned int st;
+        struct pollfd p[5];
+        struct pollfd *q;
+        struct pollfd *watchfromnet;
+        struct pollfd *watchtonet;
+        struct pollfd *watchfromchild;
+        struct pollfd *watchtochild;
+        struct pollfd *watchfromselfpipe;
+        unsigned char *buf;
+        size_t len;
+        long long r;
+
+        st = tls_engine_current_state(&ctx);
+        report_tls_handshake(st, flaguserreported);
+
+
+        /* Handshake failed — tear down immediately, nothing useful
+         * can happen on this connection any more.
+         */
+        if ((st & BR_SSL_CLOSED) && !ctx.flaghandshakedone) {
+            log_d1("handshake failed, tls phase ended during handshake");
+            break;
+        }
+
+        /* BearSSL is done and all pending TLS records have been flushed —
+         * nothing useful remains on this connection.
+         */
+        if ((st & BR_SSL_CLOSED) && !(st & BR_SSL_SENDREC)) {
+            log_t1("tls phase finished after engine close");
+            break;
+        }
+
+        /* Unclean TCP close without close_notify: the peer has closed
+         * the connection and BearSSL has no more plaintext pending
+         * for the child, so propagate EOF to the wrapped program.
+         */
+        if (netinfd == -1 && childinfd != -1 && !(st & BR_SSL_RECVAPP)) {
+            if (!close_wfd(&childinfd)) {
+                log_d1("write side close to child failed");
+                break;
+            }
+            log_t1("tls phase propagated peer EOF to child");
+        }
+
+
+        watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
+        q = p;
+
+        if (netoutfd != -1 && (st & BR_SSL_SENDREC)) {
+            watchtonet = q;
+            q->fd = netoutfd;
+            q->events = POLLOUT;
+            ++q;
+        }
+        if (netinfd != -1 && (st & BR_SSL_RECVREC)) {
+            watchfromnet = q;
+            q->fd = netinfd;
+            q->events = POLLIN;
+            ++q;
+        }
+        if (childinfd != -1 && (st & BR_SSL_RECVAPP)) {
+            watchtochild = q;
+            q->fd = childinfd;
+            q->events = POLLOUT;
+            ++q;
+        }
+        if (childoutfd != -1 && (st & BR_SSL_SENDAPP)) {
+            watchfromchild = q;
+            q->fd = childoutfd;
+            q->events = POLLIN;
+            ++q;
+        }
+        watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
+
+        if (jail_poll(p, q - p, -1) < 0) {
+            watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
+        }
+        else {
+            if (watchtonet) if (!watchtonet->revents) watchtonet = 0;
+            if (watchfromnet) if (!watchfromnet->revents) watchfromnet = 0;
+            if (watchtochild) if (!watchtochild->revents) watchtochild = 0;
+            if (watchfromchild) if (!watchfromchild->revents) watchfromchild = 0;
+            if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
+        }
+
+        if (watchtochild) {
+            buf = tls_engine_recvapp_buf(&ctx, &len);
+            r = write(childinfd, buf, len);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                (void)close_wfd(&childinfd);
+                log_d1("write to child failed");
+                break;
+            }
+            log_t4("write(childinfd, buf, len=", log_num(len), ") = ", log_num(r));
+            tls_engine_recvapp_ack(&ctx, r);
+            continue;
+        }
+
+        if (watchtonet) {
+            buf = tls_engine_sendrec_buf(&ctx, &len);
+            r = write(netoutfd, buf, len);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                (void)close_wfd(&netoutfd);
+                log_d1("write to standard output failed");
+                break;
+            }
+            log_t4("write(netoutfd, buf, len=", log_num(len), ") = ", log_num(r));
+            tls_engine_sendrec_ack(&ctx, r);
+            continue;
+        }
+
+        if (watchfromnet) {
+            buf = tls_engine_recvrec_buf(&ctx, &len);
+            r = read(netinfd, buf, len);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                if (r < 0) log_d1("read from standard input failed");
+                if (r == 0) log_t1("read from standard input failed, connection closed");
+                close_rfd(&netinfd);
+                continue;
+            }
+            log_t4("read(netinfd, buf, len=", log_num(len), ") = ", log_num(r));
+            tls_engine_recvrec_ack(&ctx, r);
+            alarm(timeout);
+            continue;
+        }
+
+        if (watchfromchild) {
+            buf = tls_engine_sendapp_buf(&ctx, &len);
+            r = read(childoutfd, buf, len);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                if (r < 0) log_d1("read from child failed");
+                if (r == 0) log_t1("read from child failed, connection closed");
+                close_rfd(&childoutfd);
+                tls_engine_close(&ctx);
+                tls_engine_flush(&ctx, 0);
+                continue;
+            }
+            log_t4("read(childoutfd, buf, len=", log_num(len), ") = ", log_num(r));
+            tls_engine_sendapp_ack(&ctx, r);
+            tls_engine_flush(&ctx, 0);
+            alarm(timeout);
+            continue;
+        }
+
+        if (watchfromselfpipe) {
+            log_d1("signal received, tls phase interrupted");
+            break;
+        }
+    }
+}
+
+/*
  * usage - print short command usage and terminate
  */
 static void usage(void) {
@@ -411,7 +879,7 @@ static void usage(void) {
 int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     char *x;
-    int flaguser = 0;
+    int flaguserreported = 0;
     long long r;
 
     errno = 0;
@@ -602,9 +1070,14 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     close(fromchildcontrol[1]);
     close(fromchild[1]);
     close(tochild[0]);
-    blocking_disable(fromchildcontrol[0]);
-    blocking_disable(fromchild[0]);
-    blocking_disable(tochild[1]);
+    log_t2("child pid ", log_num(child));
+
+    controlfd = fromchildcontrol[0];
+    childoutfd = fromchild[0];
+    childinfd = tochild[1];
+    blocking_disable(controlfd);
+    blocking_disable(childoutfd);
+    blocking_disable(childinfd);
 
     /* initialize randombytes */
     {
@@ -623,9 +1096,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             alarm(0);
             close(fromkeyjail[0]);
             close(tokeyjail[1]);
-            close(fromchildcontrol[0]);
-            close(fromchild[0]);
-            close(tochild[1]);
+            close(controlfd);
+            close(childoutfd);
+            close(childinfd);
             close(0);
             if (dup(tokeyjail[0]) != 0) die_dup();
             close(1);
@@ -641,6 +1114,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
     close(fromkeyjail[1]);
     close(tokeyjail[0]);
+    log_t2("keyjail pid ", log_num(keyjailchild));
     blocking_enable(fromkeyjail[0]);
     blocking_enable(tokeyjail[1]);
     tls_pipe_fromchild = fromkeyjail[0];
@@ -683,205 +1157,51 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         (void) connectioninfo_get(localip, localport, remoteip, remoteport);
     }
     log_set_ip(iptostr(remoteipstr, remoteip));
+    log_t4("connection local=", log_ipport(localip, localport),
+           " remote=", log_ipport(remoteip, remoteport));
 
     /* non-blocking stdin/stdout */
-    blocking_disable(0);
-    blocking_disable(1);
+    netinfd = 0;
+    netoutfd = 1;
+    blocking_disable(netinfd);
+    blocking_disable(netoutfd);
 
     log_d1("start");
 
     /* write connection info to the child */
-    if (pipe_write(tochild[1], localip, sizeof localip) == -1) die_writetopipe();
-    if (pipe_write(tochild[1], localport, sizeof localport) == -1) die_writetopipe();
-    if (pipe_write(tochild[1], remoteip, sizeof remoteip) == -1) die_writetopipe();
-    if (pipe_write(tochild[1], remoteport, sizeof remoteport) == -1) die_writetopipe();
+    if (pipe_write(childinfd, localip, sizeof localip) == -1) die_writetopipe();
+    if (pipe_write(childinfd, localport, sizeof localport) == -1) die_writetopipe();
+    if (pipe_write(childinfd, remoteip, sizeof remoteip) == -1) die_writetopipe();
+    if (pipe_write(childinfd, remoteport, sizeof remoteport) == -1) die_writetopipe();
 
     if (ctx.flagdelayedenc) {
-        if (pipe_write(tochild[1], "", 1) == -1) die_writetopipe();
-        flaguser = 1;
+        /* Child expects the one-shot login/account record before STARTTLS too.
+         * Send an empty placeholder now and mark it as already delivered so
+         * report_tls_handshake() does not inject a second record later. */
+        report_tls_user("", &flaguserreported);
+        log_t1("sent empty pre-STARTTLS user record");
     }
     else {
-        close(fromchildcontrol[0]);
+        close_rfd(&controlfd);
+    }
+
+    if (ctx.flagdelayedenc) {
+        if (!run_cleartext_phase()) goto waitchildren;
+        ctx.flagdelayedenc = 0;
+        ctx.flaghandshakedone = 0;
+        alarm(hstimeout);
+        log_t1("switching from cleartext to tls");
     }
 
     /* TLS init */
     tls_profile(&ctx);
+    log_t1("tls profile initialized");
+    run_tls_phase(&flaguserreported);
 
-    /* main loop */
-    for (;;) {
-        unsigned int st;
-        struct pollfd p[6];
-        struct pollfd *q;
-        struct pollfd *watch0;
-        struct pollfd *watch1;
-        struct pollfd *watchfromchild;
-        struct pollfd *watchtochild;
-        struct pollfd *watchfromselfpipe;
-        struct pollfd *watchfromcontrol;
-        unsigned char *buf;
-        size_t len;
-
-        st = tls_engine_current_state(&ctx);
-        if (st & BR_SSL_CLOSED) break;
-
-        if (tls_engine_handshakedone(&ctx)) {
-
-            /* CN from anchor certificate */
-            if (!flaguser) {
-                ctx.clientcrtbuf[sizeof ctx.clientcrtbuf - 1] = 0;
-                if (userfromcert) {
-                    if (!ctx.clientcrt.status) die_extractcn(userfromcert);
-                    log_d4(userfromcert, " from the client certificate '", ctx.clientcrtbuf, "'");
-                    fixname(ctx.clientcrtbuf);
-                }
-                if (pipe_write(tochild[1], ctx.clientcrtbuf, str_len(ctx.clientcrtbuf) + 1) == -1) die_writetopipe();
-                flaguser = 1;
-            }
-
-            log_i9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)), ", ",
-            tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ", tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
-            ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
-
-            alarm(timeout);
-        }
-
-        watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
-        q = p;
-
-        if (st & BR_SSL_SENDREC) { watch1 = q; q->fd = 1; q->events = POLLOUT; ++q; }
-        if (st & BR_SSL_RECVREC) { watch0 = q; q->fd = 0; q->events = POLLIN; ++q; }
-        if (st & BR_SSL_RECVAPP) { watchtochild = q; q->fd = tochild[1]; q->events = POLLOUT; ++q; }
-        if (st & BR_SSL_SENDAPP) { watchfromchild = q; q->fd = fromchild[0]; q->events = POLLIN; ++q; }
-        watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
-        if (ctx.flagdelayedenc) { watchfromcontrol = q; q->fd = fromchildcontrol[0]; q->events = POLLIN; ++q; }
-
-        if (jail_poll(p, q - p, -1) < 0) {
-            watch0 = watch1 = watchfromchild = watchtochild = watchfromselfpipe = watchfromcontrol = 0;
-        }
-        else {
-            if (watch1) if (!watch1->revents) watch1 = 0;
-            if (watch0) if (!watch0->revents) watch0 = 0;
-            if (watchtochild) if (!watchtochild->revents) watchtochild = 0;
-            if (watchfromchild) if (!watchfromchild->revents) watchfromchild = 0;
-            if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
-            if (watchfromcontrol) if (!watchfromcontrol->revents) watchfromcontrol = 0;
-        }
-
-        /*
-         * Forward decrypted application data from the TLS engine to the
-         * child process stdin.
-         */
-        if (watchtochild) {
-            buf = tls_engine_recvapp_buf(&ctx, &len);
-            r = write(tochild[1], buf, len);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) { log_d1("write to child failed"); break; }
-            log_t4("write(tochild[1], buf, len=", log_num(len), ") = ", log_num(r));
-            tls_engine_recvapp_ack(&ctx, r);
-            continue;
-        }
-
-        /*
-         * Forward encrypted TLS records from the TLS engine to the network
-         * peer on standard output.
-         */
-        if (watch1) {
-            buf = tls_engine_sendrec_buf(&ctx, &len);
-            r = write(1, buf, len);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) { log_d1("write to standard output failed"); break; }
-            log_t4("write(1, buf, len=", log_num(len), ") = ", log_num(r));
-            tls_engine_sendrec_ack(&ctx, r);
-            continue;
-        }
-
-        /*
-         * Read encrypted TLS records from the network peer on standard
-         * input and feed them into the TLS engine.
-         */
-        if (watch0) {
-            buf = tls_engine_recvrec_buf(&ctx, &len);
-            r = read(0, buf, len);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) {
-                if (r < 0) log_d1("read from standard input failed");
-                if (r == 0) log_t1("read from standard input failed, connection closed");
-                ctx.netclosed = 1;
-                break;
-            }
-            log_t4("read(0, buf, len=", log_num(len), ") = ", log_num(r));
-            tls_engine_recvrec_ack(&ctx, r);
-            alarm(timeout); /* refresh timeout */
-            continue;
-        }
-
-        /*
-         * Read plaintext output from the child process stdout and queue it
-         * as application data for TLS encryption and network delivery.
-         */
-        if (watchfromchild) {
-            buf = tls_engine_sendapp_buf(&ctx, &len);
-            r = read(fromchild[0], buf, len);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) {
-                if (r < 0) log_d1("read from child failed");
-                if (r == 0) log_t1("read from child failed, connection closed");
-                tls_engine_close(&ctx);
-                tls_engine_flush(&ctx, 0);
-                continue;
-            }
-            log_t4("read(fromchild[0], buf, len=", log_num(len), ") = ", log_num(r));
-            tls_engine_sendapp_ack(&ctx, r);
-            tls_engine_flush(&ctx, 0);
-            alarm(timeout); /* refresh timeout */
-            continue;
-        }
-
-        /*
-         * Read delayed-encryption control bytes from the child. Before
-         * STARTTLS they are copied directly to the network; EOF on this
-         * pipe switches the session from cleartext passthrough to TLS.
-         */
-        if (watchfromcontrol) {
-
-            buf = tls_engine_sendapp5_buf(&ctx, &len);
-            r = read(fromchildcontrol[0], buf, len);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r == -1) {
-                log_d1("read from child failed");
-                break;
-            }
-            tls_engine_sendapp5_ack(&ctx, r);
-            if (r == 0) {
-                close(fromchildcontrol[0]);
-                if (ctx.tonet5buflen) {
-                    if (writeall(1, ctx.tonet5buf, ctx.tonet5buflen) == -1) {
-                        log_d1("write to standard output failed");
-                        break;
-                    }
-                    ctx.flagdelayedenc = 0;
-                    log_d1("child requested encryption(STARTTLS), start TLS");
-                    alarm(hstimeout);
-                }
-                else {
-                    log_d1("control pipe closed before STARTTLS");
-                    break;
-                }
-            }
-            continue;
-        }
-
-        /*
-         * Stop the session after a signal wakes the self-pipe.
-         */
-        if (watchfromselfpipe) {
-            log_d1("signal received");
-            break;
-        }
-    }
-
+waitchildren:
     signal(SIGCHLD, SIG_DFL);
     signal(SIGALRM, SIG_DFL);
+    close_rfd(&controlfd);
 
     /* wait for keyjail child */
     close(fromkeyjail[0]);
@@ -897,8 +1217,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
 
     /* wait for child */
-    close(fromchild[0]);
-    close(tochild[1]);
+    close_rfd(&childoutfd);
+    (void) close_wfd(&childinfd);
     do {
         r = waitpid(child, &status, 0);
     } while (r == -1 && errno == EINTR);
