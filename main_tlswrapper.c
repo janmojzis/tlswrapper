@@ -800,6 +800,15 @@ static void run_tls_phase(int *flaguserreported) {
             log_t1("tls phase propagated peer EOF to child");
         }
 
+        /* Peer already closed the TCP read side and the child has
+         * finished producing plaintext. After we flush any pending TLS
+         * records, there is nothing left to wait for.
+         */
+        if (netinfd == -1 && childoutfd == -1 && !(st & tls_state_SENDREC)) {
+            log_t1("tls phase finished after peer eof and child close");
+            break;
+        }
+
 
         watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
         q = p;

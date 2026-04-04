@@ -116,6 +116,11 @@ INFO Running tls_network_eof_then_child_silent_exit
 INFO tls_network_eof_then_child_silent_exit: OK
 INFO All tests passed
 
+=== tls_only_network_eof_then_child_silent_exit_fast_shutdown ===
+INFO Running tls_only_network_eof_then_child_silent_exit_fast_shutdown
+INFO tls_only_network_eof_then_child_silent_exit_fast_shutdown: OK
+INFO All tests passed
+
 === tls_child_half_closes_without_plaintext_client_still_writes ===
 INFO Running tls_child_half_closes_without_plaintext_client_still_writes
 INFO tls_child_half_closes_without_plaintext_client_still_writes: OK

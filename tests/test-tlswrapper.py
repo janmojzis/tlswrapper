@@ -21,6 +21,7 @@ EARLY_EXIT_TIMEOUT = 1.0
 SHORT_IDLE_TIMEOUT = 1
 SHORT_HANDSHAKE_TIMEOUT = 1
 TIMEOUT_TOLERANCE = 1.5
+CLEAN_SHUTDOWN_TOLERANCE = 0.8
 WORKSPACE = Path(__file__).resolve().parent
 LOGGER = logging.getLogger(__name__)
 WRAPPER_EXECUTABLE = WORKSPACE / "tlswrapper-test"
@@ -1277,6 +1278,15 @@ def assert_timeout_elapsed(*, elapsed: float, expected_timeout: float, name: str
         )
 
 
+def assert_fast_exit(*, elapsed: float, max_elapsed: float, name: str) -> None:
+    """Verify that shutdown completes without waiting for the 1s safety alarm."""
+
+    if elapsed > max_elapsed:
+        raise TestFailure(
+            f"{name} elapsed {elapsed:.2f}s, expected clean shutdown within {max_elapsed:.2f}s"
+        )
+
+
 def drive_timeout_client(
     scenario: TimeoutScenario,
     proc: subprocess.Popen[bytes],
@@ -1350,6 +1360,40 @@ def run_timeout_scenario(scenario: TimeoutScenario) -> None:
         expected_timeout=scenario.expected_timeout,
         name=scenario.name,
     )
+
+
+def test_tls_only_network_eof_then_child_silent_exit_fast_shutdown() -> None:
+    """Verify TLS shutdown does not wait for the SIGCHLD-triggered 1s alarm."""
+
+    expected_child_log = ["received=request-before-silent-exit", "saw_eof=yes"]
+    with TestTlswrapper(TIMEOUT, DEFAULT_CHILD_LOG) as test:
+        test.start(make_child_log_then_exit_script())
+        if test.proc is None:
+            raise TestFailure("Wrapper process has not been started")
+        stdin, stdout = process_stdio(test.proc)
+        client = TlsPipeClient(stdin, stdout, TIMEOUT)
+        client.do_handshake()
+        client.write_plaintext(SILENT_EXIT_REQUEST)
+        client.transport_half_close()
+
+        started_at = time.monotonic()
+        stdout_text, stderr_text = test.wait_for_exit()
+        elapsed = time.monotonic() - started_at
+
+    if stdout_text:
+        LOGGER.debug("Ignoring non-empty wrapper stdout after reads: %r", stdout_text)
+    if stderr_text.strip():
+        LOGGER.debug("Ignoring non-empty wrapper stderr: %r", stderr_text)
+    if "signal received, tls phase interrupted" in stderr_text:
+        raise TestFailure(
+            "Wrapper waited for self-pipe alarm instead of finishing clean shutdown"
+        )
+    assert_fast_exit(
+        elapsed=elapsed,
+        max_elapsed=CLEAN_SHUTDOWN_TOLERANCE,
+        name="tls_only_network_eof_then_child_silent_exit_fast_shutdown",
+    )
+    assert_child_log(test, expected_child_log)
 
 
 DELAYED_SCENARIOS = [
@@ -1881,6 +1925,11 @@ TEST_GROUPS["hybrid"].append(
 TEST_GROUPS["socket-halfclose"].append(
     "hybrid_child_half_close_socket_peer_observes_eof_before_wrapper_exit"
 )
+
+TESTS[
+    "tls_only_network_eof_then_child_silent_exit_fast_shutdown"
+] = test_tls_only_network_eof_then_child_silent_exit_fast_shutdown
+TEST_GROUPS["tls-only"].append("tls_only_network_eof_then_child_silent_exit_fast_shutdown")
 
 TEST_ALIASES = {
     "control_pipe_eof_before_starttls": "delayed_control_pipe_eof_before_starttls",
