@@ -129,6 +129,7 @@ typedef struct {
 } tls_cipher;
 extern const tls_cipher tls_ciphers[];
 extern int tls_cipher_add(struct tls_context *, const char *);
+extern void tls_cipher_defaults(struct tls_context *);
 extern const char *tls_cipher_str(uint16_t);
 
 /* tls_crypto_scalarmult.c */
@@ -201,7 +202,13 @@ extern uint32_t tls_ecdsa_vrfy_asn1(const br_ec_impl *, const void *, size_t,
 /* tls_anchor.c */
 extern int tls_anchor_add(struct tls_context *, char *);
 
-/* tls_engine.c */
+/* tls_engine.c - state flags */
+#define tls_state_SENDAPP  (BR_SSL_SENDAPP)
+#define tls_state_RECVAPP  (BR_SSL_RECVAPP)
+#define tls_state_SENDREC  (BR_SSL_SENDREC)
+#define tls_state_RECVREC  (BR_SSL_RECVREC)
+#define tls_state_CLOSED   (BR_SSL_CLOSED)
+
 extern unsigned char *tls_engine_sendapp_buf(struct tls_context *, size_t *);
 extern unsigned char *tls_engine_recvapp_buf(struct tls_context *, size_t *);
 extern unsigned char *tls_engine_sendrec_buf(struct tls_context *, size_t *);
@@ -213,5 +220,13 @@ extern void tls_engine_recvrec_ack(struct tls_context *, size_t);
 extern void tls_engine_flush(struct tls_context *, int);
 extern void tls_engine_close(struct tls_context *);
 extern unsigned int tls_engine_current_state(struct tls_context *);
+
+/* tls_engine.c - negotiated session info */
+extern unsigned int tls_engine_get_version(struct tls_context *);
+extern uint16_t tls_engine_get_cipher(struct tls_context *);
+extern unsigned char tls_engine_get_ecdhe_curve(struct tls_context *);
+extern const char *tls_engine_get_server_name(struct tls_context *);
+extern int tls_engine_last_error(struct tls_context *);
+extern void tls_pipe_set_engine(struct tls_context *);
 
 #endif

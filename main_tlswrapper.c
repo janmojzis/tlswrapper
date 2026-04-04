@@ -44,27 +44,11 @@ static struct tls_context ctx = {
     .version_min = tls_version_TLS12,
     .version_max = tls_version_TLS12,
     .ecdhe_enabled = ((uint32_t) 1 << tls_ecdhe_X25519) | ((uint32_t) 1 << tls_ecdhe_SECP256R1),
-    .cipher_enabled_len = 6,
+    .cipher_enabled_len = 0,
     .certfiles_len = 0,
     .anchorfn = 0,
     .clientcrtbuf = {0},
     .clientcrt.oid = 0,
-    .cipher_enabled = {
-        BR_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
-        BR_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-        BR_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-        BR_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-        BR_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-        BR_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-        /* space for ECDSA AES_256_CBC_SHA384 */ 0,
-        /* space for RSA AES_256_CBC_SHA384 */ 0,
-        /* space for ECDSA AES_128_CBC_SHA256 */ 0,
-        /* space for RSA AES_128_CBC_SHA256 */ 0,
-        /* space for ECDSA AES_256_CBC_SHA */ 0,
-        /* space for RSA AES_256_CBC_SHA */ 0,
-        /* space for ECDSA AES_128_CBC_SHA */ 0,
-        /* space for RSA AES_128_CBC_SHA */ 0,
-    },
 };
 
 #define CONTROLPIPEFD 5
@@ -466,13 +450,13 @@ static void report_tls_user(const char *userstr, int *flaguserreported) {
 /*
  * report_tls_handshake - publish post-handshake metadata once
  *
- * @st: current BearSSL engine state flags
+ * @st: current TLS engine state flags
  * @flaguserreported: tracks whether the child already received the login string
  */
 static void report_tls_handshake(unsigned int st, int *flaguserreported) {
 
     if (ctx.flaghandshakedone) return;
-    if (!(st & BR_SSL_SENDAPP)) return;
+    if (!(st & tls_state_SENDAPP)) return;
     ctx.flaghandshakedone = 1;
 
     /* CN from anchor certificate */
@@ -487,10 +471,10 @@ static void report_tls_handshake(unsigned int st, int *flaguserreported) {
         report_tls_user((char *)ctx.clientcrtbuf, flaguserreported);
     }
 
-    log_i9("SSL connection: ", tls_version_str(br_ssl_engine_get_version(&ctx.cc.eng)),
-           ", ", tls_cipher_str(ctx.cc.eng.session.cipher_suite), ", ",
-           tls_ecdhe_str(br_ssl_engine_get_ecdhe_curve(&ctx.cc.eng)),
-           ", sni='", br_ssl_engine_get_server_name(&ctx.cc.eng), "'");
+    log_i9("SSL connection: ", tls_version_str(tls_engine_get_version(&ctx)),
+           ", ", tls_cipher_str(tls_engine_get_cipher(&ctx)), ", ",
+           tls_ecdhe_str(tls_engine_get_ecdhe_curve(&ctx)),
+           ", sni='", tls_engine_get_server_name(&ctx), "'");
 
     alarm(timeout);
 }
@@ -692,7 +676,7 @@ static int run_cleartext_phase(void) {
 }
 
 /*
- * run_tls_phase - forward bytes between BearSSL, the network, and the child
+ * run_tls_phase - forward bytes between the TLS engine, the network, and the child
  *
  * @flaguserreported: tracks whether the child already received the login string
  */
@@ -718,24 +702,24 @@ static void run_tls_phase(int *flaguserreported) {
         /* Handshake failed — tear down immediately, nothing useful
          * can happen on this connection any more.
          */
-        if ((st & BR_SSL_CLOSED) && !ctx.flaghandshakedone) {
+        if ((st & tls_state_CLOSED) && !ctx.flaghandshakedone) {
             log_d1("handshake failed, tls phase ended during handshake");
             break;
         }
 
-        /* BearSSL is done and all pending TLS records have been flushed —
+        /* TLS engine is done and all pending records have been flushed —
          * nothing useful remains on this connection.
          */
-        if ((st & BR_SSL_CLOSED) && !(st & BR_SSL_SENDREC)) {
+        if ((st & tls_state_CLOSED) && !(st & tls_state_SENDREC)) {
             log_t1("tls phase finished after engine close");
             break;
         }
 
         /* Unclean TCP close without close_notify: the peer has closed
-         * the connection and BearSSL has no more plaintext pending
+         * the connection and the engine has no more plaintext pending
          * for the child, so propagate EOF to the wrapped program.
          */
-        if (netinfd == -1 && childinfd != -1 && !(st & BR_SSL_RECVAPP)) {
+        if (netinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
             if (!close_wfd(&childinfd)) {
                 log_d1("write side close to child failed");
                 break;
@@ -747,25 +731,25 @@ static void run_tls_phase(int *flaguserreported) {
         watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
         q = p;
 
-        if (netoutfd != -1 && (st & BR_SSL_SENDREC)) {
+        if (netoutfd != -1 && (st & tls_state_SENDREC)) {
             watchtonet = q;
             q->fd = netoutfd;
             q->events = POLLOUT;
             ++q;
         }
-        if (netinfd != -1 && (st & BR_SSL_RECVREC)) {
+        if (netinfd != -1 && (st & tls_state_RECVREC)) {
             watchfromnet = q;
             q->fd = netinfd;
             q->events = POLLIN;
             ++q;
         }
-        if (childinfd != -1 && (st & BR_SSL_RECVAPP)) {
+        if (childinfd != -1 && (st & tls_state_RECVAPP)) {
             watchtochild = q;
             q->fd = childinfd;
             q->events = POLLOUT;
             ++q;
         }
-        if (childoutfd != -1 && (st & BR_SSL_SENDAPP)) {
+        if (childoutfd != -1 && (st & tls_state_SENDAPP)) {
             watchfromchild = q;
             q->fd = childoutfd;
             q->events = POLLIN;
@@ -890,6 +874,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     log_set_name("tlswrapper");
     log_unset_id();
+
+    /* initialize default cipher suites */
+    tls_cipher_defaults(&ctx);
 
     (void) argc;
     if (!argv[0]) usage();
@@ -1119,7 +1106,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     blocking_enable(tokeyjail[1]);
     tls_pipe_fromchild = fromkeyjail[0];
     tls_pipe_tochild = tokeyjail[1];
-    tls_pipe_eng = &ctx.cc.eng;
+    tls_pipe_set_engine(&ctx);
 
     /* create selfpipe */
     if (open_pipe(selfpipe) == -1) die_pipe();

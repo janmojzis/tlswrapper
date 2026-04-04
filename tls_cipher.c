@@ -84,6 +84,24 @@ const char *tls_cipher_str(uint16_t s) {
 static int use_default = 1;
 
 /*
+ * tls_cipher_defaults - populate the default cipher suite list
+ *
+ * @ctx: TLS context to initialize
+ *
+ * Fills the cipher_enabled array with the default set of cipher suites
+ * (CHACHA20, AES-256-GCM, AES-128-GCM in both ECDSA and RSA variants).
+ */
+void tls_cipher_defaults(struct tls_context *ctx) {
+    ctx->cipher_enabled_len = 0;
+    ctx->cipher_enabled[ctx->cipher_enabled_len++] = tls_ciphers[0].ecsuite;
+    ctx->cipher_enabled[ctx->cipher_enabled_len++] = tls_ciphers[0].rsasuite;
+    ctx->cipher_enabled[ctx->cipher_enabled_len++] = tls_ciphers[1].ecsuite;
+    ctx->cipher_enabled[ctx->cipher_enabled_len++] = tls_ciphers[1].rsasuite;
+    ctx->cipher_enabled[ctx->cipher_enabled_len++] = tls_ciphers[2].ecsuite;
+    ctx->cipher_enabled[ctx->cipher_enabled_len++] = tls_ciphers[2].rsasuite;
+}
+
+/*
  * tls_cipher_add - enable a cipher suite pair by configuration name
  *
  * @ctx: TLS context to update

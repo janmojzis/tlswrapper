@@ -146,6 +146,14 @@ void tls_engine_close(struct tls_context *ctx) {
  * the function logs whether shutdown was normal, caused by an alert, or
  * caused by another TLS error.
  */
+/*
+ * tls_engine_current_state - compute backend-independent readiness flags
+ *
+ * @ctx: TLS session state
+ *
+ * Queries the BearSSL engine and translates its flags into the
+ * backend-independent tls_state_* constants defined in tls.h.
+ */
 unsigned int tls_engine_current_state(struct tls_context *ctx) {
     unsigned int st;
 
@@ -157,16 +165,16 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         const char *recvapp = "recvapp,";
         const char *sendapp = "sendapp,";
         const char *closed = "closed";
-        if (!(st & BR_SSL_RECVREC)) recvrec = "";
-        if (!(st & BR_SSL_SENDREC)) sendrec = "";
-        if (!(st & BR_SSL_RECVAPP)) recvapp = "";
-        if (!(st & BR_SSL_SENDAPP)) sendapp = "";
-        if (!(st & BR_SSL_CLOSED)) closed = "";
+        if (!(st & tls_state_RECVREC)) recvrec = "";
+        if (!(st & tls_state_SENDREC)) sendrec = "";
+        if (!(st & tls_state_RECVAPP)) recvapp = "";
+        if (!(st & tls_state_SENDAPP)) sendapp = "";
+        if (!(st & tls_state_CLOSED)) closed = "";
         log_t8("tls state=", log_num(st), ", flags=", recvrec, sendrec,
                recvapp, sendapp, closed);
     }
 
-    if (st & BR_SSL_CLOSED) {
+    if (st & tls_state_CLOSED) {
         int err;
         err = br_ssl_engine_last_error(&ctx->cc.eng);
         if (err == BR_ERR_OK) { log_d1("SSL closed normally"); }
@@ -202,4 +210,46 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         }
     }
     return st;
+}
+
+/*
+ * tls_engine_get_version - return negotiated TLS version
+ */
+unsigned int tls_engine_get_version(struct tls_context *ctx) {
+    return br_ssl_engine_get_version(&ctx->cc.eng);
+}
+
+/*
+ * tls_engine_get_cipher - return negotiated cipher suite identifier
+ */
+uint16_t tls_engine_get_cipher(struct tls_context *ctx) {
+    return ctx->cc.eng.session.cipher_suite;
+}
+
+/*
+ * tls_engine_get_ecdhe_curve - return negotiated ECDHE curve
+ */
+unsigned char tls_engine_get_ecdhe_curve(struct tls_context *ctx) {
+    return br_ssl_engine_get_ecdhe_curve(&ctx->cc.eng);
+}
+
+/*
+ * tls_engine_get_server_name - return SNI server name from the client
+ */
+const char *tls_engine_get_server_name(struct tls_context *ctx) {
+    return br_ssl_engine_get_server_name(&ctx->cc.eng);
+}
+
+/*
+ * tls_engine_last_error - return the last engine error code
+ */
+int tls_engine_last_error(struct tls_context *ctx) {
+    return br_ssl_engine_last_error(&ctx->cc.eng);
+}
+
+/*
+ * tls_pipe_set_engine - set the pipe engine pointer from a tls_context
+ */
+void tls_pipe_set_engine(struct tls_context *ctx) {
+    tls_pipe_eng = &ctx->cc.eng;
 }
