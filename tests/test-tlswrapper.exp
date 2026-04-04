@@ -176,6 +176,11 @@ INFO Running hybrid_stalled_after_starttls_request_timeout
 INFO hybrid_stalled_after_starttls_request_timeout: OK
 INFO All tests passed
 
+=== hybrid_starttls_then_immediate_child_half_close_timeout ===
+INFO Running hybrid_starttls_then_immediate_child_half_close_timeout
+INFO hybrid_starttls_then_immediate_child_half_close_timeout: OK
+INFO All tests passed
+
 === hybrid_idle_after_handshake_timeout ===
 INFO Running hybrid_idle_after_handshake_timeout
 INFO hybrid_idle_after_handshake_timeout: OK

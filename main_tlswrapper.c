@@ -511,7 +511,10 @@ static int run_cleartext_phase(void) {
             }
             log_t1("network peer closed the connection, cleartext phase propagated network EOF to child");
         }
-        if (childoutfd == -1 && netoutfd != -1 && !cleartext_tonetbuflen) {
+        if (childoutfd == -1 &&
+            !cleartext_tonet5buflen &&
+            netoutfd != -1 &&
+            !cleartext_tonetbuflen) {
             if (!close_wfd(&netoutfd)) {
                 log_d1("write side close to remote failed");
                 return 0;
@@ -581,7 +584,7 @@ static int run_cleartext_phase(void) {
 
         /* Control pipe: read the STARTTLS signal only after both cleartext
            buffers have been flushed, so the transition point is clean. */
-        if (childoutfd != -1 && netoutfd != -1 &&
+        if (netoutfd != -1 &&
             controlfd != -1 &&
             cleartext_tonet5buflen < sizeof cleartext_tonet5buf &&
             !cleartext_tonetbuflen && !cleartext_tochildbuflen) {
@@ -612,8 +615,9 @@ static int run_cleartext_phase(void) {
 
         /* --- event handlers, highest-to-lowest priority ---
            Writes are handled before reads so that buffer space is freed
-           before new data arrives.  The control pipe is read last to
-           guarantee cleartext buffers are drained first. */
+           before new data arrives.  The control pipe is handled before
+           new cleartext reads so a pending STARTTLS transition wins over
+           simultaneous child stdout EOF or additional plaintext input. */
 
         /* Flush: network->child */
         if (watchtochild) {
@@ -642,44 +646,6 @@ static int run_cleartext_phase(void) {
             log_t4("write(netoutfd, cleartext_tonetbuf, len=", log_num(cleartext_tonetbuflen),
                    ") = ", log_num(r));
             consume_buffer(cleartext_tonetbuf, &cleartext_tonetbuflen, (size_t) r);
-            continue;
-        }
-
-        /* Ingest: network->child (disabled after STARTTLS signal) */
-        if (watchfromnet) {
-            r = read(netinfd, cleartext_tochildbuf + cleartext_tochildbuflen,
-                     sizeof cleartext_tochildbuf - cleartext_tochildbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) {
-                if (r < 0) log_d1("read from standard input failed");
-                if (r == 0) log_t1("read from standard input failed, connection closed");
-                close_rfd(&netinfd);
-                continue;
-            }
-            log_t4("read(netinfd, cleartext_tochildbuf + len, free=",
-                   log_num(sizeof cleartext_tochildbuf - cleartext_tochildbuflen),
-                   ") = ", log_num(r));
-            cleartext_tochildbuflen += (size_t) r;
-            alarm(timeout);
-            continue;
-        }
-
-        /* Ingest: child->network (disabled after STARTTLS signal) */
-        if (watchfromchild) {
-            r = read(childoutfd, cleartext_tonetbuf + cleartext_tonetbuflen,
-                     sizeof cleartext_tonetbuf - cleartext_tonetbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
-            if (r <= 0) {
-                if (r < 0) log_d1("read from child failed");
-                if (r == 0) log_t1("read from child failed, connection closed");
-                close_rfd(&childoutfd);
-                continue;
-            }
-            log_t4("read(childoutfd, cleartext_tonetbuf + len, free=",
-                   log_num(sizeof cleartext_tonetbuf - cleartext_tonetbuflen),
-                   ") = ", log_num(r));
-            cleartext_tonetbuflen += (size_t) r;
-            alarm(timeout);
             continue;
         }
 
@@ -733,6 +699,44 @@ static int run_cleartext_phase(void) {
                 return 1;
             }
             cleartext_tonet5buflen += (size_t) r;
+            continue;
+        }
+
+        /* Ingest: network->child (disabled after STARTTLS signal) */
+        if (watchfromnet) {
+            r = read(netinfd, cleartext_tochildbuf + cleartext_tochildbuflen,
+                     sizeof cleartext_tochildbuf - cleartext_tochildbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                if (r < 0) log_d1("read from standard input failed");
+                if (r == 0) log_t1("read from standard input failed, connection closed");
+                close_rfd(&netinfd);
+                continue;
+            }
+            log_t4("read(netinfd, cleartext_tochildbuf + len, free=",
+                   log_num(sizeof cleartext_tochildbuf - cleartext_tochildbuflen),
+                   ") = ", log_num(r));
+            cleartext_tochildbuflen += (size_t) r;
+            alarm(timeout);
+            continue;
+        }
+
+        /* Ingest: child->network (disabled after STARTTLS signal) */
+        if (watchfromchild) {
+            r = read(childoutfd, cleartext_tonetbuf + cleartext_tonetbuflen,
+                     sizeof cleartext_tonetbuf - cleartext_tonetbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            if (r <= 0) {
+                if (r < 0) log_d1("read from child failed");
+                if (r == 0) log_t1("read from child failed, connection closed");
+                close_rfd(&childoutfd);
+                continue;
+            }
+            log_t4("read(childoutfd, cleartext_tonetbuf + len, free=",
+                   log_num(sizeof cleartext_tonetbuf - cleartext_tonetbuflen),
+                   ") = ", log_num(r));
+            cleartext_tonetbuflen += (size_t) r;
+            alarm(timeout);
             continue;
         }
 

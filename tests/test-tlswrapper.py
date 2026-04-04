@@ -782,6 +782,32 @@ if log_path is not None:
 """
 
 
+def make_child_starttls_then_immediate_half_close_then_log_script(
+    *,
+    read_size: int | None = None,
+) -> str:
+    """Create a child that requests STARTTLS and closes stdout immediately."""
+
+    read_call = "sys.stdin.buffer.read()"
+    if read_size is not None:
+        read_call = f"sys.stdin.buffer.read({read_size})"
+
+    return f"""import os
+import sys
+
+os.write(5, {STARTTLS_BANNER!r})
+os.close(5)
+os.close(sys.stdout.fileno())
+
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+data = {read_call}
+if log_path is not None:
+    with open(log_path, "w", encoding="utf-8") as handle:
+        handle.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
+        handle.write("saw_eof=yes\\n")
+"""
+
+
 def make_child_starttls_then_half_close_then_read_exact_script(*, read_size: int) -> str:
     """Create a child that starts TLS, half-closes stdout, then reads one request."""
 
@@ -1557,6 +1583,16 @@ TIMEOUT_SCENARIOS = [
         name="hybrid_stalled_after_starttls_request_timeout",
         mode="hybrid",
         child_script=make_child_starttls_then_wait_script(),
+        expected_timeout=SHORT_HANDSHAKE_TIMEOUT,
+        wrapper_timeout=SHORT_IDLE_TIMEOUT,
+        handshake_timeout=SHORT_HANDSHAKE_TIMEOUT,
+        driver="hybrid_expect_banner_then_stop",
+        expected_pre_tls_output_chunks=[STARTTLS_BANNER],
+    ),
+    TimeoutScenario(
+        name="hybrid_starttls_then_immediate_child_half_close_timeout",
+        mode="hybrid",
+        child_script=make_child_starttls_then_immediate_half_close_then_log_script(),
         expected_timeout=SHORT_HANDSHAKE_TIMEOUT,
         wrapper_timeout=SHORT_IDLE_TIMEOUT,
         handshake_timeout=SHORT_HANDSHAKE_TIMEOUT,
