@@ -502,6 +502,8 @@ static int run_cleartext_phase(void) {
         struct pollfd *watchfromcontrol;
         long long r;
 
+        /* EOF propagation: once one side is gone and its buffer has been
+           flushed, half-close the opposite direction so the peer sees EOF. */
         if (netinfd == -1 && childinfd != -1 && !cleartext_tochildbuflen) {
             if (!close_wfd(&childinfd)) {
                 log_d1("write side close to child failed");
@@ -516,15 +518,33 @@ static int run_cleartext_phase(void) {
             }
             log_d1("child closed the connection, cleartext phase propagated child EOF to network");
         }
+
+        /* Termination: all four descriptors closed, nothing left to relay. */
         if (netinfd == -1 && childinfd == -1 && childoutfd == -1 && netoutfd == -1) {
             log_t1("cleartext phase finished");
             return 0;
+        }
+
+        /* STARTTLS guards: abort when the transition cannot succeed.
+           - network half-closed: TLS handshake is impossible.
+           - control buffer full: cannot read EOF, transition will never
+             complete; the child wrote garbage to the control pipe. */
+        if (cleartext_tonet5buflen) {
+            if (netinfd == -1 || netoutfd == -1) {
+                log_d1("STARTTLS pending but network descriptors already closed, aborting");
+                return 0;
+            }
+            if (cleartext_tonet5buflen >= sizeof cleartext_tonet5buf) {
+                log_d1("STARTTLS control buffer full, aborting");
+                return 0;
+            }
         }
 
         watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
         watchfromcontrol = 0;
         q = p;
 
+        /* Flush: always allow draining pending data to its destination. */
         if (netoutfd != -1 && cleartext_tonetbuflen) {
             watchtonet = q;
             q->fd = netoutfd;
@@ -537,7 +557,13 @@ static int run_cleartext_phase(void) {
             q->events = POLLOUT;
             ++q;
         }
-        if (netinfd != -1 &&
+
+        /* Ingest: accept new cleartext data only when no STARTTLS signal
+           has arrived yet.  Once cleartext_tonet5buflen > 0 the child has
+           declared its intent to switch to TLS; accepting more cleartext
+           would let the child interleave data across the TLS boundary. */
+        if (!cleartext_tonet5buflen &&
+            netinfd != -1 &&
             cleartext_tochildbuflen < sizeof cleartext_tochildbuf &&
             childinfd != -1) {
             watchfromnet = q;
@@ -545,20 +571,27 @@ static int run_cleartext_phase(void) {
             q->events = POLLIN;
             ++q;
         }
-        if (childoutfd != -1 && cleartext_tonetbuflen < sizeof cleartext_tonetbuf) {
+        if (!cleartext_tonet5buflen &&
+            childoutfd != -1 && cleartext_tonetbuflen < sizeof cleartext_tonetbuf) {
             watchfromchild = q;
             q->fd = childoutfd;
             q->events = POLLIN;
             ++q;
         }
+
+        /* Control pipe: read the STARTTLS signal only after both cleartext
+           buffers have been flushed, so the transition point is clean. */
         if (childoutfd != -1 && netoutfd != -1 &&
             controlfd != -1 &&
-            cleartext_tonet5buflen < sizeof cleartext_tonet5buf) {
+            cleartext_tonet5buflen < sizeof cleartext_tonet5buf &&
+            !cleartext_tonetbuflen && !cleartext_tochildbuflen) {
             watchfromcontrol = q;
             q->fd = controlfd;
             q->events = POLLIN;
             ++q;
         }
+
+        /* Signal pipe: always monitored for SIGCHLD / SIGTERM. */
         watchfromselfpipe = q;
         q->fd = selfpipe[0];
         q->events = POLLIN;
@@ -577,6 +610,12 @@ static int run_cleartext_phase(void) {
             if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
         }
 
+        /* --- event handlers, highest-to-lowest priority ---
+           Writes are handled before reads so that buffer space is freed
+           before new data arrives.  The control pipe is read last to
+           guarantee cleartext buffers are drained first. */
+
+        /* Flush: network->child */
         if (watchtochild) {
             r = write(childinfd, cleartext_tochildbuf, cleartext_tochildbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
@@ -591,6 +630,7 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
+        /* Flush: child->network */
         if (watchtonet) {
             r = write(netoutfd, cleartext_tonetbuf, cleartext_tonetbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
@@ -605,6 +645,7 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
+        /* Ingest: network->child (disabled after STARTTLS signal) */
         if (watchfromnet) {
             r = read(netinfd, cleartext_tochildbuf + cleartext_tochildbuflen,
                      sizeof cleartext_tochildbuf - cleartext_tochildbuflen);
@@ -623,6 +664,7 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
+        /* Ingest: child->network (disabled after STARTTLS signal) */
         if (watchfromchild) {
             r = read(childoutfd, cleartext_tonetbuf + cleartext_tonetbuflen,
                      sizeof cleartext_tonetbuf - cleartext_tonetbuflen);
@@ -641,6 +683,14 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
+        /* Control pipe: STARTTLS signalling from the child.
+           - Partial read (r > 0): accumulate the banner; on the next
+             iteration the ingest guards will block new cleartext.
+           - EOF (r == 0): child closed fd 5 — drain any residual
+             cleartext buffers, flush the STARTTLS banner to the
+             network, and return 1 to enter the TLS phase.
+           - Empty EOF: control pipe closed without data — the child
+             decided not to request STARTTLS; end the cleartext phase. */
         if (watchfromcontrol) {
             r = read(controlfd, cleartext_tonet5buf + cleartext_tonet5buflen,
                      sizeof cleartext_tonet5buf - cleartext_tonet5buflen);
@@ -656,6 +706,24 @@ static int run_cleartext_phase(void) {
                     log_d1("control pipe closed before STARTTLS, cleartext phase ended");
                     return 0;
                 }
+                if (cleartext_tonetbuflen) {
+                    if (writeall(netoutfd, cleartext_tonetbuf, cleartext_tonetbuflen) == -1) {
+                        log_d1("write to standard output failed (pending child data)");
+                        return 0;
+                    }
+                    log_t2("drained pending cleartext_tonetbuf bytes ",
+                           log_num(cleartext_tonetbuflen));
+                    cleartext_tonetbuflen = 0;
+                }
+                if (cleartext_tochildbuflen) {
+                    if (writeall(childinfd, cleartext_tochildbuf, cleartext_tochildbuflen) == -1) {
+                        log_d1("write to child failed (pending net data)");
+                        return 0;
+                    }
+                    log_t2("drained pending cleartext_tochildbuf bytes ",
+                           log_num(cleartext_tochildbuflen));
+                    cleartext_tochildbuflen = 0;
+                }
                 if (writeall(netoutfd, cleartext_tonet5buf, cleartext_tonet5buflen) == -1) {
                     log_d1("write to standard output failed");
                     return 0;
@@ -668,6 +736,7 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
+        /* Signal pipe: child died or timeout fired. */
         if (watchfromselfpipe) {
             log_d1("signal received, cleartext phase interrupted");
             return 0;
