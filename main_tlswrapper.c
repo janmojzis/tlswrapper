@@ -1269,7 +1269,10 @@ waitchildren:
     do {
         r = waitpid(keyjailchild, &status, 0);
     } while (r == -1 && errno == EINTR);
-    if (!WIFEXITED(status)) {
+    if (r != keyjailchild) {
+        log_t1("waitpid for keyjail child failed");
+    }
+    else if (!WIFEXITED(status)) {
         log_t2("keyjail process killed by signal ", log_num(WTERMSIG(status)));
     }
     else {
@@ -1283,6 +1286,10 @@ waitchildren:
         r = waitpid(child, &status, 0);
     } while (r == -1 && errno == EINTR);
     errno = 0;
+    if (r != child) {
+        log_f1("waitpid for child failed");
+        die(111);
+    }
     if (!WIFEXITED(status)) {
         log_f2("child process killed by signal ", log_num(WTERMSIG(status)));
         die(111);
