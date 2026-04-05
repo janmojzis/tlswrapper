@@ -965,7 +965,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     alarm(starttimeout);
 
     log_set_name("tlswrapper");
-    log_unset_id();
+    log_set_id(0);
 
     /* initialize default cipher suites */
     tls_cipher_defaults(&ctx);

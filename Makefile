@@ -56,7 +56,7 @@ jail.o: jail.c log.h randommod.h jail.h
 jail_poll.o: jail_poll.c log.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c jail_poll.c
 
-log.o: log.c e.h log.h
+log.o: log.c e.h log.h randommod.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
 main_tlswrapper.o: main_tlswrapper.c blocking.h pipe.h log.h e.h jail.h \
@@ -285,4 +285,3 @@ test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 
 clean:
 	rm -f *.log *.o $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h
-

@@ -3,7 +3,7 @@
 
 #include <signal.h>
 
-#define log_VERSION "20260329"
+#define log_VERSION "20260405"
 
 extern int log_whitelist_add(const char *);
 extern void log_whitelist_free(void);

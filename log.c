@@ -38,8 +38,10 @@
 #include <unistd.h>
 #include "e.h"
 #include "log.h"
+#include "randommod.h"
 
 #define STATICBUFSIZE 68 /* space for '64 characters' + '...' + '\0' */
+#define LOG_ID_LEN 16    /* generated random log id length */
 #define NULLSTR "(null)"
 
 struct node {
@@ -769,27 +771,38 @@ void log_unset_id(void) { logid = 0; }
 /*
  * log_set_id - Set the optional log record identifier.
  *
- * @id: identifier string to copy
+ * @id: identifier string to copy, or NULL to autoselect one
  *
- * Copies @id into a fixed internal buffer. Long identifiers are
- * truncated and suffixed with "...".
+ * Copies @id into a fixed internal buffer. When @id is NULL, the function
+ * first tries LOG_ID from the environment and otherwise generates a fresh
+ * random identifier of length LOG_ID_LEN, then exports the resulting
+ * value back to LOG_ID. Overlong identifiers are truncated and suffixed
+ * with "...".
  *
  * Constraints:
- *   - @id must point to a NUL-terminated string
+ *   - non-NULL @id must point to a NUL-terminated string
  */
 void log_set_id(const char *id) {
 
-    unsigned long long i;
+    const char chars[] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    unsigned long long i, len;
 
+    if (!id) id = getenv("LOG_ID");
     if (!id) {
-        logid = 0;
-        return;
+        len = sizeof(logidbuf) - 1;
+        if (len > LOG_ID_LEN) len = LOG_ID_LEN;
+        for (i = 0; i < len; ++i) {
+            logidbuf[i] = chars[randommod((long long) (sizeof(chars) - 1))];
+        }
+        logidbuf[i] = 0;
+        id = logidbuf;
     }
 
-    for (i = 0; id[i] && i < (sizeof(logidbuf) - 4); ++i) logidbuf[i] = id[i];
+    for (i = 0; id[i] && i < (sizeof(logidbuf) - 1); ++i) logidbuf[i] = id[i];
     logidbuf[i] = 0;
 
-    if (id[i]) {
+    if (id[i] && sizeof(logidbuf) >= 4) {
         logidbuf[sizeof(logidbuf) - 4] = '.';
         logidbuf[sizeof(logidbuf) - 3] = '.';
         logidbuf[sizeof(logidbuf) - 2] = '.';
@@ -797,4 +810,5 @@ void log_set_id(const char *id) {
     }
 
     logid = logidbuf;
+    (void) setenv("LOG_ID", logid, 1);
 }

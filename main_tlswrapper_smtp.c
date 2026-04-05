@@ -771,7 +771,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
     signal(SIGALRM, signalhandler);
     alarm(30);
     log_set_name("tlswrapper-smtp");
-    log_unset_id();
+    log_set_id(0);
 
 
     (void) argc;

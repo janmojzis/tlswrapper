@@ -142,6 +142,11 @@ class TestSmtpWrapper:
 
         stdout_text = stdout.decode("utf-8", errors="replace")
         stderr_text = stderr.decode("utf-8", errors="replace")
+        stdout_text = normalize_logid_suffix(stdout_text)
+        if self.control_output:
+            self.control_output = normalize_logid_suffix(
+                self.control_output.decode("utf-8", errors="replace")
+            ).encode("utf-8")
         child_log = self.read_child_log()
         LOGGER.debug("Wrapper exited with rc=%s", self.proc.returncode)
         return self.proc.returncode, stdout_text, stderr_text, child_log
@@ -187,6 +192,34 @@ def configure_logging(debug: bool) -> None:
 
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=level, format="%(levelname)s %(message)s")
+
+
+def normalize_logid_suffix(text: str) -> str:
+    """Normalize SMTP output by stripping trailing `` [logid]`` suffixes."""
+
+    normalized: list[str] = []
+
+    for line in text.splitlines(keepends=True):
+        ending = ""
+        body = line
+
+        if body.endswith("\r\n"):
+            ending = "\r\n"
+            body = body[:-2]
+        elif body.endswith("\n"):
+            ending = "\n"
+            body = body[:-1]
+
+        proc = subprocess.run(
+            ["sed", "-E", r"s/ \[[[:alnum:]]+\]$//"],
+            input=body,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        normalized.append(proc.stdout + ending)
+
+    return "".join(normalized)
 
 
 def split_smtp_lines(text: str) -> list[str]:

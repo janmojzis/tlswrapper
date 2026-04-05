@@ -239,7 +239,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     signal(SIGPIPE, SIG_IGN);
 
     log_set_name("tlswrapper-tcp");
-    log_unset_id();
+    log_set_id(0);
 
     (void) argc;
     if (!argv[0]) usage();
