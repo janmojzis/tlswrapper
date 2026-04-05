@@ -756,7 +756,6 @@ static int run_cleartext_phase(void) {
 static void run_tls_phase(int *flaguserreported) {
     log_t1("tls phase entered");
     for (;;) {
-        unsigned int st;
         struct pollfd p[5];
         struct pollfd *q;
         struct pollfd *watchfromnet;
@@ -768,7 +767,12 @@ static void run_tls_phase(int *flaguserreported) {
         size_t len;
         long long r;
 
-        st = tls_engine_current_state(&ctx);
+        unsigned int st = tls_engine_current_state(&ctx);
+        int can_recvrec = !!(st & tls_state_RECVREC) && netinfd != -1;
+        int can_sendrec = !!(st & tls_state_SENDREC) && netoutfd != -1;
+        int can_sendapp = !!(st & tls_state_SENDAPP) && childoutfd != -1;
+        int can_recvapp = !!(st & tls_state_RECVAPP) && childinfd != -1;
+
         report_tls_handshake(st, flaguserreported);
 
 
@@ -800,12 +804,12 @@ static void run_tls_phase(int *flaguserreported) {
             log_t1("tls phase propagated peer EOF to child");
         }
 
-        /* Peer already closed the TCP read side and the child has
-         * finished producing plaintext. After we flush any pending TLS
-         * records, there is nothing left to wait for.
+        /* Nothing useful remains once every engine direction loses its
+         * matching file descriptor. This must be decided before poll()
+         * so child exit does not rely on the SIGCHLD -> alarm(1) fallback.
          */
-        if (netinfd == -1 && childoutfd == -1 && !(st & tls_state_SENDREC)) {
-            log_t1("tls phase finished after peer eof and child close");
+        if (!can_recvrec && !can_sendrec && !can_sendapp && !can_recvapp) {
+            log_t1("tls phase finished after progress became impossible");
             break;
         }
 
@@ -813,25 +817,25 @@ static void run_tls_phase(int *flaguserreported) {
         watchfromnet = watchtonet = watchfromchild = watchtochild = watchfromselfpipe = 0;
         q = p;
 
-        if (netoutfd != -1 && (st & tls_state_SENDREC)) {
+        if (can_sendrec) {
             watchtonet = q;
             q->fd = netoutfd;
             q->events = POLLOUT;
             ++q;
         }
-        if (netinfd != -1 && (st & tls_state_RECVREC)) {
+        if (can_recvrec) {
             watchfromnet = q;
             q->fd = netinfd;
             q->events = POLLIN;
             ++q;
         }
-        if (childinfd != -1 && (st & tls_state_RECVAPP)) {
+        if (can_recvapp) {
             watchtochild = q;
             q->fd = childinfd;
             q->events = POLLOUT;
             ++q;
         }
-        if (childoutfd != -1 && (st & tls_state_SENDAPP)) {
+        if (can_sendapp) {
             watchfromchild = q;
             q->fd = childoutfd;
             q->events = POLLIN;
