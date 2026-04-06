@@ -262,3 +262,55 @@ const char *tls_error_str(int err) {
     }
     return "unknown";
 }
+
+/* TLS alert codes from RFC 5246, Section 7.2.2 */
+/* clang-format off */
+static struct {
+    int alert;
+    const char *name;
+} alerts[] = {
+    {  0, "close_notify" },
+    { 10, "unexpected_message" },
+    { 20, "bad_record_mac" },
+    { 21, "decryption_failed" },
+    { 22, "record_overflow" },
+    { 30, "decompression_failure" },
+    { 40, "handshake_failure" },
+    { 42, "bad_certificate" },
+    { 43, "unsupported_certificate" },
+    { 44, "certificate_revoked" },
+    { 45, "certificate_expired" },
+    { 46, "certificate_unknown" },
+    { 47, "illegal_parameter" },
+    { 48, "unknown_ca" },
+    { 49, "access_denied" },
+    { 50, "decode_error" },
+    { 51, "decrypt_error" },
+    { 70, "protocol_version" },
+    { 71, "insufficient_security" },
+    { 80, "internal_error" },
+    { 86, "inappropriate_fallback" },
+    { 90, "user_canceled" },
+    { 100, "no_renegotiation" },
+    { 110, "unsupported_extension" },
+    { 112, "unrecognized_name" },
+    { 0, 0 }
+};
+/* clang-format on */
+
+/*
+ * tls_alert_str - return the name of a TLS alert code
+ *
+ * @alert: TLS alert number (0-255)
+ *
+ * Returns a static, human-readable alert name.
+ */
+const char *tls_alert_str(int alert) {
+
+    size_t u;
+
+    for (u = 0; alerts[u].name; ++u) {
+        if (alerts[u].alert == alert) return alerts[u].name;
+    }
+    return "unknown_alert";
+}

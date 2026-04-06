@@ -196,23 +196,21 @@ const char *tls_engine_close_reason(struct tls_context *ctx) {
     if (err == BR_ERR_OK) return "SSL closed normally";
 
     if (err >= BR_ERR_SEND_FATAL_ALERT) {
-        err -= BR_ERR_SEND_FATAL_ALERT;
+        int alert = err - BR_ERR_SEND_FATAL_ALERT;
         if (ctx->flaghandshakedone) {
-            log_e2("SSL closed abnormally, sent alert: ",
-                   tls_error_str(err));
+            log_e2("SSL sent alert: ", tls_alert_str(alert));
         }
-        return tls_error_str(err);
+        return tls_alert_str(alert);
     }
     if (err >= BR_ERR_RECV_FATAL_ALERT) {
-        err -= BR_ERR_RECV_FATAL_ALERT;
+        int alert = err - BR_ERR_RECV_FATAL_ALERT;
         if (ctx->flaghandshakedone) {
-            log_e2("SSL closed abnormally, received alert: ",
-                   tls_error_str(err));
+            log_e2("SSL received alert: ", tls_alert_str(alert));
         }
-        return tls_error_str(err);
+        return tls_alert_str(alert);
     }
     if (ctx->flaghandshakedone) {
-        log_e2("SSL closed abnormally: ", tls_error_str(err));
+        log_e2("SSL error: ", tls_error_str(err));
     }
     return tls_error_str(err);
 }

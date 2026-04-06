@@ -86,6 +86,7 @@ extern void tls_profile(struct tls_context *);
 
 /* tls_error.c */
 extern const char *tls_error_str(int);
+extern const char *tls_alert_str(int);
 
 /* tls_keytype.c */
 extern const char *tls_keytype_str(int);
