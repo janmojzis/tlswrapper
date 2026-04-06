@@ -168,8 +168,6 @@ int tls_pem_load(struct tls_pem *ctx, const char *fn,
     int ret = 0;
     struct stat st;
 
-    log_t3("tls_pem_load(fn = ", fn, ")");
-
     tls_pem_free(ctx);
 
     fd = open_read(fn);
@@ -190,8 +188,7 @@ int tls_pem_load(struct tls_pem *ctx, const char *fn,
 cleanup:
     if (fd != -1) close(fd);
     if (ret == 0) tls_pem_free(ctx);
-    log_t2("publen = ", log_num(ctx->publen));
-    log_t2("seclen = ", log_num(ctx->seclen));
-    log_t4("tls_pem_load(fn = ", fn, ") = ", log_num(ret));
+    log_t8("tls_pem_load(fn = ", fn, ") = ", log_num(ret),
+           ", pub=", log_num(ctx->publen), ", sec=", log_num(ctx->seclen));
     return ret;
 }

@@ -97,8 +97,6 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
     const char *server_name;
     uint32_t curves;
 
-    log_t1("tls_choose()");
-
     st = br_ssl_server_get_client_suites(cc, &st_num);
     chashes = br_ssl_server_get_client_hashes(cc);
     server_name = br_ssl_engine_get_server_name(&cc->eng);
@@ -219,8 +217,6 @@ void tls_profile(struct tls_context *ctx) {
     const char *name;
     unsigned char seed[32];
     br_ssl_server_context *cc = &ctx->cc;
-
-    log_t1("tls_profile() begin");
 
     /*
      * Reset server context and set supported versions.

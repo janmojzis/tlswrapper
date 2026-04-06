@@ -754,6 +754,9 @@ static int run_cleartext_phase(void) {
  * @flaguserreported: tracks whether the child already received the login string
  */
 static void run_tls_phase(int *flaguserreported) {
+    const char *reason = "unknown";
+    const char *detail = "";
+
     log_t1("tls phase entered");
     for (;;) {
         struct pollfd p[5];
@@ -786,7 +789,8 @@ static void run_tls_phase(int *flaguserreported) {
          * can happen on this connection any more.
          */
         if ((st & tls_state_CLOSED) && !ctx.flaghandshakedone) {
-            log_d1("handshake failed, tls phase ended during handshake");
+            reason = "handshake failed";
+            detail = tls_engine_close_reason(&ctx);
             break;
         }
 
@@ -794,7 +798,8 @@ static void run_tls_phase(int *flaguserreported) {
          * nothing useful remains on this connection.
          */
         if ((st & tls_state_CLOSED) && !(st & tls_state_SENDREC)) {
-            log_t1("tls phase finished after engine close");
+            reason = "engine closed";
+            detail = tls_engine_close_reason(&ctx);
             break;
         }
 
@@ -804,7 +809,7 @@ static void run_tls_phase(int *flaguserreported) {
          */
         if (netinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
             if (!close_wfd(&childinfd)) {
-                log_d1("write side close to child failed");
+                reason = "write side close to child failed";
                 break;
             }
             log_t1("tls phase propagated peer EOF to child");
@@ -815,7 +820,7 @@ static void run_tls_phase(int *flaguserreported) {
          * so child exit does not rely on the SIGCHLD -> alarm(1) fallback.
          */
         if (!can_recvrec && !can_sendrec && !can_sendapp && !can_recvapp) {
-            log_t1("tls phase finished after progress became impossible");
+            reason = "no progress";
             break;
         }
 
@@ -866,7 +871,7 @@ static void run_tls_phase(int *flaguserreported) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 (void)close_wfd(&childinfd);
-                log_d1("write to child failed");
+                reason = "write to child failed";
                 break;
             }
             log_t4("write(childinfd, buf, len=", log_num(len), ") = ", log_num(r));
@@ -880,7 +885,7 @@ static void run_tls_phase(int *flaguserreported) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 (void)close_wfd(&netoutfd);
-                log_d1("write to standard output failed");
+                reason = "write to network failed";
                 break;
             }
             log_t4("write(netoutfd, buf, len=", log_num(len), ") = ", log_num(r));
@@ -893,8 +898,7 @@ static void run_tls_phase(int *flaguserreported) {
             r = read(netinfd, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                if (r < 0) log_d1("read from standard input failed");
-                if (r == 0) log_t1("read from standard input failed, connection closed");
+                log_t1("network peer closed connection");
                 close_rfd(&netinfd);
                 continue;
             }
@@ -909,8 +913,7 @@ static void run_tls_phase(int *flaguserreported) {
             r = read(childoutfd, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                if (r < 0) log_d1("read from child failed");
-                if (r == 0) log_t1("read from child failed, connection closed");
+                log_t1("child closed connection");
                 close_rfd(&childoutfd);
                 tls_engine_close(&ctx);
                 tls_engine_flush(&ctx, 0);
@@ -924,9 +927,16 @@ static void run_tls_phase(int *flaguserreported) {
         }
 
         if (watchfromselfpipe) {
-            log_d1("signal received, tls phase interrupted");
+            reason = "signal";
             break;
         }
+    }
+
+    if (*detail) {
+        log_d4("tls phase: ", reason, ", ", detail);
+    }
+    else {
+        log_d2("tls phase: ", reason);
     }
 }
 
@@ -1236,8 +1246,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         (void) connectioninfo_get(localip, localport, remoteip, remoteport);
     }
     log_set_ip(iptostr(remoteipstr, remoteip));
-    log_t4("connection local=", log_ipport(localip, localport),
-           " remote=", log_ipport(remoteip, remoteport));
 
     /* non-blocking stdin/stdout */
     netinfd = 0;

@@ -155,11 +155,12 @@ void tls_engine_close(struct tls_context *ctx) {
  * backend-independent tls_state_* constants defined in tls.h.
  */
 unsigned int tls_engine_current_state(struct tls_context *ctx) {
+    static unsigned int prev_st = ~0u;
     unsigned int st;
 
     st = br_ssl_engine_current_state(&ctx->cc.eng);
 
-    if (log_level >= log_level_TRACING) {
+    if (log_level >= log_level_TRACING && st != prev_st) {
         const char *recvrec = "recvrec,";
         const char *sendrec = "sendrec,";
         const char *recvapp = "recvapp,";
@@ -172,44 +173,48 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         if (!(st & tls_state_CLOSED)) closed = "";
         log_t8("tls state=", log_num(st), ", flags=", recvrec, sendrec,
                recvapp, sendapp, closed);
+        prev_st = st;
     }
 
-    if (st & tls_state_CLOSED) {
-        int err;
-        err = br_ssl_engine_last_error(&ctx->cc.eng);
-        if (err == BR_ERR_OK) { log_d1("SSL closed normally"); }
-        else {
-            if (err >= BR_ERR_SEND_FATAL_ALERT) {
-                err -= BR_ERR_SEND_FATAL_ALERT;
-                if (ctx->flaghandshakedone) {
-                    log_e2("SSL closed abnormally, sent alert: ",
-                           tls_error_str(err));
-                }
-                else {
-                    log_d2("SSL closed abnormally, sent alert: ",
-                           tls_error_str(err));
-                }
-            }
-            else if (err >= BR_ERR_RECV_FATAL_ALERT) {
-                err -= BR_ERR_RECV_FATAL_ALERT;
-                if (ctx->flaghandshakedone) {
-                    log_e2("SSL closed abnormally, received alert: ",
-                           tls_error_str(err));
-                }
-                else {
-                    log_d2("SSL closed abnormally, received alert: ",
-                           tls_error_str(err));
-                }
-            }
-            else {
-                if (ctx->flaghandshakedone) {
-                    log_e2("SSL closed abnormally: ", tls_error_str(err));
-                }
-                else { log_d2("SSL closed abnormally: ", tls_error_str(err)); }
-            }
-        }
-    }
     return st;
+}
+
+/*
+ * tls_engine_close_reason - describe why the SSL engine closed
+ *
+ * @ctx: TLS session state
+ *
+ * Returns a static string describing the SSL close reason.  The caller
+ * must only invoke this after tls_engine_current_state() returned the
+ * CLOSED flag.  When the close was abnormal after a completed handshake
+ * the function also emits a log_e line; otherwise only the returned
+ * string carries the detail so the caller can place it into a summary.
+ */
+const char *tls_engine_close_reason(struct tls_context *ctx) {
+    int err = br_ssl_engine_last_error(&ctx->cc.eng);
+
+    if (err == BR_ERR_OK) return "SSL closed normally";
+
+    if (err >= BR_ERR_SEND_FATAL_ALERT) {
+        err -= BR_ERR_SEND_FATAL_ALERT;
+        if (ctx->flaghandshakedone) {
+            log_e2("SSL closed abnormally, sent alert: ",
+                   tls_error_str(err));
+        }
+        return tls_error_str(err);
+    }
+    if (err >= BR_ERR_RECV_FATAL_ALERT) {
+        err -= BR_ERR_RECV_FATAL_ALERT;
+        if (ctx->flaghandshakedone) {
+            log_e2("SSL closed abnormally, received alert: ",
+                   tls_error_str(err));
+        }
+        return tls_error_str(err);
+    }
+    if (ctx->flaghandshakedone) {
+        log_e2("SSL closed abnormally: ", tls_error_str(err));
+    }
+    return tls_error_str(err);
 }
 
 /*

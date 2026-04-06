@@ -220,6 +220,7 @@ extern void tls_engine_recvrec_ack(struct tls_context *, size_t);
 extern void tls_engine_flush(struct tls_context *, int);
 extern void tls_engine_close(struct tls_context *);
 extern unsigned int tls_engine_current_state(struct tls_context *);
+extern const char *tls_engine_close_reason(struct tls_context *);
 
 /* tls_engine.c - negotiated session info */
 extern unsigned int tls_engine_get_version(struct tls_context *);

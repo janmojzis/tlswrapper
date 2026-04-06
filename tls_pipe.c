@@ -83,8 +83,6 @@ size_t tls_pipe_mulgen(unsigned char *R, const unsigned char *x, size_t xlen,
     (void) x;
     (void) xlen;
 
-    log_t1("tls_pipe_mulgen begin");
-
     /* finish certs */
     if (pipe_write(tls_pipe_tochild, 0, 0) == -1) goto fail;
 
@@ -121,9 +119,6 @@ size_t tls_pipe_dosign(const br_ssl_server_policy_class **pctx,
     unsigned char hash_id = algo_id & 0xff;
     (void) pctx;
 
-    log_t4("tls_pipe_dosign begin: algo_id=", log_num(algo_id),
-           ", len=", log_num(len));
-
     /* write hash_id */
     if (pipe_write(tls_pipe_tochild, &hash_id, sizeof hash_id) == -1) goto fail;
 
@@ -136,7 +131,7 @@ size_t tls_pipe_dosign(const br_ssl_server_policy_class **pctx,
     /* read the signature */
     if (pipe_readmax(tls_pipe_fromchild, data, &max) == -1) goto fail;
 
-    log_t1("tls_pipe_dosign success");
+    log_t4("tls_pipe_dosign(algo=", log_num(algo_id), ", len=", log_num(len));
     return max;
 
 fail:
@@ -309,7 +304,6 @@ static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type,
     unsigned char *data = datav;
     char offset = 0;
     (void) cc;
-    log_t1("decrypt begin");
     if (pipe_write(tls_pipe_tochild, &ch, sizeof ch) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, &record_type, sizeof record_type) == -1)
         goto fail;
@@ -320,7 +314,7 @@ static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type,
     if (pipe_readmax(tls_pipe_fromchild, data + offset, data_len) == -1)
         goto fail;
     if (!*data_len) goto fail;
-    log_t1("decrypt finished");
+    log_t1("decrypt ok");
     return data + offset;
 fail:
     log_d1("decrypt failed");

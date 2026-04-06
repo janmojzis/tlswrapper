@@ -59,8 +59,6 @@ int jail(const char *account, const char *dir, int limits) {
     r.rlim_max = 0;
 #endif
 
-    log_t1("jail()");
-
     if (!account) {
         gid = uid = 100000000 + 100000 * randommod(1000) + (getpid() % 100000);
     }
