@@ -202,15 +202,21 @@ static void close_rfd(int *fd) {
  *
  * @fd: descriptor slot to close
  *
- * Returns 1 on success and 0 on failure.
+ * Uses shutdown(SHUT_WR) for socket-backed transports, logs unexpected
+ * shutdown failures as warnings, and always finishes with a plain close.
  */
-static int close_wfd(int *fd) {
-    if (*fd == -1) return 1;
+ static void close_wfd(int *fd) {
+    int saved_errno = errno;
+
+    if (*fd == -1) return;
     if (socket_shutdown(*fd) == -1) {
-        if (errno != ENOTCONN && errno != ENOTSOCK && errno != EINVAL) return 0;
+        if (errno != ENOTCONN && errno != EBADF &&
+            errno != ENOTSOCK && errno != EINVAL) {
+            log_w1("shutdown(SHUT_WR) failed during close_wfd");
+        }
     }
     close_rfd(fd);
-    return 1;
+    errno = saved_errno;
 }
 
 /*
@@ -385,17 +391,11 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         struct pollfd *watchfromselfpipe;
 
         if (localinfd == -1 && remoteoutfd != -1 && inbuflen == 0) {
-            if (!close_wfd(&remoteoutfd)) {
-                log_d5("shutdown to ", hoststr, ":", portstr, " failed");
-                break;
-            }
+            close_wfd(&remoteoutfd);
             log_t1("stdin closed, propagated EOF to remote");
         }
         if (remoteinfd == -1 && localoutfd != -1 && outbuflen == 0) {
-            if (!close_wfd(&localoutfd)) {
-                log_d1("write side close to standard output failed");
-                break;
-            }
+            close_wfd(&localoutfd);
             log_t1("remote closed, propagated EOF to stdout");
         }
         if (localinfd == -1 && remoteinfd == -1 && remoteoutfd == -1 &&

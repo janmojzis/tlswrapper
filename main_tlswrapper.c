@@ -421,17 +421,21 @@ static void close_rfd(int *fd) {
  *
  * @fd: descriptor slot to close
  *
- * Uses shutdown(SHUT_WR) for socket-backed transports and falls back to a
- * plain close when the descriptor is not a socket.
+ * Uses shutdown(SHUT_WR) for socket-backed transports, logs unexpected
+ * shutdown failures as warnings, and always finishes with a plain close.
  */
-static int close_wfd(int *fd) {
-    if (*fd == -1) return 1;
+static void close_wfd(int *fd) {
+    int saved_errno = errno;
+
+    if (*fd == -1) return;
     if (socket_shutdown(*fd) == -1) {
         if (errno != ENOTCONN && errno != EBADF &&
-            errno != ENOTSOCK && errno != EINVAL) return 0;
+            errno != ENOTSOCK && errno != EINVAL) {
+            log_w1("shutdown(SHUT_WR) failed during close_wfd");
+        }
     }
     close_rfd(fd);
-    return 1;
+    errno = saved_errno;
 }
 
 /*
@@ -505,20 +509,14 @@ static int run_cleartext_phase(void) {
         /* EOF propagation: once one side is gone and its buffer has been
            flushed, half-close the opposite direction so the peer sees EOF. */
         if (netinfd == -1 && childinfd != -1 && !cleartext_tochildbuflen) {
-            if (!close_wfd(&childinfd)) {
-                log_d1("write side close to child failed");
-                return 0;
-            }
+            close_wfd(&childinfd);
             log_t1("network peer closed the connection, cleartext phase propagated network EOF to child");
         }
         if (childoutfd == -1 &&
             !cleartext_tonet5buflen &&
             netoutfd != -1 &&
             !cleartext_tonetbuflen) {
-            if (!close_wfd(&netoutfd)) {
-                log_d1("write side close to remote failed");
-                return 0;
-            }
+            close_wfd(&netoutfd);
             log_d1("child closed the connection, cleartext phase propagated child EOF to network");
         }
 
@@ -808,19 +806,19 @@ static void run_tls_phase(int *flaguserreported) {
          * for the child, so propagate EOF to the wrapped program.
          */
         if (netinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
-            if (!close_wfd(&childinfd)) {
-                reason = "write side close to child failed";
-                break;
-            }
+            close_wfd(&childinfd);
             log_t1("tls phase propagated peer EOF to child");
         }
 
-        /* Nothing useful remains once every engine direction loses its
-         * matching file descriptor. This must be decided before poll()
-         * so child exit does not rely on the SIGCHLD -> alarm(1) fallback.
+        /* All application data has been delivered and our close_notify
+         * has been sent — there is no risk of data loss at this point.
+         * We do not wait for the peer's close_notify: in practice peers
+         * either respond immediately or just close the TCP connection.
+         * This also avoids blocking on peers that neither close nor
+         * respond.
          */
         if (!can_recvrec && !can_sendrec && !can_sendapp && !can_recvapp) {
-            reason = "no progress";
+            reason = "finished";
             break;
         }
 
