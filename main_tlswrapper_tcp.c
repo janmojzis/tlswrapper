@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include "randombytes.h"
+#include "fd.h"
 #include "iptostr.h"
 #include "proxyprotocol.h"
 #include "connectioninfo.h"
@@ -187,39 +188,6 @@ static void signalhandler(int signum) {
 }
 
 /*
- * close_rfd - close a tracked read descriptor and mark it inactive
- *
- * @fd: descriptor slot to close
- */
-static void close_rfd(int *fd) {
-    if (*fd == -1) return;
-    close(*fd);
-    *fd = -1;
-}
-
-/*
- * close_wfd - close a tracked write descriptor and mark it inactive
- *
- * @fd: descriptor slot to close
- *
- * Uses shutdown(SHUT_WR) for socket-backed transports, logs unexpected
- * shutdown failures as warnings, and always finishes with a plain close.
- */
- static void close_wfd(int *fd) {
-    int saved_errno = errno;
-
-    if (*fd == -1) return;
-    if (socket_shutdown(*fd) == -1) {
-        if (errno != ENOTCONN && errno != EBADF &&
-            errno != ENOTSOCK && errno != EINVAL) {
-            log_w1("shutdown(SHUT_WR) failed during close_wfd");
-        }
-    }
-    close_rfd(fd);
-    errno = saved_errno;
-}
-
-/*
  * main_tlswrapper_tcp - run the TCP forwarding front-end
  *
  * @argc: process argument count
@@ -391,11 +359,11 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         struct pollfd *watchfromselfpipe;
 
         if (localinfd == -1 && remoteoutfd != -1 && inbuflen == 0) {
-            close_wfd(&remoteoutfd);
+            fd_close_write(&remoteoutfd);
             log_t1("stdin closed, propagated EOF to remote");
         }
         if (remoteinfd == -1 && localoutfd != -1 && outbuflen == 0) {
-            close_wfd(&localoutfd);
+            fd_close_write(&localoutfd);
             log_t1("remote closed, propagated EOF to stdout");
         }
         if (localinfd == -1 && remoteinfd == -1 && remoteoutfd == -1 &&
@@ -449,7 +417,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
                 r = write(remoteoutfd, inbuf, inbuflen);
                 if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
                 if (r <= 0) {
-                    (void)close_wfd(&remoteoutfd);
+                    fd_close_write(&remoteoutfd);
                     log_d5("write to ", hoststr, ":", portstr, " failed" );
                     break;
                 }
@@ -463,7 +431,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             r = write(localoutfd, outbuf, outbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                (void)close_wfd(&localoutfd);
+                fd_close_write(&localoutfd);
                 log_d1("write to standard output failed");
                 break;
             }
@@ -478,7 +446,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             if (r <= 0) {
                 if (r < 0) log_d1("read from standard input failed");
                 if (r == 0) log_t1("read from standard input failed, connection closed");
-                close_rfd(&localinfd);
+                fd_close_read(&localinfd);
                 continue;
             }
             inbuflen += r;
@@ -492,7 +460,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             if (r <= 0) {
                 if (r < 0) log_d5("read from ", hoststr, ":", portstr, " failed" );
                 if (r == 0) log_t5("read from ", hoststr, ":", portstr, " failed, connection closed" );
-                close_rfd(&remoteinfd);
+                fd_close_read(&remoteinfd);
                 continue;
             }
             outbuflen += r;
@@ -507,8 +475,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         }
     }
 
-    close_rfd(&remoteinfd);
-    (void)close_wfd(&remoteoutfd);
+    fd_close_read(&remoteinfd);
+    fd_close_write(&remoteoutfd);
     log_d1("finished");
     die(0);
 }

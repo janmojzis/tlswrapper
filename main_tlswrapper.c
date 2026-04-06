@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "blocking.h"
+#include "fd.h"
 #include "pipe.h"
 #include "log.h"
 #include "e.h"
@@ -405,40 +406,6 @@ static void consume_buffer(unsigned char *buf, size_t *buflen, size_t len) {
 }
 
 /*
- * close_rfd - close a tracked read descriptor and mark it inactive
- *
- * @fd: descriptor slot to close
- */
-static void close_rfd(int *fd) {
-    if (*fd != -1) {
-        close(*fd);
-        *fd = -1;
-    }
-}
-
-/*
- * close_wfd - close a tracked write descriptor and mark it inactive
- *
- * @fd: descriptor slot to close
- *
- * Uses shutdown(SHUT_WR) for socket-backed transports, logs unexpected
- * shutdown failures as warnings, and always finishes with a plain close.
- */
-static void close_wfd(int *fd) {
-    int saved_errno = errno;
-
-    if (*fd == -1) return;
-    if (socket_shutdown(*fd) == -1) {
-        if (errno != ENOTCONN && errno != EBADF &&
-            errno != ENOTSOCK && errno != EINVAL) {
-            log_w1("shutdown(SHUT_WR) failed during close_wfd");
-        }
-    }
-    close_rfd(fd);
-    errno = saved_errno;
-}
-
-/*
  * report_tls_user - send the one-shot login/account record to the child
  *
  * @userstr: NUL-terminated value to forward
@@ -509,14 +476,14 @@ static int run_cleartext_phase(void) {
         /* EOF propagation: once one side is gone and its buffer has been
            flushed, half-close the opposite direction so the peer sees EOF. */
         if (netinfd == -1 && childinfd != -1 && !cleartext_tochildbuflen) {
-            close_wfd(&childinfd);
+            fd_close_write(&childinfd);
             log_t1("network peer closed the connection, cleartext phase propagated network EOF to child");
         }
         if (childoutfd == -1 &&
             !cleartext_tonet5buflen &&
             netoutfd != -1 &&
             !cleartext_tonetbuflen) {
-            close_wfd(&netoutfd);
+            fd_close_write(&netoutfd);
             log_d1("child closed the connection, cleartext phase propagated child EOF to network");
         }
 
@@ -622,7 +589,7 @@ static int run_cleartext_phase(void) {
             r = write(childinfd, cleartext_tochildbuf, cleartext_tochildbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                (void)close_wfd(&childinfd);
+                fd_close_write(&childinfd);
                 log_d1("write to child failed");
                 return 0;
             }
@@ -637,7 +604,7 @@ static int run_cleartext_phase(void) {
             r = write(netoutfd, cleartext_tonetbuf, cleartext_tonetbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                (void)close_wfd(&netoutfd);
+                fd_close_write(&netoutfd);
                 log_d1("write to standard output failed");
                 return 0;
             }
@@ -660,12 +627,12 @@ static int run_cleartext_phase(void) {
                      sizeof cleartext_tonet5buf - cleartext_tonet5buflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r == -1) {
-                close_rfd(&controlfd);
+                fd_close_read(&controlfd);
                 log_d1("read from child failed");
                 return 0;
             }
             if (r == 0) {
-                close_rfd(&controlfd);
+                fd_close_read(&controlfd);
                 if (!cleartext_tonet5buflen) {
                     log_d1("control pipe closed before STARTTLS, cleartext phase ended");
                     return 0;
@@ -708,7 +675,7 @@ static int run_cleartext_phase(void) {
             if (r <= 0) {
                 if (r < 0) log_d1("read from standard input failed");
                 if (r == 0) log_t1("read from standard input failed, connection closed");
-                close_rfd(&netinfd);
+                fd_close_read(&netinfd);
                 continue;
             }
             log_t4("read(netinfd, cleartext_tochildbuf + len, free=",
@@ -727,7 +694,7 @@ static int run_cleartext_phase(void) {
             if (r <= 0) {
                 if (r < 0) log_d1("read from child failed");
                 if (r == 0) log_t1("read from child failed, connection closed");
-                close_rfd(&childoutfd);
+                fd_close_read(&childoutfd);
                 continue;
             }
             log_t4("read(childoutfd, cleartext_tonetbuf + len, free=",
@@ -769,6 +736,7 @@ static void run_tls_phase(int *flaguserreported) {
         long long r;
 
         unsigned int st = tls_engine_current_state(&ctx);
+
         /* After child stdout EOF, peer input remains useful only while
          * pending TLS records still need to be flushed. Once SENDREC is
          * gone, waiting for peer close would only block the loop.
@@ -806,7 +774,7 @@ static void run_tls_phase(int *flaguserreported) {
          * for the child, so propagate EOF to the wrapped program.
          */
         if (netinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
-            close_wfd(&childinfd);
+            fd_close_write(&childinfd);
             log_t1("tls phase propagated peer EOF to child");
         }
 
@@ -868,7 +836,7 @@ static void run_tls_phase(int *flaguserreported) {
             r = write(childinfd, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                (void)close_wfd(&childinfd);
+                fd_close_write(&childinfd);
                 reason = "write to child failed";
                 break;
             }
@@ -882,7 +850,7 @@ static void run_tls_phase(int *flaguserreported) {
             r = write(netoutfd, buf, len);
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
-                (void)close_wfd(&netoutfd);
+                fd_close_write(&netoutfd);
                 reason = "write to network failed";
                 break;
             }
@@ -897,7 +865,7 @@ static void run_tls_phase(int *flaguserreported) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 log_t1("network peer closed connection");
-                close_rfd(&netinfd);
+                fd_close_read(&netinfd);
                 continue;
             }
             log_t4("read(netinfd, buf, len=", log_num(len), ") = ", log_num(r));
@@ -912,7 +880,7 @@ static void run_tls_phase(int *flaguserreported) {
             if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
             if (r <= 0) {
                 log_t1("child closed connection");
-                close_rfd(&childoutfd);
+                fd_close_read(&childoutfd);
                 tls_engine_close(&ctx);
                 tls_engine_flush(&ctx, 0);
                 continue;
@@ -1267,7 +1235,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
         log_t1("sent empty pre-STARTTLS user record");
     }
     else {
-        close_rfd(&controlfd);
+        fd_close_read(&controlfd);
     }
 
     if (ctx.flagdelayedenc) {
@@ -1286,7 +1254,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 waitchildren:
     signal(SIGCHLD, SIG_DFL);
     signal(SIGALRM, SIG_DFL);
-    close_rfd(&controlfd);
+    fd_close_read(&controlfd);
 
     /* wait for keyjail child */
     close(fromkeyjail[0]);
@@ -1305,8 +1273,8 @@ waitchildren:
     }
 
     /* wait for child */
-    close_rfd(&childoutfd);
-    (void) close_wfd(&childinfd);
+    fd_close_read(&childoutfd);
+    fd_close_write(&childinfd);
     do {
         r = waitpid(child, &status, 0);
     } while (r == -1 && errno == EINTR);
