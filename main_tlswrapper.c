@@ -737,6 +737,7 @@ static void run_tls_phase(int *flaguserreported) {
 
         unsigned int st = tls_engine_current_state(&ctx);
 
+#if 0
         /* After child stdout EOF, peer input remains useful only while
          * pending TLS records still need to be flushed. Once SENDREC is
          * gone, waiting for peer close would only block the loop.
@@ -744,6 +745,8 @@ static void run_tls_phase(int *flaguserreported) {
         int can_recvrec = !!(st & tls_state_RECVREC) &&
             netinfd != -1 &&
             (childoutfd != -1 || (st & tls_state_SENDREC));
+#endif
+        int can_recvrec = !!(st & tls_state_RECVREC) && netinfd != -1;
         int can_sendrec = !!(st & tls_state_SENDREC) && netoutfd != -1;
         int can_sendapp = !!(st & tls_state_SENDAPP) && childoutfd != -1;
         int can_recvapp = !!(st & tls_state_RECVAPP) && childinfd != -1;
