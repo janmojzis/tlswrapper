@@ -737,22 +737,32 @@ static void run_tls_phase(int *flaguserreported) {
 
         unsigned int st = tls_engine_current_state(&ctx);
 
-#if 0
-        /* After child stdout EOF, peer input remains useful only while
-         * pending TLS records still need to be flushed. Once SENDREC is
-         * gone, waiting for peer close would only block the loop.
+        /* Unclean TCP close without close_notify: the peer has closed
+         * the connection and the engine has no more plaintext pending
+         * for the child, so propagate EOF to the wrapped program.
+         */
+        if (netinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
+            fd_close_write(&childinfd);
+            log_t1("tls phase propagated peer EOF to child");
+        }
+
+        /* Receive from peer only while we can still make progress:
+         * deliver plaintext to child, flush pending TLS records,
+         * or keep the session alive for an active child.
          */
         int can_recvrec = !!(st & tls_state_RECVREC) &&
             netinfd != -1 &&
-            (childoutfd != -1 || (st & tls_state_SENDREC));
-#endif
-        int can_recvrec = !!(st & tls_state_RECVREC) && netinfd != -1;
+            (childinfd != -1 || (st & tls_state_SENDREC) || childoutfd != -1);
         int can_sendrec = !!(st & tls_state_SENDREC) && netoutfd != -1;
-        int can_sendapp = !!(st & tls_state_SENDAPP) && childoutfd != -1;
+        /* Read from child only while we can still send to the peer.
+         * Without netoutfd the data would just accumulate unsent.
+         */
+        int can_sendapp = !!(st & tls_state_SENDAPP) &&
+            childoutfd != -1 &&
+            netoutfd != -1;
         int can_recvapp = !!(st & tls_state_RECVAPP) && childinfd != -1;
 
         report_tls_handshake(st, flaguserreported);
-
 
         /* Handshake failed — tear down immediately, nothing useful
          * can happen on this connection any more.
@@ -770,15 +780,6 @@ static void run_tls_phase(int *flaguserreported) {
             reason = "engine closed";
             detail = tls_engine_close_reason(&ctx);
             break;
-        }
-
-        /* Unclean TCP close without close_notify: the peer has closed
-         * the connection and the engine has no more plaintext pending
-         * for the child, so propagate EOF to the wrapped program.
-         */
-        if (netinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
-            fd_close_write(&childinfd);
-            log_t1("tls phase propagated peer EOF to child");
         }
 
         /* All application data has been delivered and our close_notify
