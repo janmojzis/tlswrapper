@@ -451,6 +451,79 @@ static void report_tls_handshake(unsigned int st, int *flaguserreported) {
 }
 
 /*
+ * report_tls_phase_fds - trace descriptor availability and derived poll gates
+ *
+ * @st: current TLS engine state flags
+ * @can_recvrec: non-zero when the loop may read TLS records from the network
+ * @can_sendrec: non-zero when the loop may write TLS records to the network
+ * @can_sendapp: non-zero when the loop may read plaintext from the child
+ * @can_recvapp: non-zero when the loop may write plaintext to the child
+ *
+ * Emits one tracing record whenever the wrapper-visible transport state
+ * changes, mirroring the change-only logging style used by
+ * tls_engine_current_state().
+ */
+static void report_tls_phase_fds(unsigned int st, int can_recvrec, int can_sendrec,
+                                 int can_sendapp, int can_recvapp) {
+    static unsigned int prev_st = ~0u;
+    static int prev_netinfd = -2;
+    static int prev_netoutfd = -2;
+    static int prev_childoutfd = -2;
+    static int prev_childinfd = -2;
+    static int prev_controlfd = -2;
+    static int prev_can_recvrec = -1;
+    static int prev_can_sendrec = -1;
+    static int prev_can_sendapp = -1;
+    static int prev_can_recvapp = -1;
+    const char *netin = "netin,";
+    const char *netout = "netout,";
+    const char *childout = "childout,";
+    const char *childin = "childin,";
+    const char *control = "control,";
+    const char *recvrec = "can_recvrec,";
+    const char *sendrec = "can_sendrec,";
+    const char *sendapp = "can_sendapp,";
+    const char *recvapp = "can_recvapp";
+
+    if (log_level < log_level_TRACING) return;
+
+    if (st == prev_st &&
+        netinfd == prev_netinfd &&
+        netoutfd == prev_netoutfd &&
+        childoutfd == prev_childoutfd &&
+        childinfd == prev_childinfd &&
+        controlfd == prev_controlfd &&
+        can_recvrec == prev_can_recvrec &&
+        can_sendrec == prev_can_sendrec &&
+        can_sendapp == prev_can_sendapp &&
+        can_recvapp == prev_can_recvapp) return;
+
+    if (netinfd == -1) netin = "";
+    if (netoutfd == -1) netout = "";
+    if (childoutfd == -1) childout = "";
+    if (childinfd == -1) childin = "";
+    if (controlfd == -1) control = "";
+    if (!can_recvrec) recvrec = "";
+    if (!can_sendrec) sendrec = "";
+    if (!can_sendapp) sendapp = "";
+    if (!can_recvapp) recvapp = "";
+
+    log_t6("tls fds: fds=", netin, netout, childout, childin, control);
+    log_t5("tls fds: gates=", recvrec, sendrec, sendapp, recvapp);
+
+    prev_st = st;
+    prev_netinfd = netinfd;
+    prev_netoutfd = netoutfd;
+    prev_childoutfd = childoutfd;
+    prev_childinfd = childinfd;
+    prev_controlfd = controlfd;
+    prev_can_recvrec = can_recvrec;
+    prev_can_sendrec = can_sendrec;
+    prev_can_sendapp = can_sendapp;
+    prev_can_recvapp = can_recvapp;
+}
+
+/*
  * run_cleartext_phase - forward plaintext until the child requests STARTTLS
  *
  * Returns 1 when the delayed-encryption control pipe requests STARTTLS and
@@ -734,7 +807,6 @@ static void run_tls_phase(int *flaguserreported) {
         unsigned char *buf;
         size_t len;
         long long r;
-
         unsigned int st = tls_engine_current_state(&ctx);
 
         /* Unclean TCP close without close_notify: the peer has closed
@@ -762,6 +834,7 @@ static void run_tls_phase(int *flaguserreported) {
             netoutfd != -1;
         int can_recvapp = !!(st & tls_state_RECVAPP) && childinfd != -1;
 
+        report_tls_phase_fds(st, can_recvrec, can_sendrec, can_sendapp, can_recvapp);
         report_tls_handshake(st, flaguserreported);
 
         /* Handshake failed — tear down immediately, nothing useful
