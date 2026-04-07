@@ -101,18 +101,48 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
  *
  * @signum: delivered signal number
  *
- * SIGCHLD shortens the active alarm so the main loop notices child exit
- * promptly. Other watched signals write one byte to the self-pipe so the
- * poll loop can handle shutdown in process context.
+ * Encodes signal intent into the self-pipe so the relay loops can react in
+ * normal process context: 'C' for any SIGCHLD, '\0' for termination.
+ * SIGCHLD is not attributed to a specific child PID here; the relay code
+ * conservatively closes all wrapped-child descriptors whenever any child
+ * process changes state.
  */
 static void signalhandler(int signum) {
+    char ch = 0;
     int w;
-    if (signum == SIGCHLD) {
-        alarm(1);
-        return;
-    }
-    w = write(selfpipe[1], "", 1);
+    if (signum == SIGCHLD) ch = 'C';
+    w = write(selfpipe[1], &ch, 1);
     (void) w;
+}
+
+/*
+ * handle_selfpipe_event - process one queued self-pipe command
+ *
+ * Returns 1 when the caller should terminate the current relay loop and 0
+ * when execution may continue.
+ *
+ * A queued 'C' does not identify which child triggered SIGCHLD. The current
+ * policy is to close all wrapped-child descriptors regardless of whether
+ * the state change came from the wrapped child or the keyjail helper.
+ */
+static int handle_selfpipe_event(void) {
+    char ch;
+    long long r;
+
+    r = read(selfpipe[0], &ch, 1);
+
+    if (r == -1 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) return 0;
+    if (r <= 0) return 1;
+
+    if (ch == 'C') {
+        fd_close_read(&controlfd);
+        fd_close_read(&childoutfd);
+        fd_close_write(&childinfd);
+        log_t1("SIGCHLD received, closed child descriptors");
+        alarm(1);
+        return 0;
+    }
+    return 1;
 }
 
 /*
@@ -632,7 +662,9 @@ static int run_cleartext_phase(void) {
             ++q;
         }
 
-        /* Signal pipe: always monitored for SIGCHLD / SIGTERM. */
+        /* Signal pipe: always monitored for SIGCHLD / SIGTERM. SIGCHLD is
+           handled conservatively and closes all wrapped-child descriptors
+           without distinguishing which child changed state. */
         watchfromselfpipe = q;
         q->fd = selfpipe[0];
         q->events = POLLIN;
@@ -778,8 +810,9 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
-        /* Signal pipe: child died or timeout fired. */
+        /* Signal pipe: queued SIGCHLD or termination/timeout command. */
         if (watchfromselfpipe) {
+            if (!handle_selfpipe_event()) continue;
             log_d1("signal received, cleartext phase interrupted");
             return 0;
         }
@@ -807,6 +840,7 @@ static void run_tls_phase(int *flaguserreported) {
         unsigned char *buf;
         size_t len;
         long long r;
+
         unsigned int st = tls_engine_current_state(&ctx);
 
         /* Unclean TCP close without close_notify: the peer has closed
@@ -970,6 +1004,7 @@ static void run_tls_phase(int *flaguserreported) {
         }
 
         if (watchfromselfpipe) {
+            if (!handle_selfpipe_event()) continue;
             reason = "signal";
             break;
         }
@@ -1255,7 +1290,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     /* create selfpipe */
     if (open_pipe(selfpipe) == -1) die_pipe();
-    blocking_enable(selfpipe[1]);
 
     /* handshake timeout */
     signal(SIGALRM, signalhandler);
