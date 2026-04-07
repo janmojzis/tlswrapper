@@ -28,6 +28,7 @@
  * helpers on the same socket fd will close that fd on the first call, so the
  * second call cannot perform a later directional shutdown.
  */
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include "e.h"
@@ -69,4 +70,26 @@ void fd_close_write(int *fd) {
     close(*fd);
     *fd = -1;
     errno = saved_errno;
+}
+
+/*
+ * fd_blocking_enable - switch a descriptor to blocking mode
+ *
+ * @fd: descriptor to reconfigure
+ *
+ * Clears O_NONBLOCK on @fd. Errors are left to fcntl().
+ */
+void fd_blocking_enable(int fd) {
+    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) & ~O_NONBLOCK);
+}
+
+/*
+ * fd_blocking_disable - switch a descriptor to nonblocking mode
+ *
+ * @fd: descriptor to reconfigure
+ *
+ * Sets O_NONBLOCK on @fd. Errors are left to fcntl().
+ */
+void fd_blocking_disable(int fd) {
+    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 }

@@ -28,7 +28,7 @@
 #include "open.h"
 #include "e.h"
 #include "tls.h"
-#include "blocking.h"
+#include "fd.h"
 #include "resolvehost.h"
 #include "hostport.h"
 #include "conn.h"
@@ -846,12 +846,12 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
             close(tochild[1]);
             close(0);
             if (dup(tochild[0]) != 0) die_dup();
-            blocking_enable(0);
+            fd_blocking_enable(0);
 
             close(fromchild[0]);
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-            blocking_enable(1);
+            fd_blocking_enable(1);
 
             close(5);
 
@@ -866,8 +866,8 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
     }
     close(fromchild[1]);
     close(tochild[0]);
-    blocking_enable(fromchild[0]);
-    blocking_enable(tochild[1]);
+    fd_blocking_enable(fromchild[0]);
+    fd_blocking_enable(tochild[1]);
     buffer_init(&sscin, _read, fromchild[0], cinbuf, sizeof cinbuf);
     buffer_init(&sscout, _write, tochild[1], coutbuf, sizeof coutbuf);
 

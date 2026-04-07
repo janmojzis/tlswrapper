@@ -17,7 +17,7 @@
 #include "str.h"
 #include "tls.h"
 #include "open.h"
-#include "blocking.h"
+#include "fd.h"
 #include "parsenum.h"
 #include "main.h"
 
@@ -391,8 +391,8 @@ int main_tlswrapper_test(int argc, char **argv) {
             if (dup(tochild[0]) != 0) die_dup();
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-            blocking_enable(0);
-            blocking_enable(1);
+            fd_blocking_enable(0);
+            fd_blocking_enable(1);
             signal(SIGPIPE, SIG_DFL);
             execvp(*argv, argv);
             log_f2("unable to run ", *argv);
@@ -400,8 +400,8 @@ int main_tlswrapper_test(int argc, char **argv) {
     }
     close(fromchild[1]);
     close(tochild[0]);
-    blocking_enable(fromchild[0]);
-    blocking_enable(tochild[1]);
+    fd_blocking_enable(fromchild[0]);
+    fd_blocking_enable(tochild[1]);
 
 
     /* load and parse anchor PEM file */

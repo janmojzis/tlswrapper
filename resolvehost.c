@@ -15,7 +15,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include "e.h"
-#include "blocking.h"
+#include "fd.h"
 #include "log.h"
 #include "jail.h"
 #include "randommod.h"
@@ -164,7 +164,7 @@ int resolvehost_init(void) {
         pid_t ppid = getppid();
 
         close(sockets[1]);
-        blocking_disable(sockets[0]);
+        fd_blocking_disable(sockets[0]);
 
         if (jail(0, 0, 0) == -1) _exit(111);
 

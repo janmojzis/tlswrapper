@@ -12,9 +12,6 @@ all: test
 alloc.o: alloc.c alloc.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c alloc.c
 
-blocking.o: blocking.c blocking.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c blocking.c
-
 buffer.o: buffer.c buffer.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c buffer.c
 
@@ -25,13 +22,13 @@ conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
 connectioninfo.o: connectioninfo.c strtoip.h strtoport.h porttostr.h \
- iptostr.h log.h connectioninfo.h
+  iptostr.h log.h connectioninfo.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
 
 e.o: e.c e.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c e.c
 
-fd.o: fd.c e.h fd.h log.h
+fd.o: fd.c e.h log.h fd.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fd.c
 
 fixname.o: fixname.c fixname.h
@@ -58,33 +55,33 @@ jail_poll.o: jail_poll.c log.h jail.h
 log.o: log.c e.h log.h randommod.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c log.c
 
-main_tlswrapper.o: main_tlswrapper.c blocking.h fd.h pipe.h log.h e.h \
- jail.h parsenum.h randombytes.h haslibrandombytes.h alloc.h \
- connectioninfo.h proxyprotocol.h iptostr.h writeall.h fixname.h \
- fixpath.h socket.h str.h tls.h open.h main.h
+main_tlswrapper.o: main_tlswrapper.c fd.h pipe.h log.h e.h jail.h \
+  parsenum.h randombytes.h haslibrandombytes.h alloc.h connectioninfo.h \
+  proxyprotocol.h iptostr.h writeall.h fixname.h fixpath.h socket.h \
+  str.h tls.h open.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper.c
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c str.h randombytes.h \
- haslibrandombytes.h log.h iptostr.h connectioninfo.h jail.h writeall.h \
- buffer.h stralloc.h open.h e.h tls.h blocking.h resolvehost.h hostport.h \
- conn.h case.h timeoutwrite.h timeoutread.h parsenum.h alloc.h main.h
+  haslibrandombytes.h log.h iptostr.h connectioninfo.h jail.h writeall.h \
+  buffer.h stralloc.h open.h e.h tls.h fd.h resolvehost.h hostport.h \
+  conn.h case.h timeoutwrite.h timeoutread.h parsenum.h alloc.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h \
- haslibrandombytes.h fd.h iptostr.h proxyprotocol.h connectioninfo.h \
- resolvehost.h strtoport.h socket.h e.h log.h conn.h str.h tls.h jail.h \
- randommod.h parsenum.h alloc.h main.h
+  haslibrandombytes.h fd.h iptostr.h proxyprotocol.h connectioninfo.h \
+  resolvehost.h strtoport.h socket.h e.h log.h conn.h str.h tls.h jail.h \
+  randommod.h parsenum.h alloc.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
 main_tlswrapper_test.o: main_tlswrapper_test.c e.h log.h randombytes.h \
- haslibrandombytes.h fsyncfile.h writeall.h str.h tls.h open.h blocking.h \
- parsenum.h main.h
+  haslibrandombytes.h fsyncfile.h writeall.h str.h tls.h open.h fd.h \
+  parsenum.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_test.c
 
 milliseconds.o: milliseconds.c milliseconds.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c milliseconds.c
 
-open_pipe.o: open_pipe.c open.h blocking.h
+open_pipe.o: open_pipe.c open.h fd.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c open_pipe.c
 
 open_read.o: open_read.c open.h
@@ -100,7 +97,7 @@ porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
 proxyprotocol.o: proxyprotocol.c e.h log.h str.h buffer.h stralloc.h \
- jail.h iptostr.h strtoip.h strtoport.h porttostr.h proxyprotocol.h
+  jail.h iptostr.h strtoip.h strtoport.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c randombytes.h haslibrandombytes.h
@@ -112,11 +109,11 @@ randommod.o: randommod.c randombytes.h haslibrandombytes.h randommod.h
 readall.o: readall.c e.h readall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c readall.c
 
-resolvehost.o: resolvehost.c e.h blocking.h log.h jail.h randommod.h \
- resolvehost.h
+resolvehost.o: resolvehost.c e.h fd.h log.h jail.h randommod.h \
+  resolvehost.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c resolvehost.c
 
-socket.o: socket.c blocking.h socket.h
+socket.o: socket.c fd.h socket.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c socket.c
 
 str.o: str.c str.h
@@ -162,30 +159,30 @@ tls_error.o: tls_error.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_error.c
 
 tls_keyjail.o: tls_keyjail.c pipe.h randombytes.h haslibrandombytes.h \
- log.h jail.h fixpath.h tls.h
+  log.h jail.h fixpath.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keyjail.c
 
 tls_keytype.o: tls_keytype.c tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_keytype.c
 
 tls_pem.o: tls_pem.c alloc.h readall.h randombytes.h haslibrandombytes.h \
- log.h open.h tls.h
+  log.h open.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pem.c
 
 tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h haslibrandombytes.h \
- alloc.h str.h log.h
+  alloc.h str.h log.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
 tls_profile.o: tls_profile.c log.h randombytes.h haslibrandombytes.h e.h \
- str.h stralloc.h fixpath.h tls.h
+  str.h stralloc.h fixpath.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
 tls_pubcrt.o: tls_pubcrt.c randombytes.h haslibrandombytes.h alloc.h \
- log.h stralloc.h str.h tls.h
+  log.h stralloc.h str.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pubcrt.c
 
 tls_seccrt.o: tls_seccrt.c log.h randombytes.h haslibrandombytes.h str.h \
- tls.h
+  tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_seccrt.c
 
 tls_version.o: tls_version.c str.h tls.h
@@ -201,7 +198,6 @@ writeall.o: writeall.c e.h jail.h writeall.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c writeall.c
 
 OBJECTS=alloc.o
-OBJECTS+=blocking.o
 OBJECTS+=buffer.o
 OBJECTS+=case.o
 OBJECTS+=conn.o

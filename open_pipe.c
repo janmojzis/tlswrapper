@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "open.h"
-#include "blocking.h"
+#include "fd.h"
 
 /*
  * open_pipe - create a pipe and prepare both descriptors
@@ -23,7 +23,7 @@ int open_pipe(int *fd) {
     if (pipe(fd) == -1) return -1;
     for (i = 0; i < 2; ++i) {
         fcntl(fd[i], F_SETFD, 1);
-        blocking_disable(fd[i]);
+        fd_blocking_disable(fd[i]);
     }
     return 0;
 }

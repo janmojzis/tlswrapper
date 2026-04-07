@@ -12,7 +12,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
-#include "blocking.h"
+#include "fd.h"
 #include "socket.h"
 
 /*
@@ -40,7 +40,7 @@ int socket_tcp(void) {
     }
 #endif
 #endif
-    blocking_disable(s);
+    fd_blocking_disable(s);
     return s;
 }
 

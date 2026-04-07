@@ -12,7 +12,6 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <unistd.h>
-#include "blocking.h"
 #include "fd.h"
 #include "pipe.h"
 #include "log.h"
@@ -1191,18 +1190,18 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             close(tochild[1]);
             close(0);
             if (dup(tochild[0]) != 0) die_dup();
-            blocking_enable(0);
+            fd_blocking_enable(0);
 
             close(fromchild[0]);
             close(1);
             if (dup(fromchild[1]) != 1) die_dup();
-            blocking_enable(1);
+            fd_blocking_enable(1);
 
             close(fromchildcontrol[0]);
             close(CONTROLPIPEFD);
             if (ctx.flagdelayedenc) {
                 if (dup(fromchildcontrol[1]) != CONTROLPIPEFD) die_dup();
-                blocking_enable(CONTROLPIPEFD);
+                fd_blocking_enable(CONTROLPIPEFD);
             }
 
             /* read connection info from net-process */
@@ -1242,9 +1241,9 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     controlfd = fromchildcontrol[0];
     childoutfd = fromchild[0];
     childinfd = tochild[1];
-    blocking_disable(controlfd);
-    blocking_disable(childoutfd);
-    blocking_disable(childinfd);
+    fd_blocking_disable(controlfd);
+    fd_blocking_disable(childoutfd);
+    fd_blocking_disable(childinfd);
 
     /* initialize randombytes */
     {
@@ -1270,8 +1269,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (dup(tokeyjail[0]) != 0) die_dup();
             close(1);
             if (dup(fromkeyjail[1]) != 1) die_dup();
-            blocking_enable(0);
-            blocking_enable(1);
+            fd_blocking_enable(0);
+            fd_blocking_enable(1);
             signal(SIGPIPE, SIG_IGN);
             signal(SIGCHLD, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
@@ -1282,8 +1281,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     close(fromkeyjail[1]);
     close(tokeyjail[0]);
     log_t2("keyjail pid ", log_num(keyjailchild));
-    blocking_enable(fromkeyjail[0]);
-    blocking_enable(tokeyjail[1]);
+    fd_blocking_enable(fromkeyjail[0]);
+    fd_blocking_enable(tokeyjail[1]);
     tls_pipe_fromchild = fromkeyjail[0];
     tls_pipe_tochild = tokeyjail[1];
     tls_pipe_set_engine(&ctx);
@@ -1327,8 +1326,8 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     /* non-blocking stdin/stdout */
     netinfd = 0;
     netoutfd = 1;
-    blocking_disable(netinfd);
-    blocking_disable(netoutfd);
+    fd_blocking_disable(netinfd);
+    fd_blocking_disable(netoutfd);
 
     log_d1("start");
 
