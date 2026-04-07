@@ -75,9 +75,7 @@ int parsenum_(long long *num, long long min, long long max, const char *str) {
             /* Preserve parsenum_MIN without negating a signed 2^63 value. */
             *num = parsenum_MIN;
         }
-        else {
-            *num = -(long long) ret;
-        }
+        else { *num = -(long long) ret; }
     }
     else {
         if (ret > ((unsigned long long) parsenum_MAX)) goto err;

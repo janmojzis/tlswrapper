@@ -204,11 +204,11 @@ extern uint32_t tls_ecdsa_vrfy_asn1(const br_ec_impl *, const void *, size_t,
 extern int tls_anchor_add(struct tls_context *, char *);
 
 /* tls_engine.c - state flags */
-#define tls_state_SENDAPP  (BR_SSL_SENDAPP)
-#define tls_state_RECVAPP  (BR_SSL_RECVAPP)
-#define tls_state_SENDREC  (BR_SSL_SENDREC)
-#define tls_state_RECVREC  (BR_SSL_RECVREC)
-#define tls_state_CLOSED   (BR_SSL_CLOSED)
+#define tls_state_SENDAPP (BR_SSL_SENDAPP)
+#define tls_state_RECVAPP (BR_SSL_RECVAPP)
+#define tls_state_SENDREC (BR_SSL_SENDREC)
+#define tls_state_RECVREC (BR_SSL_RECVREC)
+#define tls_state_CLOSED (BR_SSL_CLOSED)
 
 extern unsigned char *tls_engine_sendapp_buf(struct tls_context *, size_t *);
 extern unsigned char *tls_engine_recvapp_buf(struct tls_context *, size_t *);

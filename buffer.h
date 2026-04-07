@@ -15,8 +15,7 @@ typedef struct buffer {
 /* init */
 extern void buffer_init(buffer *, long long (*)(int, void *, long long), int,
                         void *, long long);
-#define buffer_INIT(op, fd, buf, len)                                          \
-    { (buf), 0, (len), (fd), (op) }
+#define buffer_INIT(op, fd, buf, len) {(buf), 0, (len), (fd), (op)}
 
 /* write */
 extern long long buffer_write(int, void *, long long);

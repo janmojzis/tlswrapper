@@ -97,6 +97,4 @@ int socket_connected(int s) {
  *
  * Returns shutdown(SHUT_WR) for callers that need a half-close.
  */
-int socket_shutdown(int s) {
-    return shutdown(s, SHUT_WR);
-}
+int socket_shutdown(int s) { return shutdown(s, SHUT_WR); }

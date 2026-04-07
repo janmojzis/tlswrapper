@@ -171,8 +171,8 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
         if (!(st & tls_state_RECVAPP)) recvapp = "";
         if (!(st & tls_state_SENDAPP)) sendapp = "";
         if (!(st & tls_state_CLOSED)) closed = "";
-        log_t8("tls state=", log_num(st), ", flags=", recvrec, sendrec,
-               recvapp, sendapp, closed);
+        log_t8("tls state=", log_num(st), ", flags=", recvrec, sendrec, recvapp,
+               sendapp, closed);
         prev_st = st;
     }
 
@@ -209,9 +209,7 @@ const char *tls_engine_close_reason(struct tls_context *ctx) {
         }
         return tls_alert_str(alert);
     }
-    if (ctx->flaghandshakedone) {
-        log_e2("SSL error: ", tls_error_str(err));
-    }
+    if (ctx->flaghandshakedone) { log_e2("SSL error: ", tls_error_str(err)); }
     return tls_error_str(err);
 }
 

@@ -129,8 +129,7 @@ int buffer_puts(buffer *s, const char *x) {
 
     long long xlen;
 
-    for (xlen = 0; x[xlen]; ++xlen)
-        ;
+    for (xlen = 0; x[xlen]; ++xlen);
     return buffer_put(s, x, xlen);
 }
 
@@ -165,8 +164,7 @@ int buffer_putsflush(buffer *s, const char *x) {
 
     long long xlen;
 
-    for (xlen = 0; x[xlen]; ++xlen)
-        ;
+    for (xlen = 0; x[xlen]; ++xlen);
     return buffer_putflush(s, x, xlen);
 }
 

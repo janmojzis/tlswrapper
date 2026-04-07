@@ -52,8 +52,7 @@ static void conn_closeslot(long long slot) {
 
     if (slot < 0 || slot >= MAXIP) return;
 
-    log_t6("conn_closeslot slot=", log_num(slot),
-           " fd=", log_num(fds[slot]),
+    log_t6("conn_closeslot slot=", log_num(slot), " fd=", log_num(fds[slot]),
            " dupfd=", log_num(dupfds[slot]));
 
     saved_errno = errno;
@@ -73,9 +72,7 @@ static void conn_closeslot(long long slot) {
  */
 static void conn_reset(void) {
     long long i;
-    for (i = 0; i < MAXIP; ++i) {
-        conn_closeslot(i);
-    }
+    for (i = 0; i < MAXIP; ++i) { conn_closeslot(i); }
 }
 
 /*
@@ -120,8 +117,8 @@ static void conn_copyip(int fd, unsigned char *ip, long long iplen,
     for (i = 0; i < iplen / 16; ++i) {
         if (i == slot) {
             log_t8("conn winner slot ", log_num(i), " fd=", log_num(fds[i]),
-                   " dupfd=", log_num(dupfds[i]), " peer=",
-                   log_ip(ip + 16 * i));
+                   " dupfd=", log_num(dupfds[i]),
+                   " peer=", log_ip(ip + 16 * i));
             memmove(ip, ip + 16 * i, 16);
             if (dupfd) *dupfd = dupfds[i];
             dupfds[i] = -1;
@@ -142,9 +139,7 @@ static void conn_copyip(int fd, unsigned char *ip, long long iplen,
  * the matching duplicate descriptor for that candidate, and marks the slot
  * unused.
  */
-static void conn_closefd(int fd) {
-    conn_closeslot(conn_findslot(fd));
-}
+static void conn_closefd(int fd) { conn_closeslot(conn_findslot(fd)); }
 
 /*
  * conn_init - create sockets for the next connection attempt
@@ -300,8 +295,8 @@ int conn(int connfds[2], long long timeout, unsigned char *ip, long long iplen,
         /* Check completion and keep the first socket that really connected. */
         for (i = 0; i < plen; ++i) {
             if (p[i].revents) {
-                log_t6("poll event fd=", log_num(p[i].fd), " revents=",
-                       log_num(p[i].revents), " peer=",
+                log_t6("poll event fd=", log_num(p[i].fd),
+                       " revents=", log_num(p[i].revents), " peer=",
                        log_ipport(conn_getip(p[i].fd, ip, iplen), port));
                 if (socket_connected(p[i].fd)) {
                     log_d2("connected to ",

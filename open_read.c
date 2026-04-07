@@ -2,7 +2,6 @@
  * open_read.c - open input files for read
  */
 
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
