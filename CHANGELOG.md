@@ -1,25 +1,11 @@
 ## UPCOMING RELEASE
 
-- CHANGELOG.md: add changelog since 20251001
-- main_tlswrapper.c: split plaintext (STARTTLS) phase and TLS phase into separate functions with dedicated buffers
-- main_tlswrapper.c: move delayed-encryption buffer management from tls_engine.c into main_tlswrapper.c
-- main_tlswrapper.c: abstract TLS API, remove direct BearSSL references
-- main_tlswrapper.c: use tls_cipher_defaults() instead of hardcoded BR_TLS_* cipher list in context initializer
-- tls_engine.c: remove delayed-encryption buffering, simplify to thin BearSSL engine wrapper
-- tls_engine.c: add session info accessors (tls_engine_get_version, get_cipher, get_ecdhe_curve, get_server_name, last_error)
-- tls.h: add tls_state_* flags (SENDAPP, RECVAPP, SENDREC, RECVREC, CLOSED) abstracting BR_SSL_* constants
-- tls.h: add tls_cipher_defaults() and tls_pipe_set_engine() declarations
-- tls.h: remove delayed-encryption fields from struct tls_context
-- tls_cipher.c: add tls_cipher_defaults() for programmatic default cipher initialization
-- tls_cipher.c: add 3DES_EDE_CBC_SHA to shared tls_ciphers[] table
-- main_tlswrapper_test.c: replace local cipher table with tls_ciphers[] lookup, use tls_state_CLOSED
-- conn.c: upgrade conn API to return duplicate file descriptors for separate read/write tracking
-- conn.c: add conn_findslot(), conn_closeslot(), conn_reset() helpers
-- main_tlswrapper_tcp.c: rework to use separate read/write descriptors with half-close support
-- main_tlswrapper_tcp.c: preserve outbound TCP traffic after remote EOF
-- main_tlswrapper_smtp.c: adapt to new conn() API returning descriptor pair
-- connectioninfo.c: use log_ipport() for compact connection info logging
-- tests/test-tlswrapper.py: major expansion of delayed-encryption and STARTTLS test coverage
+- main_tlswrapper.c: fix TLS/STARTTLS phase completion around peer EOF, child exit, immediate child stdout EOF, and stale progress detection
+- main_tlswrapper.c: tighten TLS poll conditions, validate `waitpid()` status handling, add `report_tls_phase_fds` tracing, and close child fds on `SIGCHLD`
+- fd.[ch]: add `fd_close_read()` and `fd_close_write()` helpers; simplify fd cleanup in `main_tlswrapper.c` and `main_tlswrapper_tcp.c`
+- logging: rework log plumbing, add `tls_alert_str()`, and make `log_set_id(0)` initialize the id from environment or random
+- tests: extend `tests/test-tlswrapper.py` and SMTP/expect coverage for the updated STARTTLS/TLS wrapper behavior
+- build: refresh `Makefile`/`tests/Makefile` and apply `clang-format` cleanup in touched sources
 
 ## 20260402
 
