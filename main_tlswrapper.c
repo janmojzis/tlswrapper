@@ -1032,7 +1032,7 @@ static void run_tls_phase(int *flaguserreported) {
 /*
  * usage - print short command usage and terminate
  */
-static void usage(void) {
+static void __attribute__((noreturn)) usage(void) {
     log_u1("tlswrapper [options] [ -d certdir ] [ -f certfile ] prog");
     die(100);
 }

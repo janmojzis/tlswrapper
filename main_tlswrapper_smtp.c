@@ -86,7 +86,7 @@ static void cleanup(void) {
  * Cleans up local state, optionally waits for the SMTP child, and mirrors the
  * child's exit status on clean shutdown.
  */
-static void die(int x) {
+static void __attribute__((noreturn)) die(int x) {
 
     int r;
 
@@ -120,7 +120,7 @@ static void die(int x) {
 /*
  * usage - print command usage and exit
  */
-static void usage(void) {
+static void __attribute__((noreturn)) usage(void) {
     log_u1("tlswrapper-smtp [options] child");
     die(100);
 }

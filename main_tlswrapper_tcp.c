@@ -98,7 +98,7 @@ static void cleanup(void) {
 /*
  * usage - print command usage and exit
  */
-static void usage(void) {
+static void __attribute__((noreturn)) usage(void) {
     log_u1("tlswrapper-tcp [options] host port");
     die(100);
 }
