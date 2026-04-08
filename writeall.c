@@ -22,7 +22,7 @@
  */
 int writeall(int fd, const void *xv, long long xlen) {
 
-    const unsigned char *x = xv;
+    const unsigned char *x = (const unsigned char *) xv;
     long long w;
     while (xlen > 0) {
         w = xlen;
