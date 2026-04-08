@@ -25,7 +25,7 @@
 int hostport_parse(char *host, long long hostlen, unsigned char *port,
                    char *hostport) {
 
-    long long i, j, colonpos, coloncount = 0;
+    long long i, j, colonpos = 0, coloncount = 0;
     long long hostportlen;
     char ch;
 
