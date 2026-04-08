@@ -173,21 +173,83 @@ static void cleanup(void) {
     }
 }
 
-#define die(x) { cleanup(); _exit(x); }
-#define die_pipe() { log_f1("unable to create pipe"); die(111); }
-#define die_controlpipe() { log_f3("unable to create control pipe on filedescriptor ", log_num(CONTROLPIPEFD), ": filedescriptor exits"); die(111); }
-#define die_devnull() { log_f1("unable to open /dev/null"); die(111); }
-#define die_writetopipe() { log_f1("unable to write to pipe"); die(111); }
-#define die_fork() { log_f1("unable to fork"); die(111); }
-#define die_dup() { log_f1("unable to dup"); die(111); }
-#define die_droppriv(x) { log_f3("unable to drop privileges to '", (x), "'"); die(111); }
-#define die_jail() { log_f1("unable to create jail"); die(111); }
-#define die_readanchorpem(x) { log_f3("unable to read anchor PEM file '", (x), "'"); die(111); }
-#define die_parseanchorpem(x) { log_f3("unable to parse anchor PEM file '", (x), "'"); die(111); }
-#define die_extractcn(x) { log_f3("unable to extract ASN.1 object ", (x), " from client certificate: object not found"); die(111); }
-#define die_optionUa() { log_f1("option -U must be used with -a"); die(100); }
-#define die_optionUn() { log_f1("option -U is not compatible with -n"); die(100); }
-#define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
+#define die(x)                                                                 \
+    do {                                                                       \
+        cleanup();                                                             \
+        _exit(x);                                                              \
+    } while (0)
+#define die_pipe()                                                             \
+    do {                                                                       \
+        log_f1("unable to create pipe");                                       \
+        die(111);                                                              \
+    } while (0)
+#define die_controlpipe()                                                      \
+    do {                                                                       \
+        log_f3("unable to create control pipe on filedescriptor ",             \
+               log_num(CONTROLPIPEFD), ": filedescriptor exits");              \
+        die(111);                                                              \
+    } while (0)
+#define die_devnull()                                                          \
+    do {                                                                       \
+        log_f1("unable to open /dev/null");                                    \
+        die(111);                                                              \
+    } while (0)
+#define die_writetopipe()                                                      \
+    do {                                                                       \
+        log_f1("unable to write to pipe");                                     \
+        die(111);                                                              \
+    } while (0)
+#define die_fork()                                                             \
+    do {                                                                       \
+        log_f1("unable to fork");                                              \
+        die(111);                                                              \
+    } while (0)
+#define die_dup()                                                              \
+    do {                                                                       \
+        log_f1("unable to dup");                                               \
+        die(111);                                                              \
+    } while (0)
+#define die_droppriv(x)                                                        \
+    do {                                                                       \
+        log_f3("unable to drop privileges to '", (x), "'");                   \
+        die(111);                                                              \
+    } while (0)
+#define die_jail()                                                             \
+    do {                                                                       \
+        log_f1("unable to create jail");                                       \
+        die(111);                                                              \
+    } while (0)
+#define die_readanchorpem(x)                                                   \
+    do {                                                                       \
+        log_f3("unable to read anchor PEM file '", (x), "'");                 \
+        die(111);                                                              \
+    } while (0)
+#define die_parseanchorpem(x)                                                  \
+    do {                                                                       \
+        log_f3("unable to parse anchor PEM file '", (x), "'");                \
+        die(111);                                                              \
+    } while (0)
+#define die_extractcn(x)                                                       \
+    do {                                                                       \
+        log_f3("unable to extract ASN.1 object ", (x),                        \
+               " from client certificate: object not found");                  \
+        die(111);                                                              \
+    } while (0)
+#define die_optionUa()                                                         \
+    do {                                                                       \
+        log_f1("option -U must be used with -a");                              \
+        die(100);                                                              \
+    } while (0)
+#define die_optionUn()                                                         \
+    do {                                                                       \
+        log_f1("option -U is not compatible with -n");                         \
+        die(100);                                                              \
+    } while (0)
+#define die_ppin(x)                                                            \
+    do {                                                                       \
+        log_f3("unable to receive incoming proxy-protocol v", (x), " string");\
+        die(100);                                                              \
+    } while (0)
 
 
 /* proxy-protocol */
@@ -297,12 +359,12 @@ static void certfile_add_dir(const char *x) {
 
     if (stat(x, &st) == -1) {
         log_f3("unable to stat certdir '", x, "'");
-        die(100)
+        die(100);
     }
     if ((st.st_mode & S_IFMT) != S_IFDIR) {
         errno = ENOTDIR;
         log_f3("unable to add certdir '", x, "'");
-        die(100)
+        die(100);
     }
     if (!tls_certfile_add_dir(&ctx, x)) {
         log_f3("unable to add more than ", log_num(tls_CERTFILES), " certdirs+certfiles");
