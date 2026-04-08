@@ -138,21 +138,15 @@ void tls_engine_close(struct tls_context *ctx) {
 }
 
 /*
- * tls_engine_current_state - compute the current engine readiness flags
- *
- * @ctx: TLS session state
- *
- * Returns BearSSL state flags. When the connection reaches a closed state,
- * the function logs whether shutdown was normal, caused by an alert, or
- * caused by another TLS error.
- */
-/*
  * tls_engine_current_state - compute backend-independent readiness flags
  *
  * @ctx: TLS session state
  *
  * Queries the BearSSL engine and translates its flags into the
  * backend-independent tls_state_* constants defined in tls.h.
+ * When the connection reaches a closed state, the function logs
+ * whether shutdown was normal, caused by an alert, or caused by
+ * another TLS error.
  */
 unsigned int tls_engine_current_state(struct tls_context *ctx) {
     static unsigned int prev_st = ~0u;
