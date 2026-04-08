@@ -1,8 +1,11 @@
 /*
  * fd.c - file descriptor utility helpers
  *
- * This module groups small helpers for common file descriptor operations.
- * It keeps descriptor handling consistent across the codebase.
+ * This module introduces a small abstraction around file descriptors.
+ * It handles the tricky close semantics of the read and write ends of
+ * sockets, pipes, and similar objects.
+ * It also provides small helpers for configuring descriptor flags and
+ * related parameters, such as O_NONBLOCK and FD_CLOEXEC.
  */
 #include <fcntl.h>
 #include <unistd.h>
@@ -11,6 +14,16 @@
 #include "log.h"
 #include "fd.h"
 
+/*
+ * tryshutdown - attempt a socket shutdown while ignoring expected failures
+ *
+ * @fd: descriptor to shut down
+ * @how: shutdown direction passed to shutdown()
+ * @who: caller name used in the warning message
+ *
+ * Suppresses errors for descriptors that are already invalid, disconnected,
+ * or not sockets. Unexpected failures are reported through the logging layer.
+ */
 static void tryshutdown(int fd, int how, const char *who) {
     if (shutdown(fd, how) == -1) {
         if (errno != ENOTCONN && errno != EBADF && errno != ENOTSOCK &&
@@ -84,4 +97,26 @@ void fd_blocking_enable(int fd) {
  */
 void fd_blocking_disable(int fd) {
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+}
+
+/*
+ * fd_coe_enable - enable close-on-exec on a descriptor
+ *
+ * @fd: descriptor to reconfigure
+ *
+ * Set FD_CLOEXEC on @fd.
+ */
+void fd_coe_enable(int fd) {
+    fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
+}
+
+/*
+ * fd_coe_disable - disable close-on-exec on a descriptor
+ *
+ * @fd: descriptor to reconfigure
+ *
+ * Clears FD_CLOEXEC on @fd.
+ */
+void fd_coe_disable(int fd) {
+    fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) & ~FD_CLOEXEC);
 }
