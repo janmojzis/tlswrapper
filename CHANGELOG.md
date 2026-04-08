@@ -1,11 +1,17 @@
 ## UPCOMING RELEASE
 
+- refactor: split relay logic into cleartext and TLS phases with explicit FD tracking and half-close handling; abstract TLS API to remove BearSSL references from `main_tlswrapper.c`
+- conn.[ch]: `conn()` now returns a descriptor pair, enabling separate read/write-side handling
 - main_tlswrapper.c: fix TLS/STARTTLS phase completion around peer EOF, child exit, immediate child stdout EOF, and stale progress detection
 - main_tlswrapper.c: tighten TLS poll conditions, validate `waitpid()` status handling, add `report_tls_phase_fds` tracing, and close child fds on `SIGCHLD`
-- fd.[ch]: add `fd_close_read()` and `fd_close_write()` helpers; simplify fd cleanup in `main_tlswrapper.c` and `main_tlswrapper_tcp.c`
-- fd.c: absorb blocking.c into `fd_blocking_enable()`/`fd_blocking_disable()` and simplify close handling to always try `shutdown()`
-- logging: rework log plumbing, add `tls_alert_str()`, and make `log_set_id(0)` initialize the id from environment or random
-- tests: extend `tests/test-tlswrapper.py` and SMTP/expect coverage for the updated STARTTLS/TLS wrapper behavior
+- main_tlswrapper.c: half-close network after TLS child EOF; harden STARTTLS transition in cleartext relay loop
+- main_tlswrapper_tcp.c: fix copy-paste error in cleanup: wipe `remoteport` instead of `remoteip` twice
+- main_tlswrapper_tcp.c: preserve outbound traffic after remote EOF, handle half-close more precisely
+- fd.[ch]: add `fd_close_read()`/`fd_close_write()` and `fd_close_enable()`/`fd_close_disable()` helpers
+- fd.c: absorb blocking.c into `fd_blocking_enable()`/`fd_blocking_disable()`; simplify close handling to always try `shutdown()`
+- logging: rework log plumbing, add `tls_alert_str()`, make `log_set_id(0)` initialize from environment or random
+- correctness: rename header guards to avoid reserved identifiers, mark exit helpers as `noreturn`, wrap die macros in `do-while(0)`, make void pointer casts explicit, initialize `hostport` colon position, return const from `iptostr`, remove unreachable fallback in `tlswrapper.c`
+- tests: extend `test-tlswrapper.py`/`.sh`/`.exp` with EOF propagation, half-close, STARTTLS, and timeout scenarios; fix `test-okcert.sh` CMD accumulation
 - man/tlswrapper.1: remove the "experimental" label from delayed encryption (`-n`)
 - build: refresh `Makefile`/`tests/Makefile` and apply `clang-format` cleanup in touched sources
 
