@@ -883,7 +883,7 @@ static void run_tls_phase(int *flaguserreported) {
          * nothing useful remains on this connection.
          */
         if ((st & tls_state_CLOSED) && !(st & tls_state_SENDREC)) {
-            reason = "engine closed";
+            reason = "finished";
             detail = tls_engine_close_reason(&ctx);
             break;
         }
@@ -897,6 +897,7 @@ static void run_tls_phase(int *flaguserreported) {
          */
         if (!can_recvrec && !can_sendrec && !can_sendapp && !can_recvapp) {
             reason = "finished";
+            detail = "close_notify sent, not waiting for peer";
             break;
         }
 
