@@ -62,7 +62,4 @@ int main(int argc, char **argv) {
         return main_tlswrapper_smtp(argc, argv, 0);
     }
     return main_tlswrapper(argc, argv, 0);
-
-    _exit(111);
-    return 111; /* make compiler happy */
 }
