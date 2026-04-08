@@ -851,6 +851,17 @@ static void run_tls_phase(int *flaguserreported) {
             log_t1("tls phase propagated peer EOF to child");
         }
 
+        /* Child already closed its plaintext output and the TLS engine has
+         * no more records left to send to the peer, so propagate EOF to
+         * the network side.
+         */
+        if (childoutfd == -1 &&
+            netoutfd != -1 &&
+            !(st & tls_state_SENDREC)) {
+            fd_close_write(&netoutfd);
+            log_t1("tls phase propagated child EOF to network");
+        }
+
         /* Receive from peer only while we can still make progress:
          * deliver plaintext to child, flush pending TLS records,
          * or keep the session alive for an active child.
