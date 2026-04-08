@@ -5,6 +5,6 @@
 
 #define IPTOSTR_LEN INET6_ADDRSTRLEN
 
-extern char *iptostr(char *, const unsigned char *);
+extern const char *iptostr(char *, const unsigned char *);
 
 #endif

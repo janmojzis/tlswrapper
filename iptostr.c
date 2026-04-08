@@ -10,12 +10,12 @@
 #include <sys/socket.h>
 #include "iptostr.h"
 
-static char *iptostr4(char *strbuf, const unsigned char *ip) {
-    return (char *) inet_ntop(AF_INET, ip, strbuf, IPTOSTR_LEN);
+static const char *iptostr4(char *strbuf, const unsigned char *ip) {
+    return inet_ntop(AF_INET, ip, strbuf, IPTOSTR_LEN);
 }
 
-static char *iptostr6(char *strbuf, const unsigned char *ip) {
-    return (char *) inet_ntop(AF_INET6, ip, strbuf, IPTOSTR_LEN);
+static const char *iptostr6(char *strbuf, const unsigned char *ip) {
+    return inet_ntop(AF_INET6, ip, strbuf, IPTOSTR_LEN);
 }
 
 /*
@@ -35,7 +35,7 @@ static char *iptostr6(char *strbuf, const unsigned char *ip) {
  *   - passing NULL for strbuf uses a shared static buffer and is not
  *     thread-safe
  */
-char *iptostr(char *strbuf, const unsigned char *ip) {
+const char *iptostr(char *strbuf, const unsigned char *ip) {
 
     static char staticbuf[IPTOSTR_LEN];
 
