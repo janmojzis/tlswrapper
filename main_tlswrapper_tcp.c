@@ -90,11 +90,31 @@ static void cleanup(void) {
     }
 }
 
-#define die(x) { cleanup(); _exit(x); }
-#define die_jail() { log_f1("unable to create jail"); die(111); }
-#define die_pipe() { log_f1("unable to create pipe"); die(111); }
-#define die_ppout(x) { log_f3("unable to create outgoing proxy-protocol v", (x), " string");; die(100); }
-#define die_ppin(x) { log_f3("unable to receive incoming proxy-protocol v", (x), " string");; die(100); }
+#define die(x)                                                                 \
+    do {                                                                       \
+        cleanup();                                                             \
+        _exit(x);                                                              \
+    } while (0)
+#define die_jail()                                                             \
+    do {                                                                       \
+        log_f1("unable to create jail");                                       \
+        die(111);                                                              \
+    } while (0)
+#define die_pipe()                                                             \
+    do {                                                                       \
+        log_f1("unable to create pipe");                                       \
+        die(111);                                                              \
+    } while (0)
+#define die_ppout(x)                                                           \
+    do {                                                                       \
+        log_f3("unable to create outgoing proxy-protocol v", (x), " string"); \
+        die(100);                                                              \
+    } while (0)
+#define die_ppin(x)                                                            \
+    do {                                                                       \
+        log_f3("unable to receive incoming proxy-protocol v", (x), " string");\
+        die(100);                                                              \
+    } while (0)
 /*
  * usage - print command usage and exit
  */
