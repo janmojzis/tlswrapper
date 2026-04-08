@@ -1,5 +1,5 @@
-#ifndef _FSYNCFILE_H___
-#define _FSYNCFILE_H___
+#ifndef FSYNCFILE_H____
+#define FSYNCFILE_H____
 
 extern int fsyncfile(int);
 

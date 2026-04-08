@@ -1,5 +1,5 @@
-#ifndef _CASE_H____
-#define _CASE_H____
+#ifndef CASE_H____
+#define CASE_H____
 
 extern int case_diffb(const char *, long long, const char *);
 extern int case_diffs(const char *, const char *);

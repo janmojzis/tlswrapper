@@ -1,5 +1,5 @@
-#ifndef _FIXPATH_H____
-#define _FIXPATH_H____
+#ifndef FIXPATH_H____
+#define FIXPATH_H____
 
 extern void fixpath(char *);
 

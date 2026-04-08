@@ -1,5 +1,5 @@
-#ifndef _JAIL_H____
-#define _JAIL_H____
+#ifndef JAIL_H____
+#define JAIL_H____
 
 #include <poll.h>
 

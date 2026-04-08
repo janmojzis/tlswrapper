@@ -1,5 +1,5 @@
-#ifndef _SOCKET_H____
-#define _SOCKET_H____
+#ifndef SOCKET_H____
+#define SOCKET_H____
 
 extern int socket_tcp(void);
 

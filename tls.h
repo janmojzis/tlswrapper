@@ -1,5 +1,5 @@
-#ifndef _TLS_H____
-#define _TLS_H____
+#ifndef TLS_H____
+#define TLS_H____
 
 #include <stdint.h>
 #include <sys/types.h>

@@ -1,5 +1,5 @@
-#ifndef _PROXYPROTOCOL_H____
-#define _PROXYPROTOCOL_H____
+#ifndef PROXYPROTOCOL_H____
+#define PROXYPROTOCOL_H____
 
 /* clang-format off */
 /*

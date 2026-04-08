@@ -1,5 +1,5 @@
-#ifndef _STRALLOC_H____
-#define _STRALLOC_H____
+#ifndef STRALLOC_H____
+#define STRALLOC_H____
 
 typedef struct stralloc {
     char *s;

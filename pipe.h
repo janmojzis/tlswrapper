@@ -1,5 +1,5 @@
-#ifndef _PIPE_H____
-#define _PIPE_H____
+#ifndef PIPE_H____
+#define PIPE_H____
 
 extern int pipe_write(int, const void *, long long);
 extern int pipe_writeerrno(int);

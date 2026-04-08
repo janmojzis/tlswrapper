@@ -1,5 +1,5 @@
-#ifndef _BUFFER_H____
-#define _BUFFER_H____
+#ifndef BUFFER_H____
+#define BUFFER_H____
 
 typedef struct buffer {
     char *x;
