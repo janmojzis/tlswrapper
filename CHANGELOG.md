@@ -1,4 +1,4 @@
-## UPCOMING RELEASE
+## 20260408
 
 - refactor: split relay logic into cleartext and TLS phases with explicit FD tracking and half-close handling; abstract TLS API to remove BearSSL references from `main_tlswrapper.c`
 - conn.[ch]: `conn()` now returns a descriptor pair, enabling separate read/write-side handling
