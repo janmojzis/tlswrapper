@@ -3,8 +3,10 @@
 - main_tlswrapper.c: fix TLS/STARTTLS phase completion around peer EOF, child exit, immediate child stdout EOF, and stale progress detection
 - main_tlswrapper.c: tighten TLS poll conditions, validate `waitpid()` status handling, add `report_tls_phase_fds` tracing, and close child fds on `SIGCHLD`
 - fd.[ch]: add `fd_close_read()` and `fd_close_write()` helpers; simplify fd cleanup in `main_tlswrapper.c` and `main_tlswrapper_tcp.c`
+- fd.c: absorb blocking.c into `fd_blocking_enable()`/`fd_blocking_disable()` and simplify close handling to always try `shutdown()`
 - logging: rework log plumbing, add `tls_alert_str()`, and make `log_set_id(0)` initialize the id from environment or random
 - tests: extend `tests/test-tlswrapper.py` and SMTP/expect coverage for the updated STARTTLS/TLS wrapper behavior
+- man/tlswrapper.1: remove the "experimental" label from delayed encryption (`-n`)
 - build: refresh `Makefile`/`tests/Makefile` and apply `clang-format` cleanup in touched sources
 
 ## 20260402
