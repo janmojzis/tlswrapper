@@ -26,7 +26,7 @@
 void buffer_init(buffer *s, long long (*op)(int, void *, long long), int fd,
                  void *x, long long xlen) {
 
-    s->x = x;
+    s->x = (char *) x;
     s->fd = fd;
     s->op = op;
     s->p = 0;
@@ -97,7 +97,7 @@ int buffer_flush(buffer *s) {
  */
 int buffer_put(buffer *s, const void *xv, long long xlen) {
 
-    char *x = (char *) xv;
+    const char *x = (const char *) xv;
     long long i, n;
 
     if (xlen < 0) {
@@ -257,11 +257,11 @@ long long buffer_get(buffer *s, void *xv, long long xlen) {
         errno = EINVAL;
         return -1;
     }
-    if (s->p > 0) return getthis(s, xv, xlen);
+    if (s->p > 0) return getthis(s, (char *) xv, xlen);
     if (s->n <= xlen) return oneread(s->op, s->fd, xv, xlen);
     r = buffer_feed(s);
     if (r <= 0) return r;
-    return getthis(s, xv, xlen);
+    return getthis(s, (char *) xv, xlen);
 }
 
 /*
