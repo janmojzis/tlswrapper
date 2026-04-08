@@ -110,12 +110,36 @@ static void __attribute__((noreturn)) die(int x) {
     _exit(WEXITSTATUS(status));
 }
 
-#define die_jail() { log_f1("unable to create jail"); die(111); }
-#define die_pipe() { log_f1("unable to create pipe"); die(111); }
-#define die_fork() { log_f1("unable to fork"); die(111); }
-#define die_dup() { log_f1("unable to dup"); die(111); }
-#define die_nomem() { log_f1("unable to allocate memory"); die(111); }
-#define die_droppriv(x) { log_f3("unable to drop privileges to '", (x), "'"); die(111); }
+#define die_jail()                                                             \
+    do {                                                                       \
+        log_f1("unable to create jail");                                       \
+        die(111);                                                              \
+    } while (0)
+#define die_pipe()                                                             \
+    do {                                                                       \
+        log_f1("unable to create pipe");                                       \
+        die(111);                                                              \
+    } while (0)
+#define die_fork()                                                             \
+    do {                                                                       \
+        log_f1("unable to fork");                                              \
+        die(111);                                                              \
+    } while (0)
+#define die_dup()                                                              \
+    do {                                                                       \
+        log_f1("unable to dup");                                               \
+        die(111);                                                              \
+    } while (0)
+#define die_nomem()                                                            \
+    do {                                                                       \
+        log_f1("unable to allocate memory");                                   \
+        die(111);                                                              \
+    } while (0)
+#define die_droppriv(x)                                                        \
+    do {                                                                       \
+        log_f3("unable to drop privileges to '", (x), "'");                   \
+        die(111);                                                              \
+    } while (0)
 
 /*
  * usage - print command usage and exit
