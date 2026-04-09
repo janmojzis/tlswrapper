@@ -25,6 +25,34 @@ class TestFailure(Exception):
     pass
 
 
+_step_local = threading.local()
+
+
+def step(msg: str) -> None:
+    """Print an indented test step."""
+    if getattr(_step_local, "quiet", False):
+        return
+    print(f"  {msg}", flush=True)
+
+
+def step_ok(label: str, detail: str = "") -> None:
+    """Print an indented test step that passed."""
+    suffix = f" {detail}" if detail else ""
+    step(f"{label}:{suffix} ok")
+
+
+def quiet_steps() -> None:
+    """Suppress step output in the current thread."""
+    _step_local.quiet = True
+
+
+def _brief_repr(data: bytes, limit: int = 64) -> str:
+    """Return repr(data) truncated for readability."""
+    if len(data) <= limit:
+        return repr(data)
+    return f"{len(data)} bytes"
+
+
 class TestTcpServer:
     """Manage one test peer plus one tlswrapper client process."""
 
@@ -157,7 +185,7 @@ class TestTcpServer:
                 f"Wrapper exited with {returncode}, expected {expected_returncode}: {stderr_text}"
             )
 
-        LOGGER.debug("Wrapper exited with rc=%s", returncode)
+        step_ok("exit", str(returncode))
 
     def __enter__(self) -> "TestTcpServer":
         """Return the active test server context."""
@@ -216,9 +244,9 @@ class TestTcpServer:
         if self.stdin is None:
             raise TestFailure("Client stdin is not available")
 
-        LOGGER.debug("Writing %r to wrapper stdin", data)
         self.stdin.write(data)
         self.stdin.flush()
+        step_ok("client-write", _brief_repr(data))
 
     def client_read(self, expected: bytes = b"") -> None:
         """Read bytes from wrapper stdout and compare them."""
@@ -226,7 +254,7 @@ class TestTcpServer:
         data = self._read_pipe_exact(len(expected))
         if data != expected:
             raise TestFailure(f"Client read failed, data={data!r}, expected={expected!r}")
-        LOGGER.debug("Wrapper stdout matched expected payload %r", expected)
+        step_ok("client-read", _brief_repr(expected))
 
     def server_read(self, expected: bytes = b"") -> None:
         """Read bytes from the accepted socket and compare them."""
@@ -234,7 +262,7 @@ class TestTcpServer:
         data = self._read_socket_exact(len(expected))
         if data != expected:
             raise TestFailure(f"Server read failed, data={data!r}, expected={expected!r}")
-        LOGGER.debug("Server socket matched expected payload %r", expected)
+        step_ok("server-read", _brief_repr(expected))
 
     def server_write(self, data: bytes = b"") -> None:
         """Write bytes to the accepted socket."""
@@ -242,8 +270,8 @@ class TestTcpServer:
         if self.conn is None:
             raise TestFailure("Server socket is not available")
 
-        LOGGER.debug("Writing %r to remote peer socket", data)
         self.conn.sendall(data)
+        step_ok("server-write", _brief_repr(data))
 
     def client_half_close(self) -> None:
         """Close the wrapper stdin to signal EOF to the remote peer."""
@@ -251,9 +279,9 @@ class TestTcpServer:
         if self.stdin is None:
             raise TestFailure("Client stdin is not available")
 
-        LOGGER.debug("Half-closing wrapper stdin")
         self.stdin.close()
         self.stdin = None
+        step_ok("client", "half-close")
 
     def server_half_close(self) -> None:
         """Shutdown the write-half of the accepted socket."""
@@ -261,8 +289,8 @@ class TestTcpServer:
         if self.conn is None:
             raise TestFailure("Server socket is not available")
 
-        LOGGER.debug("Half-closing remote peer socket write-half")
         self.conn.shutdown(socket.SHUT_WR)
+        step_ok("server", "half-close")
 
     def server_expect_eof(self) -> None:
         """Verify that the accepted socket has reached EOF."""
@@ -270,11 +298,10 @@ class TestTcpServer:
         if self.conn is None:
             raise TestFailure("Server socket is not available")
 
-        LOGGER.debug("Waiting for EOF on remote peer socket")
         data = self.conn.recv(1)
         if data != b"":
             raise TestFailure(f"Server expected EOF, received {data!r}")
-        LOGGER.debug("Remote peer socket reached EOF")
+        step_ok("server", "EOF")
 
     def server_close_connection(self) -> None:
         """Close the accepted socket without touching the listener."""
@@ -282,9 +309,9 @@ class TestTcpServer:
         if self.conn is None:
             raise TestFailure("Server socket is not available")
 
-        LOGGER.debug("Closing accepted socket from test scenario")
         self.conn.close()
         self.conn = None
+        step_ok("server", "close")
 
     def client_expect_eof(self) -> None:
         """Verify that wrapper stdout has reached EOF."""
@@ -292,7 +319,6 @@ class TestTcpServer:
         if self.stdout is None:
             raise TestFailure("Client stdout is not available")
 
-        LOGGER.debug("Waiting for EOF on wrapper stdout")
         ready, _, _ = select.select([self.stdout], [], [], self.timeout)
         if not ready:
             raise TestFailure("Client EOF read timed out")
@@ -300,37 +326,32 @@ class TestTcpServer:
         data = os.read(self.stdout.fileno(), 1)
         if data != b"":
             raise TestFailure(f"Client expected EOF, received {data!r}")
-        LOGGER.debug("Wrapper stdout reached EOF")
+        step_ok("client", "EOF")
 
 
 def test_server_pings_first() -> None:
     """Verify that data flows correctly when the server writes first."""
 
-    LOGGER.debug("Starting scenario: server_pings_first")
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.server_write(b"ping")
         test.client_read(b"ping")
         test.client_write(b"pong")
         test.server_read(b"pong")
-    LOGGER.debug("Finished scenario: server_pings_first")
 
 
 def test_client_pings_first() -> None:
     """Verify that data flows correctly when the client writes first."""
 
-    LOGGER.debug("Starting scenario: client_pings_first")
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.client_write(b"ping")
         test.server_read(b"ping")
         test.server_write(b"pong")
         test.client_read(b"pong")
-    LOGGER.debug("Finished scenario: client_pings_first")
 
 
 def test_reply_after_client_eof() -> None:
     """Verify delayed reply is forwarded only after peer sees client EOF."""
 
-    LOGGER.debug("Starting scenario: reply_after_client_eof")
     with TestTcpServer(HOST, TIMEOUT) as test:
         request = b"request-before-eof"
         reply = b"reply-after-eof\n"
@@ -345,13 +366,11 @@ def test_reply_after_client_eof() -> None:
         test.client_expect_eof()
         test.wait_for_exit()
 
-    LOGGER.debug("Finished scenario: reply_after_client_eof")
 
 
 def test_reply_after_empty_client_eof() -> None:
     """Verify delayed reply is forwarded even when stdin closes immediately."""
 
-    LOGGER.debug("Starting scenario: reply_after_empty_client_eof")
     with TestTcpServer(HOST, TIMEOUT) as test:
         reply = b"reply-after-empty-eof\n"
 
@@ -363,13 +382,11 @@ def test_reply_after_empty_client_eof() -> None:
         test.client_expect_eof()
         test.wait_for_exit()
 
-    LOGGER.debug("Finished scenario: reply_after_empty_client_eof")
 
 
 def test_remote_silent_close() -> None:
     """Verify wrapper exits cleanly when the peer closes without replying."""
 
-    LOGGER.debug("Starting scenario: remote_silent_close")
     with TestTcpServer(HOST, TIMEOUT) as test:
         request = b"request-before-silent-close"
 
@@ -381,13 +398,11 @@ def test_remote_silent_close() -> None:
         test.client_expect_eof()
         test.wait_for_exit()
 
-    LOGGER.debug("Finished scenario: remote_silent_close")
 
 
 def test_chunked_stdin_remote_eof() -> None:
     """Verify stdin keeps draining after the peer sends reply and half-closes."""
 
-    LOGGER.debug("Starting scenario: chunked_stdin_remote_eof")
     with TestTcpServer(HOST, TIMEOUT) as test:
         first_chunk = b"chunk-one-"
         second_chunk = b"chunk-two"
@@ -397,6 +412,7 @@ def test_chunked_stdin_remote_eof() -> None:
         errors: list[Exception] = []
 
         def client_flow() -> None:
+            quiet_steps()
             try:
                 test.client_write(first_chunk)
                 if not peer_half_closed.wait(timeout=test.timeout):
@@ -407,6 +423,7 @@ def test_chunked_stdin_remote_eof() -> None:
                 errors.append(exc)
 
         def server_flow() -> None:
+            quiet_steps()
             try:
                 test.server_read(first_chunk)
                 first_chunk_received.set()
@@ -439,22 +456,21 @@ def test_chunked_stdin_remote_eof() -> None:
             raise TestFailure("Chunked-stdin remote-EOF threads did not finish in time")
         if errors:
             raise errors[0]
+        step_ok("threads", "client + server flows")
         test.wait_for_exit()
 
-    LOGGER.debug("Finished scenario: chunked_stdin_remote_eof")
 
 
 def test_both_sides_ping_simultaneously() -> None:
     """Verify both directions work when both peers start writing together."""
 
-    LOGGER.debug("Starting scenario: both_sides_ping_simultaneously")
     with TestTcpServer(HOST, TIMEOUT) as test:
         barrier = threading.Barrier(2)
         errors: list[Exception] = []
 
         def client_flow() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Client flow waiting at barrier")
                 barrier.wait(timeout=test.timeout)
                 test.client_write(b"ping")
                 test.client_read(b"pong")
@@ -462,8 +478,8 @@ def test_both_sides_ping_simultaneously() -> None:
                 errors.append(exc)
 
         def server_flow() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Server flow waiting at barrier")
                 barrier.wait(timeout=test.timeout)
                 test.server_write(b"pong")
                 test.server_read(b"ping")
@@ -481,26 +497,24 @@ def test_both_sides_ping_simultaneously() -> None:
             raise TestFailure("Simultaneous ping threads did not finish in time")
         if errors:
             raise errors[0]
+        step_ok("threads", "client ping + server pong")
 
-    LOGGER.debug("Finished scenario: both_sides_ping_simultaneously")
 
 
 def test_both_sides_half_close_after_pong() -> None:
     """Verify both peers can exchange data and half-close simultaneously."""
 
-    LOGGER.debug("Starting scenario: both_sides_half_close_after_pong")
     with TestTcpServer(HOST, TIMEOUT) as test:
         start_barrier = threading.Barrier(2)
         half_close_barrier = threading.Barrier(2)
         errors: list[Exception] = []
 
         def client_flow() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Client half-close flow waiting at start barrier")
                 start_barrier.wait(timeout=test.timeout)
                 test.client_write(b"ping")
                 test.client_read(b"pong")
-                LOGGER.debug("Client half-close flow waiting at half-close barrier")
                 half_close_barrier.wait(timeout=test.timeout)
                 test.client_half_close()
                 test.client_expect_eof()
@@ -508,12 +522,11 @@ def test_both_sides_half_close_after_pong() -> None:
                 errors.append(exc)
 
         def server_flow() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Server half-close flow waiting at start barrier")
                 start_barrier.wait(timeout=test.timeout)
                 test.server_write(b"pong")
                 test.server_read(b"ping")
-                LOGGER.debug("Server half-close flow waiting at half-close barrier")
                 half_close_barrier.wait(timeout=test.timeout)
                 test.server_half_close()
                 test.server_expect_eof()
@@ -537,14 +550,13 @@ def test_both_sides_half_close_after_pong() -> None:
             raise TestFailure("Both-sides half-close threads did not finish in time")
         if errors:
             raise errors[0]
+        step_ok("threads", "ping/pong + both half-close")
 
-    LOGGER.debug("Finished scenario: both_sides_half_close_after_pong")
 
 
 def test_server_half_closes_after_pong() -> None:
     """Verify client-to-server traffic still works after server half-close."""
 
-    LOGGER.debug("Starting scenario: server_half_closes_after_pong")
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.client_write(b"ping")
         test.server_read(b"ping")
@@ -556,13 +568,11 @@ def test_server_half_closes_after_pong() -> None:
         test.client_half_close()
         test.server_expect_eof()
         test.client_expect_eof()
-    LOGGER.debug("Finished scenario: server_half_closes_after_pong")
 
 
 def test_client_half_closes_after_pong() -> None:
     """Verify server-to-client traffic still works after client half-close."""
 
-    LOGGER.debug("Starting scenario: client_half_closes_after_pong")
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.server_write(b"ping")
         test.client_read(b"ping")
@@ -572,15 +582,11 @@ def test_client_half_closes_after_pong() -> None:
         test.server_expect_eof()
         test.server_write(b"ping")
         test.client_read(b"ping")
-    LOGGER.debug("Finished scenario: client_half_closes_after_pong")
 
 
 def test_server_half_closes_without_sending_data_client_still_writes() -> None:
     """Verify client traffic still works after server half-close without data."""
 
-    LOGGER.debug(
-        "Starting scenario: server_half_closes_without_sending_data_client_still_writes"
-    )
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.server_half_close()
         test.client_write(b"ping1")
@@ -590,15 +596,11 @@ def test_server_half_closes_without_sending_data_client_still_writes() -> None:
         test.client_half_close()
         test.server_expect_eof()
         test.client_expect_eof()
-    LOGGER.debug(
-        "Finished scenario: server_half_closes_without_sending_data_client_still_writes"
-    )
 
 
 def test_server_half_closes_and_client_sends_large_payload() -> None:
     """Verify a large client payload still reaches the server after half-close."""
 
-    LOGGER.debug("Starting scenario: server_half_closes_and_client_sends_large_payload")
     with TestTcpServer(HOST, TIMEOUT) as test:
         received: list[bytes] = []
         errors: list[Exception] = []
@@ -625,19 +627,16 @@ def test_server_half_closes_and_client_sends_large_payload() -> None:
             raise errors[0]
         if received != [LARGE_PAYLOAD]:
             raise TestFailure("Server received an unexpected large payload")
+        step_ok("server-read", f"{len(LARGE_PAYLOAD)} bytes")
         test.client_half_close()
         test.server_expect_eof()
         test.client_expect_eof()
 
-    LOGGER.debug("Finished scenario: server_half_closes_and_client_sends_large_payload")
 
 
 def test_client_half_closes_without_sending_data_server_still_writes() -> None:
     """Verify server traffic still works after client half-close without data."""
 
-    LOGGER.debug(
-        "Starting scenario: client_half_closes_without_sending_data_server_still_writes"
-    )
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.client_half_close()
         test.server_expect_eof()
@@ -645,15 +644,11 @@ def test_client_half_closes_without_sending_data_server_still_writes() -> None:
         test.client_read(b"ping1")
         test.server_write(b"ping2")
         test.client_read(b"ping2")
-    LOGGER.debug(
-        "Finished scenario: client_half_closes_without_sending_data_server_still_writes"
-    )
 
 
 def test_client_half_closes_and_server_sends_large_payload() -> None:
     """Verify a large server payload still reaches the client after half-close."""
 
-    LOGGER.debug("Starting scenario: client_half_closes_and_server_sends_large_payload")
     with TestTcpServer(HOST, TIMEOUT) as test:
         received: list[bytes] = []
         errors: list[Exception] = []
@@ -681,14 +676,13 @@ def test_client_half_closes_and_server_sends_large_payload() -> None:
             raise errors[0]
         if received != [LARGE_PAYLOAD]:
             raise TestFailure("Client received an unexpected large payload")
+        step_ok("client-read", f"{len(LARGE_PAYLOAD)} bytes")
 
-    LOGGER.debug("Finished scenario: client_half_closes_and_server_sends_large_payload")
 
 
 def test_both_sides_large_payload() -> None:
     """Verify both directions can transfer a large payload simultaneously."""
 
-    LOGGER.debug("Starting scenario: both_sides_large_payload")
     with TestTcpServer(HOST, TIMEOUT) as test:
         start_barrier = threading.Barrier(2)
         errors: list[Exception] = []
@@ -696,28 +690,30 @@ def test_both_sides_large_payload() -> None:
         client_received: list[bytes] = []
 
         def client_send() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Client large-payload sender waiting at barrier")
                 start_barrier.wait(timeout=test.timeout)
                 test.client_write(LARGE_PAYLOAD)
             except Exception as exc:
                 errors.append(exc)
 
         def server_send() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Server large-payload sender waiting at barrier")
                 start_barrier.wait(timeout=test.timeout)
                 test.server_write(LARGE_PAYLOAD)
             except Exception as exc:
                 errors.append(exc)
 
         def client_recv() -> None:
+            quiet_steps()
             try:
                 client_received.append(test._read_pipe_exact(len(LARGE_PAYLOAD)))
             except Exception as exc:
                 errors.append(exc)
 
         def server_recv() -> None:
+            quiet_steps()
             try:
                 server_received.append(test._read_socket_exact(len(LARGE_PAYLOAD)))
             except Exception as exc:
@@ -741,16 +737,16 @@ def test_both_sides_large_payload() -> None:
             raise errors[0]
         if client_received != [LARGE_PAYLOAD]:
             raise TestFailure("Client received an unexpected large payload")
+        step_ok("client-read", f"{len(LARGE_PAYLOAD)} bytes")
         if server_received != [LARGE_PAYLOAD]:
             raise TestFailure("Server received an unexpected large payload")
+        step_ok("server-read", f"{len(LARGE_PAYLOAD)} bytes")
 
-    LOGGER.debug("Finished scenario: both_sides_large_payload")
 
 
 def test_server_half_closes_before_any_client_data() -> None:
     """Verify client traffic still works if server half-closes immediately."""
 
-    LOGGER.debug("Starting scenario: server_half_closes_before_any_client_data")
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.server_write(b"pong")
         test.server_half_close()
@@ -762,13 +758,11 @@ def test_server_half_closes_before_any_client_data() -> None:
         test.client_half_close()
         test.server_expect_eof()
         test.client_expect_eof()
-    LOGGER.debug("Finished scenario: server_half_closes_before_any_client_data")
 
 
 def test_client_half_closes_before_any_server_data() -> None:
     """Verify server traffic still works if client half-closes immediately."""
 
-    LOGGER.debug("Starting scenario: client_half_closes_before_any_server_data")
     with TestTcpServer(HOST, TIMEOUT) as test:
         test.client_half_close()
         test.server_expect_eof()
@@ -776,20 +770,18 @@ def test_client_half_closes_before_any_server_data() -> None:
         test.client_read(b"ping1")
         test.server_write(b"ping2")
         test.client_read(b"ping2")
-    LOGGER.debug("Finished scenario: client_half_closes_before_any_server_data")
 
 
 def test_both_sides_half_close_without_data() -> None:
     """Verify both peers can half-close immediately without sending data."""
 
-    LOGGER.debug("Starting scenario: both_sides_half_close_without_data")
     with TestTcpServer(HOST, TIMEOUT) as test:
         barrier = threading.Barrier(2)
         errors: list[Exception] = []
 
         def client_flow() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Client no-data half-close flow waiting at barrier")
                 barrier.wait(timeout=test.timeout)
                 test.client_half_close()
                 test.client_expect_eof()
@@ -797,8 +789,8 @@ def test_both_sides_half_close_without_data() -> None:
                 errors.append(exc)
 
         def server_flow() -> None:
+            quiet_steps()
             try:
-                LOGGER.debug("Server no-data half-close flow waiting at barrier")
                 barrier.wait(timeout=test.timeout)
                 test.server_half_close()
                 test.server_expect_eof()
@@ -822,8 +814,8 @@ def test_both_sides_half_close_without_data() -> None:
             raise TestFailure("Both-sides no-data half-close threads did not finish in time")
         if errors:
             raise errors[0]
+        step_ok("threads", "both half-close + EOF")
 
-    LOGGER.debug("Finished scenario: both_sides_half_close_without_data")
 
 
 TESTS: dict[str, Callable[[], None]] = {
@@ -860,49 +852,36 @@ TESTS: dict[str, Callable[[], None]] = {
 }
 
 
-def parse_args(argv: list[str]) -> argparse.Namespace:
-    """Parse command-line arguments."""
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("tests", nargs="*", help="Test names to execute")
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable verbose debug logging",
-    )
-    return parser.parse_args(argv)
-
-
-def configure_logging(debug: bool) -> None:
-    """Configure application logging."""
-
-    level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=level, format="%(levelname)s %(message)s")
-
-
 def main(argv: list[str] | None = None) -> int:
     """Run the selected TCP wrapper tests."""
 
-    args = parse_args(sys.argv[1:] if argv is None else argv)
-    configure_logging(args.debug)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("tests", nargs="*", help="Test names to execute")
+    args = parser.parse_args(sys.argv[1:] if argv is None else argv)
 
     names = args.tests or list(TESTS.keys())
+    failed = 0
 
     for name in names:
         test_fn = TESTS.get(name)
         if test_fn is None:
-            LOGGER.error("Unknown test: %s", name)
+            print(f"unknown test: {name}", file=sys.stderr)
             return 2
 
-        LOGGER.info("Running %s", name)
+        print(f"=== {name} ===")
         try:
             test_fn()
-        except Exception as exc:
-            LOGGER.error("%s: FAILED: %s", name, exc)
-            return 1
-        LOGGER.info("%s: OK", name)
+            print("  PASS")
+        except (TestFailure, Exception) as exc:
+            print(f"  FAIL: {exc}")
+            failed += 1
+        print()
 
-    LOGGER.info("All tests passed")
+    if failed:
+        print(f"{failed}/{len(names)} tests FAILED")
+        return 1
+
+    print(f"all {len(names)} tests passed")
     return 0
 
 

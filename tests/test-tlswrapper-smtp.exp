@@ -1,95 +1,150 @@
-=== short_session ===
-INFO Running short_session
-INFO short_session: OK
-INFO All tests passed
-
 === data_resets_envelope ===
-INFO Running data_resets_envelope
-INFO data_resets_envelope: OK
-INFO All tests passed
+  exit: 0 ok
+  stdout: 268 lines ok
+  childlog: both MAIL FROM ok
+  childlog: 260 RCPT forwarded ok
+  childlog: batch boundaries ok
+  childlog: 2 DATA + 2 data-end ok
+  childlog: clean QUIT ok
+  PASS
 
 === exact_rcpt_limit ===
-INFO Running exact_rcpt_limit
-INFO exact_rcpt_limit: OK
-INFO All tests passed
-
-=== line_exact_limit ===
-INFO Running line_exact_limit
-INFO line_exact_limit: OK
-INFO All tests passed
+  exit: 0 ok
+  stdout: 259 lines ok
+  childlog: MAIL FROM ok
+  childlog: 256 RCPT forwarded ok
+  childlog: first/last RCPT ok
+  childlog: clean QUIT ok
+  PASS
 
 === line_too_long ===
-INFO Running line_too_long
-INFO line_too_long: OK
-INFO All tests passed
+  exit: 111 ok
+  stdout: ['220 ready'] ok
+  childlog: starts with 'reply 220 ready' ok
+  childlog: no cmd forwarded ok
+  PASS
+
+=== line_exact_limit ===
+  exit: 0 ok
+  stdout: 3 lines ok
+  childlog: EHLO line length 4099 ok
+  childlog: clean QUIT ok
+  PASS
 
 === mailfrom_exact_limit ===
-INFO Running mailfrom_exact_limit
-INFO mailfrom_exact_limit: OK
-INFO All tests passed
+  exit: 0 ok
+  stdout: 3 lines ok
+  childlog: MAIL FROM line length 2062 ok
+  childlog: clean QUIT ok
+  PASS
 
 === mailfrom_too_long ===
-INFO Running mailfrom_too_long
-INFO mailfrom_too_long: OK
-INFO All tests passed
+  exit: 111 ok
+  stdout: ['220 ready'] ok
+  childlog: starts with 'reply 220 ready' ok
+  childlog: no cmd forwarded ok
+  PASS
 
 === mail_resets_previous_rcpts ===
-INFO Running mail_resets_previous_rcpts
-INFO mail_resets_previous_rcpts: OK
-INFO All tests passed
+  exit: 0 ok
+  stdout: 264 lines ok
+  childlog: both MAIL FROM ok
+  childlog: 260 RCPT forwarded ok
+  childlog: batch boundaries ok
+  childlog: clean QUIT ok
+  PASS
 
 === rcpttodata_exact_limit ===
-INFO Running rcpttodata_exact_limit
-INFO rcpttodata_exact_limit: OK
-INFO All tests passed
-
-=== rcptto_too_long ===
-INFO Running rcptto_too_long
-INFO rcptto_too_long: OK
-INFO All tests passed
-
-=== rcptto_exact_limit ===
-INFO Running rcptto_exact_limit
-INFO rcptto_exact_limit: OK
-INFO All tests passed
-
-=== starttls_available_advertised ===
-INFO Running starttls_available_advertised
-INFO starttls_available_advertised: OK
-INFO All tests passed
-
-=== starttls_control_pipe_banner ===
-INFO Running starttls_control_pipe_banner
-INFO starttls_control_pipe_banner: OK
-INFO All tests passed
-
-=== starttls_fresh_transaction ===
-INFO Running starttls_fresh_transaction
-INFO starttls_fresh_transaction: OK
-INFO All tests passed
-
-=== starttls_short_session ===
-INFO Running starttls_short_session
-INFO starttls_short_session: OK
-INFO All tests passed
-
-=== starttls_resets_envelope ===
-INFO Running starttls_resets_envelope
-INFO starttls_resets_envelope: OK
-INFO All tests passed
-
-=== starttls_unavailable_rejected ===
-INFO Running starttls_unavailable_rejected
-INFO starttls_unavailable_rejected: OK
-INFO All tests passed
-
-=== too_many_rcpts ===
-INFO Running too_many_rcpts
-INFO too_many_rcpts: OK
-INFO All tests passed
+  exit: 0 ok
+  stdout: 35 lines ok
+  childlog: MAIL FROM ok
+  childlog: 32 RCPT forwarded ok
+  childlog: RCPT line lengths ok
+  childlog: clean QUIT ok
+  PASS
 
 === rcpttodata_too_large ===
-INFO Running rcpttodata_too_large
-INFO rcpttodata_too_large: OK
-INFO All tests passed
+  exit: 111 ok
+  stdout: 34 lines ok
+  childlog: MAIL FROM ok
+  childlog: 32 RCPT forwarded ok
+  childlog: first/last RCPT ok
+  childlog: overflow RCPT not forwarded ok
+  PASS
 
+=== rcptto_exact_limit ===
+  exit: 0 ok
+  stdout: 4 lines ok
+  childlog: MAIL FROM ok
+  childlog: RCPT TO line length 2060 ok
+  childlog: clean QUIT ok
+  PASS
+
+=== rcptto_too_long ===
+  exit: 111 ok
+  stdout: ['220 ready', '250 ok'] ok
+  childlog: 3-line prefix ok
+  childlog: no RCPT TO forwarded ok
+  PASS
+
+=== short_session ===
+  exit: 0 ok
+  stdout: 7 lines ok
+  childlog: 16 lines ok
+  PASS
+
+=== starttls_available_advertised ===
+  exit: 0 ok
+  stdout: 4 lines ok
+  childlog: 5 lines ok
+  PASS
+
+=== starttls_control_pipe_banner ===
+  exit: 0 ok
+  stdout: 4 lines ok
+  control: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  childlog: 7 lines ok
+  PASS
+
+=== starttls_fresh_transaction ===
+  exit: 0 ok
+  stdout: 10 lines ok
+  control: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  childlog: 22 lines ok
+  PASS
+
+=== starttls_short_session ===
+  exit: 0 ok
+  stdout: 8 lines ok
+  control: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  childlog: 18 lines ok
+  PASS
+
+=== starttls_resets_envelope ===
+  exit: 0 ok
+  stdout: 267 lines ok
+  control: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  childlog: EHLO + MAIL FROM ok
+  childlog: internal RSET ok
+  childlog: 260 RCPT forwarded ok
+  childlog: batch boundaries ok
+  childlog: 1 DATA + 1 data-end ok
+  childlog: clean QUIT ok
+  PASS
+
+=== starttls_unavailable_rejected ===
+  exit: 0 ok
+  stdout: 3 lines ok
+  childlog: 3 lines ok
+  PASS
+
+=== too_many_rcpts ===
+  exit: 111 ok
+  stdout: 258 lines ok
+  childlog: MAIL FROM ok
+  childlog: 256 RCPT forwarded ok
+  childlog: first/last RCPT ok
+  childlog: overflow RCPT not forwarded ok
+  PASS
+
+all 19 tests passed

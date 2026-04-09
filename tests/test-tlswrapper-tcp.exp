@@ -1,90 +1,153 @@
-=== client_pings_first ===
-INFO Running client_pings_first
-INFO client_pings_first: OK
-INFO All tests passed
-
 === server_pings_first ===
-INFO Running server_pings_first
-INFO server_pings_first: OK
-INFO All tests passed
+  server-write: b'ping' ok
+  client-read: b'ping' ok
+  client-write: b'pong' ok
+  server-read: b'pong' ok
+  PASS
 
-=== both_sides_ping_simultaneously ===
-INFO Running both_sides_ping_simultaneously
-INFO both_sides_ping_simultaneously: OK
-INFO All tests passed
-
-=== client_half_closes_after_pong ===
-INFO Running client_half_closes_after_pong
-INFO client_half_closes_after_pong: OK
-INFO All tests passed
-
-=== server_half_closes_after_pong ===
-INFO Running server_half_closes_after_pong
-INFO server_half_closes_after_pong: OK
-INFO All tests passed
-
-=== both_sides_half_close_after_pong ===
-INFO Running both_sides_half_close_after_pong
-INFO both_sides_half_close_after_pong: OK
-INFO All tests passed
-
-=== server_half_closes_without_sending_data_client_still_writes ===
-INFO Running server_half_closes_without_sending_data_client_still_writes
-INFO server_half_closes_without_sending_data_client_still_writes: OK
-INFO All tests passed
-
-=== client_half_closes_without_sending_data_server_still_writes ===
-INFO Running client_half_closes_without_sending_data_server_still_writes
-INFO client_half_closes_without_sending_data_server_still_writes: OK
-INFO All tests passed
-
-=== server_half_closes_before_any_client_data ===
-INFO Running server_half_closes_before_any_client_data
-INFO server_half_closes_before_any_client_data: OK
-INFO All tests passed
-
-=== client_half_closes_before_any_server_data ===
-INFO Running client_half_closes_before_any_server_data
-INFO client_half_closes_before_any_server_data: OK
-INFO All tests passed
-
-=== both_sides_half_close_without_data ===
-INFO Running both_sides_half_close_without_data
-INFO both_sides_half_close_without_data: OK
-INFO All tests passed
-
-=== server_half_closes_and_client_sends_large_payload ===
-INFO Running server_half_closes_and_client_sends_large_payload
-INFO server_half_closes_and_client_sends_large_payload: OK
-INFO All tests passed
-
-=== client_half_closes_and_server_sends_large_payload ===
-INFO Running client_half_closes_and_server_sends_large_payload
-INFO client_half_closes_and_server_sends_large_payload: OK
-INFO All tests passed
-
-=== both_sides_large_payload ===
-INFO Running both_sides_large_payload
-INFO both_sides_large_payload: OK
-INFO All tests passed
+=== client_pings_first ===
+  client-write: b'ping' ok
+  server-read: b'ping' ok
+  server-write: b'pong' ok
+  client-read: b'pong' ok
+  PASS
 
 === reply_after_client_eof ===
-INFO Running reply_after_client_eof
-INFO reply_after_client_eof: OK
-INFO All tests passed
+  client-write: b'request-before-eof' ok
+  client: half-close ok
+  server-read: b'request-before-eof' ok
+  server: EOF ok
+  server-write: b'reply-after-eof\n' ok
+  server: close ok
+  client-read: b'reply-after-eof\n' ok
+  client: EOF ok
+  exit: 0 ok
+  PASS
 
 === reply_after_empty_client_eof ===
-INFO Running reply_after_empty_client_eof
-INFO reply_after_empty_client_eof: OK
-INFO All tests passed
+  client: half-close ok
+  server: EOF ok
+  server-write: b'reply-after-empty-eof\n' ok
+  server: close ok
+  client-read: b'reply-after-empty-eof\n' ok
+  client: EOF ok
+  exit: 0 ok
+  PASS
 
 === remote_silent_close ===
-INFO Running remote_silent_close
-INFO remote_silent_close: OK
-INFO All tests passed
+  client-write: b'request-before-silent-close' ok
+  client: half-close ok
+  server-read: b'request-before-silent-close' ok
+  server: EOF ok
+  server: close ok
+  client: EOF ok
+  exit: 0 ok
+  PASS
 
 === chunked_stdin_remote_eof ===
-INFO Running chunked_stdin_remote_eof
-INFO chunked_stdin_remote_eof: OK
-INFO All tests passed
+  client-read: b'reply-before-client-eof\n' ok
+  client: EOF ok
+  threads: client + server flows ok
+  exit: 0 ok
+  PASS
 
+=== both_sides_ping_simultaneously ===
+  threads: client ping + server pong ok
+  PASS
+
+=== both_sides_half_close_after_pong ===
+  threads: ping/pong + both half-close ok
+  PASS
+
+=== server_half_closes_after_pong ===
+  client-write: b'ping' ok
+  server-read: b'ping' ok
+  server-write: b'pong' ok
+  server: half-close ok
+  client-read: b'pong' ok
+  client-write: b'ping' ok
+  server-read: b'ping' ok
+  client: half-close ok
+  server: EOF ok
+  client: EOF ok
+  PASS
+
+=== client_half_closes_after_pong ===
+  server-write: b'ping' ok
+  client-read: b'ping' ok
+  client-write: b'pong' ok
+  client: half-close ok
+  server-read: b'pong' ok
+  server: EOF ok
+  server-write: b'ping' ok
+  client-read: b'ping' ok
+  PASS
+
+=== both_sides_large_payload ===
+  client-read: 131072 bytes ok
+  server-read: 131072 bytes ok
+  PASS
+
+=== server_half_closes_and_client_sends_large_payload ===
+  server: half-close ok
+  client-write: 131072 bytes ok
+  server-read: 131072 bytes ok
+  client: half-close ok
+  server: EOF ok
+  client: EOF ok
+  PASS
+
+=== client_half_closes_and_server_sends_large_payload ===
+  client: half-close ok
+  server: EOF ok
+  server-write: 131072 bytes ok
+  client-read: 131072 bytes ok
+  PASS
+
+=== server_half_closes_without_sending_data_client_still_writes ===
+  server: half-close ok
+  client-write: b'ping1' ok
+  server-read: b'ping1' ok
+  client-write: b'ping2' ok
+  server-read: b'ping2' ok
+  client: half-close ok
+  server: EOF ok
+  client: EOF ok
+  PASS
+
+=== client_half_closes_without_sending_data_server_still_writes ===
+  client: half-close ok
+  server: EOF ok
+  server-write: b'ping1' ok
+  client-read: b'ping1' ok
+  server-write: b'ping2' ok
+  client-read: b'ping2' ok
+  PASS
+
+=== server_half_closes_before_any_client_data ===
+  server-write: b'pong' ok
+  server: half-close ok
+  client-read: b'pong' ok
+  client-write: b'ping1' ok
+  server-read: b'ping1' ok
+  client-write: b'ping2' ok
+  server-read: b'ping2' ok
+  client: half-close ok
+  server: EOF ok
+  client: EOF ok
+  PASS
+
+=== client_half_closes_before_any_server_data ===
+  client: half-close ok
+  server: EOF ok
+  server-write: b'ping1' ok
+  client-read: b'ping1' ok
+  server-write: b'ping2' ok
+  client-read: b'ping2' ok
+  PASS
+
+=== both_sides_half_close_without_data ===
+  threads: both half-close + EOF ok
+  PASS
+
+all 18 tests passed
