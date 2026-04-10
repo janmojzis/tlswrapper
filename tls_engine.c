@@ -187,23 +187,23 @@ unsigned int tls_engine_current_state(struct tls_context *ctx) {
 const char *tls_engine_close_reason(struct tls_context *ctx) {
     int err = br_ssl_engine_last_error(&ctx->cc.eng);
 
-    if (err == BR_ERR_OK) return "SSL closed normally";
+    if (err == BR_ERR_OK) return "TLS closed normally";
 
     if (err >= BR_ERR_SEND_FATAL_ALERT) {
         int alert = err - BR_ERR_SEND_FATAL_ALERT;
         if (ctx->flaghandshakedone) {
-            log_e2("SSL sent alert: ", tls_alert_str(alert));
+            log_e2("TLS sent alert: ", tls_alert_str(alert));
         }
         return tls_alert_str(alert);
     }
     if (err >= BR_ERR_RECV_FATAL_ALERT) {
         int alert = err - BR_ERR_RECV_FATAL_ALERT;
         if (ctx->flaghandshakedone) {
-            log_e2("SSL received alert: ", tls_alert_str(alert));
+            log_e2("TLS received alert: ", tls_alert_str(alert));
         }
         return tls_alert_str(alert);
     }
-    if (ctx->flaghandshakedone) { log_e2("SSL error: ", tls_error_str(err)); }
+    if (ctx->flaghandshakedone) { log_e2("TLS error: ", tls_error_str(err)); }
     return tls_error_str(err);
 }
 
