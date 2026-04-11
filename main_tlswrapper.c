@@ -134,10 +134,14 @@ static int handle_selfpipe_event(void) {
     if (r <= 0) return 1;
 
     if (ch == 'C') {
-        fd_close_read(&controlfd);
-        fd_close_read(&childoutfd);
+        /* Do not close childout/childctl here: after SIGCHLD the child is
+         * gone, but its pipes can still hold buffered data that should be
+         * drained until EOF. Closing childin is correct, because once SIGCHLD
+         * arrives we no longer have a reliable chance to deliver any further
+         * input to the wrapped child.
+         */
         fd_close_write(&childinfd);
-        log_t1("SIGCHLD received, closed child descriptors");
+        log_t1("SIGCHLD received, closed child input");
         alarm(1);
         return 0;
     }
