@@ -673,6 +673,17 @@
   childlog: received=request-before-eof read_complete=True ok
   PASS
 
+=== tls_only_large_reply_complete_before_clean_eof ===
+  handshake: ok
+  peerin: b'request-before-eof' ok
+  childout: b'reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-' ok
+  childout: b'reply-tail\n' ok
+  childout: clean EOF ok
+  peerin: half-close ok
+  exit: 0 ok
+  childlog: received=request-before-eof read_complete=True ok
+  PASS
+
 === tls_only_peer_closes_read_child_reads ===
   handshake: ok
   childout: closed by child ok
@@ -683,4 +694,4 @@
   childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
   PASS
 
-all 74 tests passed
+all 75 tests passed

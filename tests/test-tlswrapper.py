@@ -49,6 +49,7 @@ MULTIWRITE_REQUEST = b"request-before-multi-write"
 SILENT_EXIT_REQUEST = b"request-before-silent-exit"
 IDLE_REQUEST = b"idle-after-activity"
 BIG_REQUEST = (b"request-chunk-" * 400) + b"tail"
+BIG_REPLY_CHUNKS = [b"reply-chunk-" * 300, b"reply-tail\n"]
 
 
 # ---------------------------------------------------------------------------
@@ -1524,6 +1525,29 @@ def test_tls_only_child_eof_requires_close_notify() -> None:
         w.close()
 
 
+def test_tls_only_large_reply_complete_before_clean_eof() -> None:
+    w = Wrapper()
+    try:
+        pipes = w.start(
+            child_reply_then_half_close_then_read_exact(
+                reply_chunks=BIG_REPLY_CHUNKS,
+                read_size=len(SMALL_REQUEST),
+            )
+        )
+        assert pipes is not None
+        stdin, stdout = pipes
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        client.write(SMALL_REQUEST)
+        client.expect_chunks(BIG_REPLY_CHUNKS, label="childout")
+        client.expect_clean_eof(label="childout")
+        client.half_close()
+        w.wait()
+        check_child_log(_halfclose_log())
+    finally:
+        w.close()
+
+
 def test_tls_only_peer_closes_read_child_reads() -> None:
     w = Wrapper()
     try:
@@ -1601,6 +1625,7 @@ TESTS["tls_only_socket_eof_before_exit"] = test_tls_only_socket_eof_before_exit
 TESTS["hybrid_socket_eof_before_exit"] = test_hybrid_socket_eof_before_exit
 TESTS["tls_only_fast_shutdown"] = test_tls_only_fast_shutdown
 TESTS["tls_only_child_eof_requires_close_notify"] = test_tls_only_child_eof_requires_close_notify
+TESTS["tls_only_large_reply_complete_before_clean_eof"] = test_tls_only_large_reply_complete_before_clean_eof
 TESTS["tls_only_peer_closes_read_child_reads"] = test_tls_only_peer_closes_read_child_reads
 # Temporarily disabled
 #TESTS["tls_only_child_closes_stdout_reads_forced"] = test_tls_only_child_closes_stdout_reads_forced
