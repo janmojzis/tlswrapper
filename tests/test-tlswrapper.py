@@ -309,6 +309,28 @@ class TlsClient:
                 step_ok(label, "EOF")
                 return
 
+    def expect_clean_eof(self, label: str = "peerout") -> None:
+        deadline = time.monotonic() + TIMEOUT
+        while True:
+            try:
+                chunk = self.tls.read(1)
+                if not chunk:
+                    step_ok(label, "clean EOF")
+                    return
+                raise TestFailure(f"{label}: expected clean EOF, got {chunk!r}")
+            except ssl.SSLWantReadError:
+                self._flush()
+                if time.monotonic() >= deadline:
+                    raise TestFailure(f"{label}: timed out waiting for clean EOF")
+                self._feed()
+            except ssl.SSLZeroReturnError:
+                step_ok(label, "clean EOF")
+                return
+            except ssl.SSLEOFError as exc:
+                raise TestFailure(
+                    f"{label}: unexpected TLS EOF without close_notify"
+                ) from exc
+
     def half_close(self, label: str = "peerin") -> None:
         self._flush()
         self.stdin.close()
@@ -1485,6 +1507,23 @@ def test_tls_only_fast_shutdown() -> None:
         w.close()
 
 
+def test_tls_only_child_eof_requires_close_notify() -> None:
+    w = Wrapper()
+    try:
+        pipes = w.start(child_half_close_then_read_exact(len(SMALL_REQUEST)))
+        assert pipes is not None
+        stdin, stdout = pipes
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        client.write(SMALL_REQUEST)
+        client.expect_clean_eof(label="childout")
+        client.half_close()
+        w.wait()
+        check_child_log(_halfclose_log())
+    finally:
+        w.close()
+
+
 def test_tls_only_peer_closes_read_child_reads() -> None:
     w = Wrapper()
     try:
@@ -1561,6 +1600,7 @@ TESTS["delayed_socket_eof_before_exit"] = test_delayed_socket_eof_before_exit
 TESTS["tls_only_socket_eof_before_exit"] = test_tls_only_socket_eof_before_exit
 TESTS["hybrid_socket_eof_before_exit"] = test_hybrid_socket_eof_before_exit
 TESTS["tls_only_fast_shutdown"] = test_tls_only_fast_shutdown
+TESTS["tls_only_child_eof_requires_close_notify"] = test_tls_only_child_eof_requires_close_notify
 TESTS["tls_only_peer_closes_read_child_reads"] = test_tls_only_peer_closes_read_child_reads
 # Temporarily disabled
 #TESTS["tls_only_child_closes_stdout_reads_forced"] = test_tls_only_child_closes_stdout_reads_forced
