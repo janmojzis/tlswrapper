@@ -59,6 +59,7 @@ static const char *user = 0;
 static const char *userfromcert = 0;
 
 static long long starttimeout = 3;
+static long long finishtimeout = 1;
 static long long hstimeout;
 static long long timeout;
 
@@ -99,17 +100,21 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
  * signalhandler - convert asynchronous signals into loop wakeups
  *
  * @signum: delivered signal number
+ * @si: signal metadata supplied by sigaction()
+ * @ucontext: unused signal frame context
  *
  * Encodes signal intent into the self-pipe so the relay loops can react in
- * normal process context: 'C' for any SIGCHLD, '\0' for termination.
- * SIGCHLD is not attributed to a specific child PID here; the relay code
- * conservatively closes all wrapped-child descriptors whenever any child
- * process changes state.
+ * normal process context. 'C' means SIGCHLD for the wrapped child; '\0'
+ * means loop termination for everything else.
  */
-static void signalhandler(int signum) {
+static void signalhandler(int signum, siginfo_t *si, void *ucontext) {
     char ch = 0;
     int w;
-    if (signum == SIGCHLD) ch = 'C';
+
+    (void) ucontext;
+    if (signum == SIGCHLD) {
+        if (si && si->si_pid == child) ch = 'C';
+    }
     w = write(selfpipe[1], &ch, 1);
     (void) w;
 }
@@ -120,9 +125,8 @@ static void signalhandler(int signum) {
  * Returns 1 when the caller should terminate the current relay loop and 0
  * when execution may continue.
  *
- * A queued 'C' does not identify which child triggered SIGCHLD. The current
- * policy is to close all wrapped-child descriptors regardless of whether
- * the state change came from the wrapped child or the keyjail helper.
+ * A queued 'C' means SIGCHLD for the wrapped child: close child input and arm
+ * the finish timeout. A queued '\0' means terminate the current relay loop.
  */
 static int handle_selfpipe_event(void) {
     char ch;
@@ -138,11 +142,12 @@ static int handle_selfpipe_event(void) {
          * gone, but its pipes can still hold buffered data that should be
          * drained until EOF. Closing childin is correct, because once SIGCHLD
          * arrives we no longer have a reliable chance to deliver any further
-         * input to the wrapped child.
+         * input to the wrapped child. Arm a short finish timeout so the relay
+         * loop can drain remaining output but does not stay around forever.
          */
         fd_close_write(&childinfd);
         log_t1("SIGCHLD received, closed child input");
-        alarm(1);
+        alarm(finishtimeout);
         return 0;
     }
     return 1;
@@ -727,9 +732,9 @@ static int run_cleartext_phase(void) {
             ++q;
         }
 
-        /* Signal pipe: always monitored for SIGCHLD / SIGTERM. SIGCHLD is
-           handled conservatively and closes all wrapped-child descriptors
-           without distinguishing which child changed state. */
+        /* Signal pipe: always monitored for wrapped-child SIGCHLD and loop
+           termination wakeups. 'C' means wrapped-child SIGCHLD; '\0' means
+           terminate the relay loop. */
         watchfromselfpipe = q;
         q->fd = selfpipe[0];
         q->events = POLLIN;
@@ -875,7 +880,8 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
-        /* Signal pipe: queued SIGCHLD or termination/timeout command. */
+        /* Signal pipe: queued 'C' for wrapped-child SIGCHLD or '\0' for loop
+           termination. */
         if (watchfromselfpipe) {
             if (!handle_selfpipe_event()) continue;
             log_d1("signal received, cleartext phase interrupted");
@@ -1119,14 +1125,19 @@ static void __attribute__((noreturn)) usage(void) {
  */
 int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
+    struct sigaction sa;
     char *x;
     int flaguserreported = 0;
     long long r;
 
     errno = 0;
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGCHLD, signalhandler);
-    signal(SIGTERM, signalhandler);
+    memset(&sa, 0, sizeof sa);
+    sa.sa_sigaction = signalhandler;
+    sa.sa_flags = SA_SIGINFO | SA_NOCLDSTOP;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIGCHLD, &sa, 0) == -1) die(111);
+    if (sigaction(SIGTERM, &sa, 0) == -1) die(111);
     alarm(starttimeout);
 
     log_set_name("tlswrapper");
@@ -1369,7 +1380,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (open_pipe(selfpipe) == -1) die_pipe();
 
     /* handshake timeout */
-    signal(SIGALRM, signalhandler);
+    if (sigaction(SIGALRM, &sa, 0) == -1) die(111);
     alarm(hstimeout);
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
