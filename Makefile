@@ -284,5 +284,6 @@ test: $(BINARIES) tlswrapper-tcp tlswrapper-smtp
 	$(MAKE) test -C tests
 
 clean:
+	$(MAKE) clean -C tests
 	rm -f *.log *.o $(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h
 

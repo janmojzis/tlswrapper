@@ -108,6 +108,7 @@
     echo
 
     echo "clean:"
+    echo "	\$(MAKE) clean -C tests"
     echo "	rm -f *.log *.o \$(BINARIES) libs tlswrapper-tcp tlswrapper-smtp has*.h"
     echo 
 
