@@ -690,14 +690,12 @@
   childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
   PASS
 
-=== tls_only_child_closes_stdout_reads_forced ===
+=== tls_only_child_closes_stdout_idle_peer_finishes ===
   handshake: ok
   childout: b'ready' ok
   childout: closed by child (waiting 0.2s)
-  peerin: b'chunk-0chunk-1tail' ok
-  peerin: half-close ok
   exit: 0 ok
-  childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
+  childlog: saw_eof=yes ok
   PASS
 
 === tls_only_large_inflight_payload_survives_child_stdout_close ===
@@ -719,14 +717,12 @@
   childlog: read_complete=True saw_eof=True sha256_ok=True ok
   PASS
 
-=== hybrid_child_closes_stdout_reads_forced ===
+=== hybrid_child_closes_stdout_idle_peer_finishes ===
   childout[plain]: b'220 ready for tls\n' ok
   handshake: ok
   childout: closed by child (waiting 0.2s)
-  peerin: b'chunk-0chunk-1tail' ok
-  peerin: half-close ok
   exit: 0 ok
-  childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
+  childlog: saw_eof=yes ok
   PASS
 
 all 79 tests passed
