@@ -16,6 +16,7 @@ Directions (matching the wrapper C variable names):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import logging
 import os
 import select
@@ -24,6 +25,7 @@ import socket
 import ssl
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -66,6 +68,13 @@ def step(msg: str) -> None:
 def step_ok(label: str, detail: str = "") -> None:
     suffix = f" {detail}" if detail else ""
     step(f"{label}:{suffix} ok")
+
+
+def format_step_bytes(data: bytes, *, limit: int = 96) -> str:
+    rendered = repr(data)
+    if len(rendered) <= limit:
+        return rendered
+    return f"{data[:32]!r}...{data[-16:]!r} ({len(data)} bytes)"
 
 
 # ---------------------------------------------------------------------------
@@ -183,7 +192,7 @@ class PlainClient:
     def write(self, data: bytes, label: str = "peerin") -> None:
         self.stdin.write(data)
         self.stdin.flush()
-        step_ok(label, repr(data))
+        step_ok(label, format_step_bytes(data))
 
     def read_exact(self, size: int, label: str = "peerout") -> bytes:
         chunks: list[bytes] = []
@@ -262,7 +271,7 @@ class TlsClient:
             except ssl.SSLWantReadError:
                 self._flush()
                 self._feed()
-        step_ok(label, repr(data))
+        step_ok(label, format_step_bytes(data))
 
     def read_exact(self, size: int, label: str = "peerout") -> bytes:
         chunks: list[bytes] = []
@@ -655,6 +664,38 @@ if log_path is not None:
         for i, c in enumerate(chunks):
             f.write(f"chunk{{i}}={{c}}\\n")
         f.write("saw_eof=yes\\n")
+"""
+
+
+def child_write_marker_then_close_stdout_verify_sha256(
+    *,
+    marker: bytes,
+    read_size: int,
+    expected_sha256: str,
+    close_delay: float = 0.2,
+    starttls: bool = False,
+) -> str:
+    prefix = _starttls_prefix() if starttls else ""
+    return f"""import hashlib, os, sys, time
+{prefix}sys.stdout.buffer.write({marker!r})
+sys.stdout.buffer.flush()
+time.sleep({close_delay!r})
+os.close(sys.stdout.fileno())
+remaining = {read_size}
+h = hashlib.sha256()
+while remaining:
+    chunk = sys.stdin.buffer.read(min(65536, remaining))
+    if not chunk:
+        break
+    h.update(chunk)
+    remaining -= len(chunk)
+tail = sys.stdin.buffer.read()
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write(f"read_complete={{remaining == 0}}\\n")
+        f.write(f"saw_eof={{tail == b''}}\\n")
+        f.write(f"sha256_ok={{h.hexdigest() == ({expected_sha256!r})}}\\n")
 """
 
 
@@ -1570,6 +1611,118 @@ def test_tls_only_child_closes_stdout_reads_forced() -> None:
         w.close()
 
 
+def test_tls_only_large_inflight_payload_survives_child_stdout_close() -> None:
+    """Verify an in-flight large client payload still reaches child stdin."""
+    marker = b"ready-over-tls"
+    payload = (b"inflight-payload-" * 16384) + b"tail"
+    expected_sha256 = hashlib.sha256(payload).hexdigest()
+    errors: list[Exception] = []
+
+    w = Wrapper()
+    try:
+        pipes = w.start(
+            child_write_marker_then_close_stdout_verify_sha256(
+                marker=marker,
+                read_size=len(payload),
+                expected_sha256=expected_sha256,
+                close_delay=0.2,
+            )
+        )
+        assert pipes is not None
+        stdin, stdout = pipes
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        got_marker = client.read_exact(len(marker), label="childout")
+        if got_marker != marker:
+            raise TestFailure(f"expected marker {marker!r}, got {got_marker!r}")
+
+        def writer() -> None:
+            try:
+                client.write(payload)
+                client.half_close()
+            except Exception as exc:
+                errors.append(exc)
+
+        writer_thread = threading.Thread(
+            target=writer,
+            name="tls-only-large-inflight-payload",
+        )
+        writer_thread.start()
+        writer_thread.join(timeout=TIMEOUT + 1)
+        if writer_thread.is_alive():
+            raise TestFailure("peerin: timed out sending large inflight payload")
+        if errors:
+            raise errors[0]
+
+        w.wait()
+        check_child_log([
+            "read_complete=True",
+            "saw_eof=True",
+            "sha256_ok=True",
+        ])
+    finally:
+        w.close()
+
+
+def test_hybrid_large_inflight_payload_survives_child_stdout_close() -> None:
+    """Verify a large in-flight TLS payload survives child stdout close in STARTTLS mode."""
+    marker = b"ready-over-tls"
+    payload = (b"inflight-payload-" * 16384) + b"tail"
+    expected_sha256 = hashlib.sha256(payload).hexdigest()
+    errors: list[Exception] = []
+
+    w = Wrapper()
+    try:
+        pipes = w.start(
+            child_write_marker_then_close_stdout_verify_sha256(
+                marker=marker,
+                read_size=len(payload),
+                expected_sha256=expected_sha256,
+                close_delay=0.2,
+                starttls=True,
+            ),
+            delayed=True,
+        )
+        assert pipes is not None
+        stdin, stdout = pipes
+        plain = PlainClient(stdin, stdout)
+        got_banner = plain.read_exact(len(STARTTLS_BANNER), label="childout[plain]")
+        if got_banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected banner {STARTTLS_BANNER!r}, got {got_banner!r}")
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        got_marker = client.read_exact(len(marker), label="childout")
+        if got_marker != marker:
+            raise TestFailure(f"expected marker {marker!r}, got {got_marker!r}")
+
+        def writer() -> None:
+            try:
+                client.write(payload)
+                client.half_close()
+            except Exception as exc:
+                errors.append(exc)
+
+        writer_thread = threading.Thread(
+            target=writer,
+            name="hybrid-large-inflight-payload",
+        )
+        writer_thread.start()
+        writer_thread.join(timeout=TIMEOUT + 1)
+        if writer_thread.is_alive():
+            raise TestFailure("peerin: timed out sending large inflight payload")
+        if errors:
+            raise errors[0]
+
+        w.wait()
+        check_child_log([
+            "read_complete=True",
+            "saw_eof=True",
+            "sha256_ok=True",
+        ])
+    finally:
+        w.close()
+
+
 def test_hybrid_child_closes_stdout_reads_forced() -> None:
     """Force child-stdout-EOF before client data across the STARTTLS boundary."""
     w = Wrapper()
@@ -1624,6 +1777,8 @@ TESTS["tls_only_child_eof_requires_close_notify"] = test_tls_only_child_eof_requ
 TESTS["tls_only_large_reply_complete_before_clean_eof"] = test_tls_only_large_reply_complete_before_clean_eof
 TESTS["tls_only_peer_closes_read_child_reads"] = test_tls_only_peer_closes_read_child_reads
 TESTS["tls_only_child_closes_stdout_reads_forced"] = test_tls_only_child_closes_stdout_reads_forced
+TESTS["tls_only_large_inflight_payload_survives_child_stdout_close"] = test_tls_only_large_inflight_payload_survives_child_stdout_close
+TESTS["hybrid_large_inflight_payload_survives_child_stdout_close"] = test_hybrid_large_inflight_payload_survives_child_stdout_close
 TESTS["hybrid_child_closes_stdout_reads_forced"] = test_hybrid_child_closes_stdout_reads_forced
 
 
