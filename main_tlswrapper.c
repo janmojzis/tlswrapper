@@ -918,20 +918,35 @@ static void run_tls_phase(int *flaguserreported) {
          * the connection and the engine has no more plaintext pending
          * for the child, so propagate EOF to the wrapped program.
          */
-        if (peerinfd == -1 && childinfd != -1 && !(st & tls_state_RECVAPP)) {
+        if (peerinfd == -1 &&
+            childinfd != -1 &&
+            !(st & tls_state_RECVAPP)) {
             fd_close_write(&childinfd);
             log_t1("tls phase propagated peer EOF to child");
         }
 
-        /* Child already closed its plaintext output and the TLS engine has
-         * no more records left to send to the peer, so propagate EOF to
-         * the network side.
+        /* Once TLS shutdown has been initiated and all pending records have
+         * been flushed, propagate EOF to the network side.
          */
         if (childoutfd == -1 &&
             peeroutfd != -1 &&
+            (st & tls_state_CLOSED) &&
             !(st & tls_state_SENDREC)) {
             fd_close_write(&peeroutfd);
             log_t1("tls phase propagated child EOF to network");
+        }
+
+        /* Child already closed both plaintext directions, so there is no
+         * remaining application producer/consumer behind the wrapper.
+         * Only now is it safe to begin TLS shutdown.
+         */
+        if (childoutfd == -1 &&
+            childinfd == -1 &&
+            !(st & tls_state_CLOSED)) {
+            tls_engine_close(&ctx);
+            tls_engine_flush(&ctx, 0);
+            st = tls_engine_current_state(&ctx);
+            log_t1("tls phase started shutdown after child fully closed");
         }
 
         /* Receive from peer only while we can still make progress:
@@ -983,7 +998,6 @@ static void run_tls_phase(int *flaguserreported) {
             detail = "close_notify sent, not waiting for peer";
             break;
         }
-
 
         watchfrompeer = watchtopeer = watchfromchild = watchtochild = watchfromselfpipe = 0;
         q = p;
@@ -1075,8 +1089,6 @@ static void run_tls_phase(int *flaguserreported) {
             if (r <= 0) {
                 log_t1("child closed connection");
                 fd_close_read(&childoutfd);
-                tls_engine_close(&ctx);
-                tls_engine_flush(&ctx, 0);
                 continue;
             }
             log_t4("read(childoutfd, buf, len=", log_num(len), ") = ", log_num(r));
