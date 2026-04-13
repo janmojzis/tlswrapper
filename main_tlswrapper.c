@@ -592,11 +592,11 @@ static void report_tls_phase_fds(unsigned int st, int can_recvrec, int can_sendr
     static int prev_can_sendrec = -1;
     static int prev_can_sendapp = -1;
     static int prev_can_recvapp = -1;
-    const char *peerin = "netin,";
-    const char *peerout = "netout,";
+    const char *peerin = "peerin,";
+    const char *peerout = "peerout,";
     const char *childout = "childout,";
     const char *childin = "childin,";
-    const char *childctl = "control,";
+    const char *childctl = "childctl,";
     const char *recvrec = "can_recvrec,";
     const char *sendrec = "can_sendrec,";
     const char *sendapp = "can_sendapp,";
