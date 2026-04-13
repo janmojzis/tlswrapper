@@ -1,3 +1,12 @@
+## 20260413
+
+- tls relay: distinguish wrapped-child `SIGCHLD` from helper `SIGCHLD`, preserve child output draining on child exit, and delay TLS shutdown until both child directions are closed
+- tls relay: handle `SIGALRM` through the self-pipe loop and tighten finish-timeout behavior during child-exit cleanup
+- main_tlswrapper.c: rename relay descriptors and log labels to consistently use `peerin`, `peerout`, and `childctl`
+- logging: use "TLS" instead of "SSL" in updated log messages
+- tests: expand `test-tlswrapper` coverage for child-exit EOF paths, forced child-stdout-close reads, clean `close_notify` handling, large reply completion, in-flight payload delivery after child stdout EOF,
+  idle-peer shutdown after child stdout EOF, and delayed child replies after peer EOF
+
 ## 20260408
 
 - refactor: split relay logic into cleartext and TLS phases with explicit FD tracking and half-close handling; abstract TLS API to remove BearSSL references from `main_tlswrapper.c`
