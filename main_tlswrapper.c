@@ -908,6 +908,30 @@ static int run_cleartext_phase(void) {
 }
 
 /*
+ * fd_read_pending_now - report whether a descriptor can be read immediately
+ *
+ * Returns 1 when the descriptor currently reports readable or hangup/error
+ * status and 0 otherwise. The check is non-blocking.
+ */
+static int fd_read_pending_now(int fd) {
+    struct pollfd p;
+    int r;
+
+    if (fd == -1) return 0;
+
+    p.fd = fd;
+    p.events = POLLIN;
+    p.revents = 0;
+
+    do {
+        r = jail_poll(&p, 1, 0);
+    } while (r == -1 && errno == EINTR);
+
+    if (r <= 0) return 0;
+    return !!p.revents;
+}
+
+/*
  * run_tls_phase - forward bytes between the TLS engine, the network, and the child
  *
  * @flaguserreported: tracks whether the child already received the login string
@@ -940,6 +964,19 @@ static void run_tls_phase(int *flaguserreported) {
             !(st & tls_state_RECVAPP)) {
             fd_close_write(&childinfd);
             log_t1("tls phase propagated peer EOF to child");
+        }
+
+        /* Once the child closed stdout, no more child->peer plaintext can
+         * appear. If there is also no plaintext pending for child stdin and
+         * the peer socket has nothing readable right now, stop waiting for
+         * an idle peer and force the child half-close path to continue.
+         */
+        if (childoutfd == -1 &&
+            childinfd != -1 &&
+            !(st & tls_state_RECVAPP) &&
+            !fd_read_pending_now(peerinfd)) {
+            fd_close_write(&childinfd);
+            log_t1("tls phase closed child input after draining peer->child path");
         }
 
         /* Once TLS shutdown has been initiated and all pending records have
