@@ -625,34 +625,30 @@
   exit: 0 ok
   PASS
 
-=== delayed_socket_eof_before_exit ===
+=== delayed_socket_eof_after_child_exit ===
   peerin: b'request-before-eof' ok
   peerout: EOF ok
-  wrapper: still running ok
-  peerin: half-close ok
   exit: 0 ok
-  childlog: received=request-before-eof read_complete=True ok
+  childlog: received=request-before-eof saw_eof=yes ok
   PASS
 
-=== tls_only_socket_eof_before_exit ===
+=== tls_only_socket_eof_after_child_exit ===
   handshake: ok
   peerin: b'request-before-eof' ok
   peerout: EOF ok
-  wrapper: still running ok
   peerin: half-close ok
   exit: 0 ok
-  childlog: received=request-before-eof read_complete=True ok
+  childlog: received=request-before-eof saw_eof=yes ok
   PASS
 
-=== hybrid_socket_eof_before_exit ===
+=== hybrid_socket_eof_after_child_exit ===
   childout[plain]: b'220 ready for tls\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   peerout: EOF ok
-  wrapper: still running ok
   peerin: half-close ok
   exit: 0 ok
-  childlog: received=request-before-eof read_complete=True ok
+  childlog: received=request-before-eof saw_eof=yes ok
   PASS
 
 === tls_only_fast_shutdown ===
@@ -694,4 +690,24 @@
   childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
   PASS
 
-all 75 tests passed
+=== tls_only_child_closes_stdout_reads_forced ===
+  handshake: ok
+  childout: b'ready' ok
+  childout: closed by child (waiting 0.2s)
+  peerin: b'chunk-0chunk-1tail' ok
+  peerin: half-close ok
+  exit: 0 ok
+  childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
+  PASS
+
+=== hybrid_child_closes_stdout_reads_forced ===
+  childout[plain]: b'220 ready for tls\n' ok
+  handshake: ok
+  childout: closed by child (waiting 0.2s)
+  peerin: b'chunk-0chunk-1tail' ok
+  peerin: half-close ok
+  exit: 0 ok
+  childlog: chunk0=chunk-0 chunk1=chunk-1 chunk2=tail saw_eof=yes ok
+  PASS
+
+all 77 tests passed

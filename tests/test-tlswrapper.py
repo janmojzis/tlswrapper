@@ -35,7 +35,6 @@ SHORT_IDLE_TIMEOUT = 1
 SHORT_HANDSHAKE_TIMEOUT = 1
 TIMEOUT_TOLERANCE = 1.5
 CLEAN_SHUTDOWN_TOLERANCE = 0.8
-CHILD_EOF_WAIT_SECONDS = 2.0
 WORKSPACE = Path(__file__).resolve().parent
 LOGGER = logging.getLogger(__name__)
 WRAPPER_EXECUTABLE = WORKSPACE / "tlswrapper-test"
@@ -753,6 +752,28 @@ if log_path is not None:
 """
 
 
+def child_starttls_then_close_stdout_read_chunks(
+    chunk_sizes: list[int], pause: float = 0.05,
+) -> str:
+    return f"""import os, sys, time
+{_starttls_prefix()}
+os.close(sys.stdout.fileno())
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+chunks = []
+for size in {chunk_sizes!r}:
+    chunk = sys.stdin.buffer.read(size)
+    if not chunk: break
+    chunks.append(chunk.decode("utf-8", errors="replace"))
+    time.sleep({pause!r})
+rest = sys.stdin.buffer.read()
+if log_path is not None:
+    with open(log_path, "w") as f:
+        for i, c in enumerate(chunks):
+            f.write(f"chunk{{i}}={{c}}\\n")
+        f.write("saw_eof=yes\\n")
+"""
+
+
 def child_starttls_then_reply_then_half_close_then_read_exact(
     reply_chunks: list[bytes], read_size: int,
 ) -> str:
@@ -820,47 +841,6 @@ for chunk in {reply_chunks!r}:
     sys.stdout.buffer.write(chunk)
     sys.stdout.buffer.flush()
     time.sleep(0.01)
-"""
-
-
-def child_log_then_wait_after_read(read_size: int, wait_seconds: float) -> str:
-    return f"""import os, sys, time
-remaining = {read_size}
-chunks = []
-while remaining:
-    chunk = sys.stdin.buffer.read(remaining)
-    if not chunk: break
-    chunks.append(chunk)
-    remaining -= len(chunk)
-data = b"".join(chunks)
-os.close(sys.stdout.fileno())
-time.sleep({wait_seconds!r})
-log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
-if log_path is not None:
-    with open(log_path, "w") as f:
-        f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
-        f.write(f"read_complete={{remaining == 0}}\\n")
-"""
-
-
-def child_starttls_then_wait_after_read(read_size: int, wait_seconds: float) -> str:
-    return f"""import os, sys, time
-{_starttls_prefix()}
-remaining = {read_size}
-chunks = []
-while remaining:
-    chunk = sys.stdin.buffer.read(remaining)
-    if not chunk: break
-    chunks.append(chunk)
-    remaining -= len(chunk)
-data = b"".join(chunks)
-os.close(sys.stdout.fileno())
-time.sleep({wait_seconds!r})
-log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
-if log_path is not None:
-    with open(log_path, "w") as f:
-        f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
-        f.write(f"read_complete={{remaining == 0}}\\n")
 """
 
 
@@ -1404,32 +1384,28 @@ def _halfclose_log() -> list[str]:
     ]
 
 
-def test_delayed_socket_eof_before_exit() -> None:
+def test_delayed_socket_eof_after_child_exit() -> None:
     w = Wrapper()
     try:
         w.start(
-            child_log_then_wait_after_read(len(SMALL_REQUEST), CHILD_EOF_WAIT_SECONDS),
+            child_log_then_exit(len(SMALL_REQUEST)),
             delayed=True, socket_transport=True,
         )
         assert w.peer_socket is not None
         client = PlainSocketClient(w.peer_socket)
         client.write(SMALL_REQUEST)
         client.expect_eof(timeout=1.0)
-        step("wrapper: still running ok")
-        if w.proc is None or w.proc.poll() is not None:
-            raise TestFailure("wrapper exited before EOF check")
-        client.half_close()
         w.wait()
-        check_child_log(_halfclose_log())
+        check_child_log(_received_log(SMALL_REQUEST))
     finally:
         w.close()
 
 
-def test_tls_only_socket_eof_before_exit() -> None:
+def test_tls_only_socket_eof_after_child_exit() -> None:
     w = Wrapper()
     try:
         w.start(
-            child_log_then_wait_after_read(len(SMALL_REQUEST), CHILD_EOF_WAIT_SECONDS),
+            child_log_then_exit(len(SMALL_REQUEST)),
             socket_transport=True,
         )
         assert w.peer_socket is not None
@@ -1437,21 +1413,18 @@ def test_tls_only_socket_eof_before_exit() -> None:
         client.handshake()
         client.write(SMALL_REQUEST)
         client.expect_eof(timeout=1.0)
-        step("wrapper: still running ok")
-        if w.proc is None or w.proc.poll() is not None:
-            raise TestFailure("wrapper exited before EOF check")
         client.half_close()
         w.wait()
-        check_child_log(_halfclose_log())
+        check_child_log(_received_log(SMALL_REQUEST))
     finally:
         w.close()
 
 
-def test_hybrid_socket_eof_before_exit() -> None:
+def test_hybrid_socket_eof_after_child_exit() -> None:
     w = Wrapper()
     try:
         w.start(
-            child_starttls_then_wait_after_read(len(SMALL_REQUEST), CHILD_EOF_WAIT_SECONDS),
+            child_starttls_then_exit(len(SMALL_REQUEST)),
             delayed=True, socket_transport=True,
         )
         assert w.peer_socket is not None
@@ -1469,12 +1442,9 @@ def test_hybrid_socket_eof_before_exit() -> None:
         client.handshake()
         client.write(SMALL_REQUEST)
         client.expect_eof(timeout=1.0)
-        step("wrapper: still running ok")
-        if w.proc is None or w.proc.poll() is not None:
-            raise TestFailure("wrapper exited before EOF check")
         client.half_close()
         w.wait()
-        check_child_log(_halfclose_log())
+        check_child_log(_received_log(SMALL_REQUEST))
     finally:
         w.close()
 
@@ -1600,6 +1570,32 @@ def test_tls_only_child_closes_stdout_reads_forced() -> None:
         w.close()
 
 
+def test_hybrid_child_closes_stdout_reads_forced() -> None:
+    """Force child-stdout-EOF before client data across the STARTTLS boundary."""
+    w = Wrapper()
+    try:
+        pipes = w.start(
+            child_starttls_then_close_stdout_read_chunks([7, 7, 4]),
+            delayed=True,
+        )
+        assert pipes is not None
+        stdin, stdout = pipes
+        plain = PlainClient(stdin, stdout)
+        banner = plain.read_exact(len(STARTTLS_BANNER), label="childout[plain]")
+        if banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected STARTTLS banner, got {banner!r}")
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        step("childout: closed by child (waiting 0.2s)")
+        time.sleep(0.2)
+        client.write(b"chunk-0chunk-1tail")
+        client.half_close()
+        w.wait()
+        check_child_log(["chunk0=chunk-0", "chunk1=chunk-1", "chunk2=tail", "saw_eof=yes"])
+    finally:
+        w.close()
+
+
 # ---------------------------------------------------------------------------
 # Test registry and main
 # ---------------------------------------------------------------------------
@@ -1620,15 +1616,15 @@ for _ts in TIMEOUT_SCENARIOS:
         return test
     TESTS[_ts.name] = _make_t()
 
-TESTS["delayed_socket_eof_before_exit"] = test_delayed_socket_eof_before_exit
-TESTS["tls_only_socket_eof_before_exit"] = test_tls_only_socket_eof_before_exit
-TESTS["hybrid_socket_eof_before_exit"] = test_hybrid_socket_eof_before_exit
+TESTS["delayed_socket_eof_after_child_exit"] = test_delayed_socket_eof_after_child_exit
+TESTS["tls_only_socket_eof_after_child_exit"] = test_tls_only_socket_eof_after_child_exit
+TESTS["hybrid_socket_eof_after_child_exit"] = test_hybrid_socket_eof_after_child_exit
 TESTS["tls_only_fast_shutdown"] = test_tls_only_fast_shutdown
 TESTS["tls_only_child_eof_requires_close_notify"] = test_tls_only_child_eof_requires_close_notify
 TESTS["tls_only_large_reply_complete_before_clean_eof"] = test_tls_only_large_reply_complete_before_clean_eof
 TESTS["tls_only_peer_closes_read_child_reads"] = test_tls_only_peer_closes_read_child_reads
-# Temporarily disabled
-#TESTS["tls_only_child_closes_stdout_reads_forced"] = test_tls_only_child_closes_stdout_reads_forced
+TESTS["tls_only_child_closes_stdout_reads_forced"] = test_tls_only_child_closes_stdout_reads_forced
+TESTS["hybrid_child_closes_stdout_reads_forced"] = test_hybrid_child_closes_stdout_reads_forced
 
 
 def main() -> int:
