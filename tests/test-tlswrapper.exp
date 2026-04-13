@@ -680,6 +680,16 @@
   childlog: received=request-before-eof read_complete=True ok
   PASS
 
+=== tls_only_delayed_reply_after_peer_eof ===
+  handshake: ok
+  peerin: b'request-before-eof' ok
+  peerin: half-close ok
+  childout: b'reply-after-peer-eof\n' ok
+  childout: clean EOF ok
+  exit: 0 ok
+  childlog: received=request-before-eof read_complete=True ok
+  PASS
+
 === tls_only_peer_closes_read_child_reads ===
   handshake: ok
   childout: closed by child ok
@@ -707,6 +717,17 @@
   childlog: read_complete=True saw_eof=True sha256_ok=True ok
   PASS
 
+=== hybrid_delayed_reply_after_peer_eof ===
+  childout[plain]: b'220 ready for tls\n' ok
+  handshake: ok
+  peerin: b'request-before-eof' ok
+  peerin: half-close ok
+  childout: b'reply-after-peer-eof\n' ok
+  childout: clean EOF ok
+  exit: 0 ok
+  childlog: received=request-before-eof read_complete=True ok
+  PASS
+
 === hybrid_large_inflight_payload_survives_child_stdout_close ===
   childout[plain]: b'220 ready for tls\n' ok
   handshake: ok
@@ -725,4 +746,4 @@
   childlog: saw_eof=yes ok
   PASS
 
-all 79 tests passed
+all 81 tests passed

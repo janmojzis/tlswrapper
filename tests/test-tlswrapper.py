@@ -628,6 +628,33 @@ os.close(sys.stdout.fileno())
 """
 
 
+def child_reply_after_delay_then_half_close_then_read_exact(
+    reply_chunks: list[bytes], read_size: int, delay: float, starttls: bool = False,
+) -> str:
+    prefix = _starttls_prefix() if starttls else ""
+    return f"""import os, sys, time
+{prefix}remaining = {read_size}
+chunks = []
+while remaining:
+    chunk = sys.stdin.buffer.read(remaining)
+    if not chunk: break
+    chunks.append(chunk)
+    remaining -= len(chunk)
+data = b"".join(chunks)
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
+        f.write(f"read_complete={{remaining == 0}}\\n")
+time.sleep({delay!r})
+for chunk in {reply_chunks!r}:
+    sys.stdout.buffer.write(chunk)
+    sys.stdout.buffer.flush()
+    time.sleep(0.01)
+os.close(sys.stdout.fileno())
+"""
+
+
 def child_close_stdin_send_chunks(chunks: list[bytes], pause: float = 0.05) -> str:
     return f"""import os, sys, time
 os.close(sys.stdin.fileno())
@@ -1559,6 +1586,30 @@ def test_tls_only_large_reply_complete_before_clean_eof() -> None:
         w.close()
 
 
+def test_tls_only_delayed_reply_after_peer_eof() -> None:
+    w = Wrapper()
+    try:
+        pipes = w.start(
+            child_reply_after_delay_then_half_close_then_read_exact(
+                reply_chunks=[b"reply-after-peer-eof\n"],
+                read_size=len(SMALL_REQUEST),
+                delay=0.2,
+            )
+        )
+        assert pipes is not None
+        stdin, stdout = pipes
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        client.write(SMALL_REQUEST)
+        client.half_close()
+        client.expect_chunks([b"reply-after-peer-eof\n"], label="childout")
+        client.expect_clean_eof(label="childout")
+        w.wait()
+        check_child_log(_halfclose_log())
+    finally:
+        w.close()
+
+
 def test_tls_only_peer_closes_read_child_reads() -> None:
     w = Wrapper()
     try:
@@ -1716,6 +1767,36 @@ def test_hybrid_large_inflight_payload_survives_child_stdout_close() -> None:
         w.close()
 
 
+def test_hybrid_delayed_reply_after_peer_eof() -> None:
+    w = Wrapper()
+    try:
+        pipes = w.start(
+            child_reply_after_delay_then_half_close_then_read_exact(
+                reply_chunks=[b"reply-after-peer-eof\n"],
+                read_size=len(SMALL_REQUEST),
+                delay=0.2,
+                starttls=True,
+            ),
+            delayed=True,
+        )
+        assert pipes is not None
+        stdin, stdout = pipes
+        plain = PlainClient(stdin, stdout)
+        got_banner = plain.read_exact(len(STARTTLS_BANNER), label="childout[plain]")
+        if got_banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected banner {STARTTLS_BANNER!r}, got {got_banner!r}")
+        client = TlsClient(stdin, stdout)
+        client.handshake()
+        client.write(SMALL_REQUEST)
+        client.half_close()
+        client.expect_chunks([b"reply-after-peer-eof\n"], label="childout")
+        client.expect_clean_eof(label="childout")
+        w.wait()
+        check_child_log(_halfclose_log())
+    finally:
+        w.close()
+
+
 def test_hybrid_child_closes_stdout_idle_peer_finishes() -> None:
     """After child stdout EOF in STARTTLS mode, an idle peer should not block shutdown."""
     w = Wrapper()
@@ -1766,9 +1847,11 @@ TESTS["hybrid_socket_eof_after_child_exit"] = test_hybrid_socket_eof_after_child
 TESTS["tls_only_fast_shutdown"] = test_tls_only_fast_shutdown
 TESTS["tls_only_child_eof_requires_close_notify"] = test_tls_only_child_eof_requires_close_notify
 TESTS["tls_only_large_reply_complete_before_clean_eof"] = test_tls_only_large_reply_complete_before_clean_eof
+TESTS["tls_only_delayed_reply_after_peer_eof"] = test_tls_only_delayed_reply_after_peer_eof
 TESTS["tls_only_peer_closes_read_child_reads"] = test_tls_only_peer_closes_read_child_reads
 TESTS["tls_only_child_closes_stdout_idle_peer_finishes"] = test_tls_only_child_closes_stdout_idle_peer_finishes
 TESTS["tls_only_large_inflight_payload_survives_child_stdout_close"] = test_tls_only_large_inflight_payload_survives_child_stdout_close
+TESTS["hybrid_delayed_reply_after_peer_eof"] = test_hybrid_delayed_reply_after_peer_eof
 TESTS["hybrid_large_inflight_payload_survives_child_stdout_close"] = test_hybrid_large_inflight_payload_survives_child_stdout_close
 TESTS["hybrid_child_closes_stdout_idle_peer_finishes"] = test_hybrid_child_closes_stdout_idle_peer_finishes
 
