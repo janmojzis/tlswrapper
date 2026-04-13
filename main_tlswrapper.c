@@ -104,16 +104,20 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
  * @ucontext: unused signal frame context
  *
  * Encodes signal intent into the self-pipe so the relay loops can react in
- * normal process context. 'C' means SIGCHLD for the wrapped child; '\0'
- * means loop termination for everything else.
+ * normal process context. 'C' means SIGCHLD for the wrapped child, 'A'
+ * means SIGALRM, and '\0' means loop termination for everything else,
+ * including SIGCHLD from helper processes such as keyjail.
  */
 static void signalhandler(int signum, siginfo_t *si, void *ucontext) {
     char ch = 0;
     int w;
 
     (void) ucontext;
-    if (signum == SIGCHLD) {
-        if (si && si->si_pid == child) ch = 'C';
+    if (signum == SIGCHLD && si && si->si_pid == child) {
+        ch = 'C';
+    }
+    if (signum == SIGALRM) {
+        ch = 'A';
     }
     w = write(selfpipe[1], &ch, 1);
     (void) w;
@@ -124,9 +128,6 @@ static void signalhandler(int signum, siginfo_t *si, void *ucontext) {
  *
  * Returns 1 when the caller should terminate the current relay loop and 0
  * when execution may continue.
- *
- * A queued 'C' means SIGCHLD for the wrapped child: close child input and arm
- * the finish timeout. A queued '\0' means terminate the current relay loop.
  */
 static int handle_selfpipe_event(void) {
     char ch;
@@ -138,19 +139,35 @@ static int handle_selfpipe_event(void) {
     if (r <= 0) return 1;
 
     if (ch == 'C') {
-        /* Do not close childout/childctl here: after SIGCHLD the child is
-         * gone, but its pipes can still hold buffered data that should be
-         * drained until EOF. Closing childin is correct, because once SIGCHLD
-         * arrives we no longer have a reliable chance to deliver any further
-         * input to the wrapped child. Arm a short finish timeout so the relay
-         * loop can drain remaining output but does not stay around forever.
+        /* Close childin, because after child exit we can no longer
+         * reliably deliver more input to it.
          */
-        fd_close_write(&childinfd);
         log_t1("SIGCHLD received, closed child input");
-        alarm(finishtimeout);
-        return 0;
+        fd_close_write(&childinfd);
+        goto finish;
     }
+
+    if (ch == 'A') {
+        if (childinfd != -1 || childoutfd != -1 || childctlfd != -1) {
+            /* Close the remaining child filedescriptors and stop waiting
+             * for more child-side I/O.
+             */
+            log_t1("SIGALRM received, closed child filedescriptors");
+            fd_close_write(&childinfd);
+            fd_close_read(&childoutfd);
+            fd_close_read(&childctlfd);
+            goto finish;
+        }
+    }
+
     return 1;
+
+finish:
+    /* Arm a short finish timeout so the loop can drain any remaining
+     * child output without waiting indefinitely.
+     */
+    alarm(finishtimeout);
+    return 0;
 }
 
 /*
@@ -732,9 +749,9 @@ static int run_cleartext_phase(void) {
             ++q;
         }
 
-        /* Signal pipe: always monitored for wrapped-child SIGCHLD and loop
-           termination wakeups. 'C' means wrapped-child SIGCHLD; '\0' means
-           terminate the relay loop. */
+        /* Signal pipe: always monitored for wakeups from signalhandler().
+           'C' means wrapped-child SIGCHLD, 'A' means SIGALRM, and '\0'
+           means terminate the relay loop. */
         watchfromselfpipe = q;
         q->fd = selfpipe[0];
         q->events = POLLIN;
@@ -880,8 +897,8 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
-        /* Signal pipe: queued 'C' for wrapped-child SIGCHLD or '\0' for loop
-           termination. */
+        /* Signal pipe: queued 'C' for wrapped-child SIGCHLD, 'A' for
+           SIGALRM, or '\0' for loop termination. */
         if (watchfromselfpipe) {
             if (!handle_selfpipe_event()) continue;
             log_d1("signal received, cleartext phase interrupted");
