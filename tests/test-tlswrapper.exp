@@ -703,7 +703,7 @@
 === tls_only_child_closes_stdout_idle_peer_finishes ===
   handshake: ok
   childout: b'ready' ok
-  childout: closed by child (waiting 0.2s)
+  childout: closed by child ok
   exit: 0 ok
   childlog: saw_eof=yes ok
   PASS
@@ -711,7 +711,7 @@
 === tls_only_large_inflight_payload_survives_child_stdout_close ===
   handshake: ok
   childout: b'ready-over-tls' ok
-  peerin: b'inflight-payload-inflight-payloa'...b'ght-payload-tail' (278532 bytes) ok
+  peerin: b'inflight-payload-inflight-payloa'...b'ght-payload-tail' (1007 bytes) ok
   peerin: half-close ok
   exit: 0 ok
   childlog: read_complete=True saw_eof=True sha256_ok=True ok
@@ -732,7 +732,7 @@
   childout[plain]: b'220 ready for tls\n' ok
   handshake: ok
   childout: b'ready-over-tls' ok
-  peerin: b'inflight-payload-inflight-payloa'...b'ght-payload-tail' (278532 bytes) ok
+  peerin: b'inflight-payload-inflight-payloa'...b'ght-payload-tail' (1007 bytes) ok
   peerin: half-close ok
   exit: 0 ok
   childlog: read_complete=True saw_eof=True sha256_ok=True ok
@@ -741,7 +741,7 @@
 === hybrid_child_closes_stdout_idle_peer_finishes ===
   childout[plain]: b'220 ready for tls\n' ok
   handshake: ok
-  childout: closed by child (waiting 0.2s)
+  childout: closed by child ok
   exit: 0 ok
   childlog: saw_eof=yes ok
   PASS

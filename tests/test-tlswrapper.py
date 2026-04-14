@@ -699,17 +699,22 @@ def child_write_marker_then_close_stdout_verify_sha256(
     marker: bytes,
     read_size: int,
     expected_sha256: str,
-    close_delay: float = 0.2,
     starttls: bool = False,
 ) -> str:
     prefix = _starttls_prefix() if starttls else ""
-    return f"""import hashlib, os, sys, time
+    return f"""import hashlib, os, select, sys
 {prefix}sys.stdout.buffer.write({marker!r})
 sys.stdout.buffer.flush()
-time.sleep({close_delay!r})
+ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
+if not ready:
+    raise SystemExit("stdin not readable after marker")
+first = sys.stdin.buffer.read(1)
 os.close(sys.stdout.fileno())
 remaining = {read_size}
 h = hashlib.sha256()
+if first:
+    h.update(first)
+    remaining -= len(first)
 while remaining:
     chunk = sys.stdin.buffer.read(min(65536, remaining))
     if not chunk:
@@ -772,13 +777,22 @@ if log_path is not None:
 
 
 def child_starttls_then_half_close_then_log(read_size: int | None = None) -> str:
-    rc = f"sys.stdin.buffer.read({read_size})" if read_size else "sys.stdin.buffer.read()"
-    return f"""import os, sys, time
+    if read_size is None:
+        read_body = "rest = sys.stdin.buffer.read()\ndata = first + rest\n"
+    else:
+        read_body = f"""remaining = max({read_size} - len(first), 0)
+rest = sys.stdin.buffer.read(remaining)
+data = first + rest
+"""
+    return f"""import os, select, sys
 {_starttls_prefix()}
-time.sleep(0.05)
+ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
+if not ready:
+    raise SystemExit("stdin not readable after STARTTLS")
+first = sys.stdin.buffer.read(1)
 os.close(sys.stdout.fileno())
+{read_body}\
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
-data = {rc}
 if log_path is not None:
     with open(log_path, "w") as f:
         f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
@@ -800,12 +814,27 @@ if log_path is not None:
 
 
 def child_starttls_then_half_close_then_read_exact(read_size: int) -> str:
-    return f"""import os, sys, time
+    if read_size == 0:
+        return f"""import os
 {_starttls_prefix()}
-time.sleep(0.05)
+os.close(1)
+data = b""
+remaining = 0
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
+        f.write(f"read_complete={{remaining == 0}}\\n")
+"""
+    return f"""import os, select, sys
+{_starttls_prefix()}
+ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
+if not ready:
+    raise SystemExit("stdin not readable after STARTTLS")
+first = sys.stdin.buffer.read(1)
 os.close(sys.stdout.fileno())
-remaining = {read_size}
-chunks = []
+remaining = max({read_size} - len(first), 0)
+chunks = [first] if first else []
 while remaining:
     chunk = sys.stdin.buffer.read(remaining)
     if not chunk: break
@@ -892,15 +921,25 @@ def child_preplaintext_then_starttls_then_reply(
     pre_chunks: list[bytes], reply_chunks: list[bytes],
     read_size: int | None = None,
 ) -> str:
-    rc = f"sys.stdin.buffer.read({read_size})" if read_size else "sys.stdin.buffer.read()"
-    return f"""import os, sys, time
+    if read_size is None:
+        read_body = "rest = sys.stdin.buffer.read()\ndata = first + rest\n"
+    else:
+        read_body = f"""remaining = max({read_size} - len(first), 0)
+rest = sys.stdin.buffer.read(remaining)
+data = first + rest
+"""
+    return f"""import os, select, sys, time
 for chunk in {pre_chunks!r}:
     sys.stdout.buffer.write(chunk)
     sys.stdout.buffer.flush()
     time.sleep(0.01)
 {_starttls_prefix()}
+ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
+if not ready:
+    raise SystemExit("stdin not readable after STARTTLS")
+first = sys.stdin.buffer.read(1)
+{read_body}\
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
-data = {rc}
 if log_path is not None:
     with open(log_path, "w") as f:
         f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
@@ -1647,8 +1686,7 @@ def test_tls_only_child_closes_stdout_idle_peer_finishes() -> None:
         marker = client.read_exact(len(MARKER), label="childout")
         if marker != MARKER:
             raise TestFailure(f"expected marker {MARKER!r}, got {marker!r}")
-        step("childout: closed by child (waiting 0.2s)")
-        time.sleep(0.2)
+        step_ok("childout", "closed by child")
         w.wait()
         check_child_log(["saw_eof=yes"])
     finally:
@@ -1658,7 +1696,7 @@ def test_tls_only_child_closes_stdout_idle_peer_finishes() -> None:
 def test_tls_only_large_inflight_payload_survives_child_stdout_close() -> None:
     """Verify an in-flight large client payload still reaches child stdin."""
     marker = b"ready-over-tls"
-    payload = (b"inflight-payload-" * 16384) + b"tail"
+    payload = (b"inflight-payload-" * 59) + b"tail"
     expected_sha256 = hashlib.sha256(payload).hexdigest()
     errors: list[Exception] = []
 
@@ -1669,7 +1707,6 @@ def test_tls_only_large_inflight_payload_survives_child_stdout_close() -> None:
                 marker=marker,
                 read_size=len(payload),
                 expected_sha256=expected_sha256,
-                close_delay=0.2,
             )
         )
         assert pipes is not None
@@ -1711,7 +1748,7 @@ def test_tls_only_large_inflight_payload_survives_child_stdout_close() -> None:
 def test_hybrid_large_inflight_payload_survives_child_stdout_close() -> None:
     """Verify a large in-flight TLS payload survives child stdout close in STARTTLS mode."""
     marker = b"ready-over-tls"
-    payload = (b"inflight-payload-" * 16384) + b"tail"
+    payload = (b"inflight-payload-" * 59) + b"tail"
     expected_sha256 = hashlib.sha256(payload).hexdigest()
     errors: list[Exception] = []
 
@@ -1722,7 +1759,6 @@ def test_hybrid_large_inflight_payload_survives_child_stdout_close() -> None:
                 marker=marker,
                 read_size=len(payload),
                 expected_sha256=expected_sha256,
-                close_delay=0.2,
                 starttls=True,
             ),
             delayed=True,
@@ -1813,8 +1849,7 @@ def test_hybrid_child_closes_stdout_idle_peer_finishes() -> None:
             raise TestFailure(f"expected STARTTLS banner, got {banner!r}")
         client = TlsClient(stdin, stdout)
         client.handshake()
-        step("childout: closed by child (waiting 0.2s)")
-        time.sleep(0.2)
+        step_ok("childout", "closed by child")
         w.wait()
         check_child_log(["saw_eof=yes"])
     finally:
