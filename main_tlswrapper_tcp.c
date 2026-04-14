@@ -379,11 +379,11 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         struct pollfd *watchfromselfpipe;
 
         if (localinfd == -1 && remoteoutfd != -1 && inbuflen == 0) {
-            fd_close_write(&remoteoutfd);
+            fd_close_write("remoteoutfd", &remoteoutfd);
             log_t1("stdin closed, propagated EOF to remote");
         }
         if (remoteinfd == -1 && localoutfd != -1 && outbuflen == 0) {
-            fd_close_write(&localoutfd);
+            fd_close_write("localoutfd", &localoutfd);
             log_t1("remote closed, propagated EOF to stdout");
         }
         if (localinfd == -1 && remoteinfd == -1 && remoteoutfd == -1 &&
@@ -434,11 +434,10 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
 
         if (watchtoremote) {
             if (inbuflen > 0) {
-                r = write(remoteoutfd, inbuf, inbuflen);
-                if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+                r = fd_write("remoteoutfd", remoteoutfd, inbuf, inbuflen);
+                if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
                 if (r <= 0) {
-                    fd_close_write(&remoteoutfd);
-                    log_d5("write to ", hoststr, ":", portstr, " failed" );
+                    fd_close_write("remoteoutfd", &remoteoutfd);
                     break;
                 }
                 memmove(inbuf, inbuf + r, inbuflen - r);
@@ -448,11 +447,10 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         }
 
         if (watch1) {
-            r = write(localoutfd, outbuf, outbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            r = fd_write("localoutfd", localoutfd, outbuf, outbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
             if (r <= 0) {
-                fd_close_write(&localoutfd);
-                log_d1("write to standard output failed");
+                fd_close_write("localoutfd", &localoutfd);
                 break;
             }
             memmove(outbuf, outbuf + r, outbuflen - r);
@@ -461,12 +459,11 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         }
 
         if (watch0) {
-            r = read(localinfd, inbuf + inbuflen, sizeof inbuf - inbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            r = fd_read("localinfd", localinfd, inbuf + inbuflen,
+                        sizeof inbuf - inbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
             if (r <= 0) {
-                if (r < 0) log_d1("read from standard input failed");
-                if (r == 0) log_t1("read from standard input failed, connection closed");
-                fd_close_read(&localinfd);
+                fd_close_read("localinfd", &localinfd);
                 continue;
             }
             inbuflen += r;
@@ -475,12 +472,11 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         }
 
         if (watchfromremote) {
-            r = read(remoteinfd, outbuf + outbuflen, sizeof outbuf - outbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            r = fd_read("remoteinfd", remoteinfd, outbuf + outbuflen,
+                        sizeof outbuf - outbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
             if (r <= 0) {
-                if (r < 0) log_d5("read from ", hoststr, ":", portstr, " failed" );
-                if (r == 0) log_t5("read from ", hoststr, ":", portstr, " failed, connection closed" );
-                fd_close_read(&remoteinfd);
+                fd_close_read("remoteinfd", &remoteinfd);
                 continue;
             }
             outbuflen += r;
@@ -495,8 +491,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         }
     }
 
-    fd_close_read(&remoteinfd);
-    fd_close_write(&remoteoutfd);
+    fd_close_read("remoteinfd", &remoteinfd);
+    fd_close_write("remoteoutfd", &remoteoutfd);
     log_d1("finished");
     die(0);
 }
