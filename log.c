@@ -503,7 +503,7 @@ void log_9_(int level, int flagerror, const char *f, unsigned long long l,
         if (!flagspace) outs(" ");
         flagspace = 1;
         outs("(");
-        outs(e_str(saved_errno));
+        outs(log_errno(saved_errno));
         outs(")");
     } while (0);
 
@@ -595,6 +595,9 @@ char *log_str(const void *sv) {
     x[i] = 0;
     return x;
 }
+
+/* log_errno - Return a stable log string for an errno value. */
+const char *log_errno(int err) { return e_str(err); }
 
 /*
  * log_ip - Format a 16-byte IP address for logging.
