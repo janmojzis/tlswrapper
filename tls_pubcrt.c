@@ -59,6 +59,7 @@ static void append(void *xv, const void *buf, size_t buflen) {
 
     stralloc s;
     struct sa *x = (struct sa *) xv;
+    if (x->error) return;
     s.s = (char *) x->s;
     s.len = x->len;
     s.alloc = x->alloc;
