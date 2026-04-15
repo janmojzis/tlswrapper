@@ -28,6 +28,7 @@ int stralloc_readyplus(stralloc *r, long long len) {
 
     char *newdata;
     long long i;
+    long long newalloc;
 
     if (!r || len < 0) {
         errno = EINVAL;
@@ -36,14 +37,16 @@ int stralloc_readyplus(stralloc *r, long long len) {
     if (len == 0) return 1;
 
     if (r->len + len + 1 > r->alloc) {
-        while (r->len + len + 1 > r->alloc) r->alloc = 2 * r->alloc + 32;
-        newdata = alloc(r->alloc);
+        newalloc = r->alloc;
+        while (r->len + len + 1 > newalloc) newalloc = 2 * newalloc + 32;
+        newdata = alloc(newalloc);
         if (!newdata) return 0;
         if (r->s) {
             for (i = 0; i < r->len; ++i) newdata[i] = r->s[i];
             alloc_free(r->s);
         }
         r->s = newdata;
+        r->alloc = newalloc;
     }
     return 1;
 }
