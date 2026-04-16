@@ -188,8 +188,7 @@ void *alloc(long long norig) {
     if ((unsigned long long) allocated + (unsigned long long) norig >
         alloc_MAX) {
         errno = ENOMEM;
-        log_e5("alloc(", log_num(norig),
-               ") ... failed, allocation limit ",
+        log_e5("alloc(", log_num(norig), ") ... failed, allocation limit ",
                log_num((long long) alloc_MAX), "B reached");
         return (void *) 0;
     }
