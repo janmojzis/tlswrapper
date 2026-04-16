@@ -29,8 +29,6 @@
 #include "alloc.h"
 #include "main.h"
 
-/* clang-format off */
-
 static struct context {
     const char *account;
     const char *empty_dir;
@@ -61,7 +59,6 @@ static unsigned char localport[2] = {0};
 static unsigned char remoteip[16] = {0};
 static unsigned char remoteport[2] = {0};
 static char remoteipstr[IPTOSTR_LEN] = {0};
-
 
 static int flagverbose = 1;
 
@@ -107,12 +104,12 @@ static void cleanup(void) {
     } while (0)
 #define die_ppout(x)                                                           \
     do {                                                                       \
-        log_f3("unable to create outgoing proxy-protocol v", (x), " string"); \
+        log_f3("unable to create outgoing proxy-protocol v", (x), " string");  \
         die(100);                                                              \
     } while (0)
 #define die_ppin(x)                                                            \
     do {                                                                       \
-        log_f3("unable to receive incoming proxy-protocol v", (x), " string");\
+        log_f3("unable to receive incoming proxy-protocol v", (x), " string"); \
         die(100);                                                              \
     } while (0)
 /*
@@ -124,9 +121,11 @@ static void __attribute__((noreturn)) usage(void) {
 }
 
 /* proxy-protocol */
-static long long (*ppout)(char *, long long, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static long long (*ppout)(char *, long long, unsigned char *, unsigned char *,
+                          unsigned char *, unsigned char *) = 0;
 static const char *ppoutver = 0;
-static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *, unsigned char *) = 0;
+static int (*ppin)(int, unsigned char *, unsigned char *, unsigned char *,
+                   unsigned char *) = 0;
 static const char *ppinver = 0;
 
 /*
@@ -145,7 +144,9 @@ static void pp_incoming(const char *x) {
         ppinver = x;
     }
     else {
-        log_f3("unable to parse incoming proxy-protocol version from the string '", x, "'");
+        log_f3(
+            "unable to parse incoming proxy-protocol version from the string '",
+            x, "'");
         log_f1("available: 1");
         die(100);
     }
@@ -166,7 +167,9 @@ static void pp_outgoing(const char *x) {
         ppoutver = x;
     }
     else {
-        log_f3("unable to parse outgoing proxy-protocol version from the string '", x, "'");
+        log_f3(
+            "unable to parse outgoing proxy-protocol version from the string '",
+            x, "'");
         log_f1("available: 1");
         die(100);
     }
@@ -183,12 +186,12 @@ static void pp_outgoing(const char *x) {
 static long long timeout_parse(const char *x) {
     long long ret;
     if (!parsenum(&ret, 1, 86400, x)) {
-        log_f3("unable to parse timeout from the string '", x, "', timeout must be a number in the range <1,86400>");
+        log_f3("unable to parse timeout from the string '", x,
+               "', timeout must be a number in the range <1,86400>");
         die(100);
     }
     return ret;
 }
-
 
 static int selfpipe[2] = {-1, -1};
 
@@ -235,6 +238,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     log_set_name("tlswrapper-tcp");
     log_set_id(0);
 
+    /* clang-format off */
     (void) argc;
     if (!argv[0]) usage();
     for (;;) {
@@ -277,11 +281,15 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             usage();
         }
     }
+    /* clang-format on */
+
     hoststr = *++argv;
     if (!hoststr) usage();
     portstr = *++argv;
     if (!strtoport(port, portstr)) {
-        log_f3("unable to parse TCP port (a number 0 - 65535) from the string '", portstr, "'");
+        log_f3(
+            "unable to parse TCP port (a number 0 - 65535) from the string '",
+            portstr, "'");
         die(100);
     }
     timeout = timeout_parse(timeoutstr);
@@ -294,9 +302,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     }
 
     /* Resolve all candidate addresses before entering the jail. */
-    if (flagnojail) {
-        iplen = resolvehost(ip, sizeof ip, hoststr);
-    }
+    if (flagnojail) { iplen = resolvehost(ip, sizeof ip, hoststr); }
     else {
         if (!resolvehost_init()) {
             log_f1("unable to create jailed process for DNS resolver");
@@ -305,16 +311,15 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         iplen = resolvehost_do(ip, sizeof ip, hoststr);
     }
     if (iplen < 0) {
-        log_f5("unable to resolve host '", hoststr, "' or port '", portstr, "'");
+        log_f5("unable to resolve host '", hoststr, "' or port '", portstr,
+               "'");
         die(111);
     }
     if (iplen == 0) {
         log_f3("unable to resolve host '", hoststr, "': name not exist");
         die(111);
     }
-    for (i = 0; i < iplen; i += 16) {
-        log_d3(hoststr, ": ", log_ip(ip + i));
-    }
+    for (i = 0; i < iplen; i += 16) { log_d3(hoststr, ": ", log_ip(ip + i)); }
     resolvehost_close();
 
     /* Create the self-pipe used to interrupt the forwarding loop on signals. */
@@ -354,7 +359,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
 
     /* Prepend the outgoing PROXY header to the first bytes sent upstream. */
     if (ppout) {
-        inbuflen = ppout((char *)inbuf, sizeof outbuf, localip, localport, remoteip, remoteport);
+        inbuflen = ppout((char *) inbuf, sizeof outbuf, localip, localport,
+                         remoteip, remoteport);
         if (inbuflen <= 0) die_ppout(ppoutver);
         log_t4("prepared outgoing proxy-protocol header version=", ppoutver,
                ", len=", log_num(inbuflen));
@@ -392,7 +398,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             break;
         }
 
-        watch0 = watch1 = watchfromremote = watchtoremote = watchfromselfpipe = 0;
+        watch0 = watch1 = watchfromremote = watchtoremote = watchfromselfpipe =
+            0;
         q = p;
 
         if (localinfd != -1 && remoteoutfd != -1 && sizeof inbuf > inbuflen) {
@@ -419,23 +426,33 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
             q->events = POLLIN;
             ++q;
         }
-        watchfromselfpipe = q; q->fd = selfpipe[0]; q->events = POLLIN; ++q;
+        watchfromselfpipe = q;
+        q->fd = selfpipe[0];
+        q->events = POLLIN;
+        ++q;
 
         if (jail_poll(p, q - p, -1) < 0) {
-            watch0 = watch1 = watchfromremote = watchtoremote = watchfromselfpipe =  0;
+            watch0 = watch1 = watchfromremote = watchtoremote =
+                watchfromselfpipe = 0;
         }
         else {
-            if (watch1) if (!watch1->revents) watch1 = 0;
-            if (watch0) if (!watch0->revents) watch0 = 0;
-            if (watchtoremote) if (!watchtoremote->revents) watchtoremote = 0;
-            if (watchfromremote) if (!watchfromremote->revents) watchfromremote = 0;
-            if (watchfromselfpipe) if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
+            if (watch1)
+                if (!watch1->revents) watch1 = 0;
+            if (watch0)
+                if (!watch0->revents) watch0 = 0;
+            if (watchtoremote)
+                if (!watchtoremote->revents) watchtoremote = 0;
+            if (watchfromremote)
+                if (!watchfromremote->revents) watchfromremote = 0;
+            if (watchfromselfpipe)
+                if (!watchfromselfpipe->revents) watchfromselfpipe = 0;
         }
 
         if (watchtoremote) {
             if (inbuflen > 0) {
                 r = fd_write("remoteoutfd", remoteoutfd, inbuf, inbuflen);
-                if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
+                if (r == -1)
+                    if (errno == EINTR || errno == EAGAIN) continue;
                 if (r <= 0) {
                     fd_close_write("remoteoutfd", &remoteoutfd);
                     break;
@@ -448,7 +465,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
 
         if (watch1) {
             r = fd_write("localoutfd", localoutfd, outbuf, outbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
+            if (r == -1)
+                if (errno == EINTR || errno == EAGAIN) continue;
             if (r <= 0) {
                 fd_close_write("localoutfd", &localoutfd);
                 break;
@@ -461,7 +479,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         if (watch0) {
             r = fd_read("localinfd", localinfd, inbuf + inbuflen,
                         sizeof inbuf - inbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
+            if (r == -1)
+                if (errno == EINTR || errno == EAGAIN) continue;
             if (r <= 0) {
                 fd_close_read("localinfd", &localinfd);
                 continue;
@@ -474,7 +493,8 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
         if (watchfromremote) {
             r = fd_read("remoteinfd", remoteinfd, outbuf + outbuflen,
                         sizeof outbuf - outbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
+            if (r == -1)
+                if (errno == EINTR || errno == EAGAIN) continue;
             if (r <= 0) {
                 fd_close_read("remoteinfd", &remoteinfd);
                 continue;
@@ -496,5 +516,3 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     log_d1("finished");
     die(0);
 }
-
-/* clang-format on */
