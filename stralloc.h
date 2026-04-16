@@ -1,6 +1,8 @@
 #ifndef STRALLOC_H____
 #define STRALLOC_H____
 
+#define stralloc_VERSION "20260416"
+
 typedef struct stralloc {
     char *s;
     long long len;

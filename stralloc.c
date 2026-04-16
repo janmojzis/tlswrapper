@@ -39,7 +39,7 @@ int stralloc_readyplus(stralloc *r, long long len) {
     if (r->len + len + 1 > r->alloc) {
         newalloc = r->alloc;
         while (r->len + len + 1 > newalloc) newalloc = 2 * newalloc + 32;
-        newdata = alloc(newalloc);
+        newdata = (char *) alloc(newalloc);
         if (!newdata) return 0;
         if (r->s) {
             for (i = 0; i < r->len; ++i) newdata[i] = r->s[i];
@@ -68,7 +68,7 @@ int stralloc_readyplus(stralloc *r, long long len) {
  */
 int stralloc_catb(stralloc *r, const void *xv, long long xlen) {
 
-    const char *x = xv;
+    const char *x = (const char *) xv;
     long long i;
 
     if (!r || !xv || xlen < 0) {
@@ -95,7 +95,7 @@ int stralloc_catb(stralloc *r, const void *xv, long long xlen) {
  */
 int stralloc_cats(stralloc *r, const void *xv) {
 
-    const char *x = xv;
+    const char *x = (const char *) xv;
     long long xlen;
 
     if (!r || !xv) {
@@ -280,7 +280,7 @@ int stralloc_catnum0(stralloc *sa, long long l, long long n) {
         if (!stralloc_append(sa, "-")) return 0;
         l = -l;
     }
-    return stralloc_catunum0(sa, l, n);
+    return stralloc_catunum0(sa, (unsigned long long) l, n);
 }
 
 /*
