@@ -39,8 +39,6 @@
 #include "alloc.h"
 #include "main.h"
 
-/* clang-format off */
-
 static const char *jailaccount = 0;
 static const char *jaildir = EMPTYDIR;
 static const char *user = 0;
@@ -98,9 +96,7 @@ static void __attribute__((noreturn)) die(int x) {
     /* wait for child */
     close(fromchild[0]);
     close(tochild[1]);
-    do {
-        r = waitpid(child, &status, 0);
-    } while (r == -1 && errno == EINTR);
+    do { r = waitpid(child, &status, 0); } while (r == -1 && errno == EINTR);
     errno = 0;
     if (!WIFEXITED(status)) {
         log_f2("child process killed by signal ", log_num(WTERMSIG(status)));
@@ -137,7 +133,7 @@ static void __attribute__((noreturn)) die(int x) {
     } while (0)
 #define die_droppriv(x)                                                        \
     do {                                                                       \
-        log_f3("unable to drop privileges to '", (x), "'");                   \
+        log_f3("unable to drop privileges to '", (x), "'");                    \
         die(111);                                                              \
     } while (0)
 
@@ -171,7 +167,8 @@ static long long crwtimeout;
 static long long timeout_parse(const char *x) {
     long long ret;
     if (!parsenum(&ret, 1, 86400, x)) {
-        log_f3("unable to parse timeout from the string '", x, "', timeout must be a number in the range <1,86400>");
+        log_f3("unable to parse timeout from the string '", x,
+               "', timeout must be a number in the range <1,86400>");
         die(100);
     }
     return ret;
@@ -186,7 +183,6 @@ static void signalhandler(int signum) {
     (void) signum;
     /* die(111); */
     _exit(111);
-
 }
 
 /*
@@ -301,7 +297,6 @@ static void smtp_line_append(stralloc *sa, char ch, const char *what) {
     if (!stralloc_append(sa, &ch)) die_nomem();
 }
 
-
 static stralloc greylistresp = {0};
 static const char *greylistmsg = 0;
 static char *greylisthostport = 0;
@@ -330,9 +325,7 @@ static long long _gwrite(int fd, void *xv, long long xlen) {
             log_f3("write to '", greylisthostport, "' failed");
             die(111);
         }
-        else {
-            log_w3("write to '", greylisthostport, "' failed");
-        }
+        else { log_w3("write to '", greylisthostport, "' failed"); }
     }
     return w;
 }
@@ -355,9 +348,7 @@ static long long _gread(int fd, void *xv, long long xlen) {
             log_f3("read from '", greylisthostport, "' failed");
             die(111);
         }
-        else {
-            log_w3("read from '", greylisthostport, "' failed");
-        }
+        else { log_w3("read from '", greylisthostport, "' failed"); }
     }
     return r;
 }
@@ -386,7 +377,7 @@ static const char *greylist(void) {
     if (buffer_puts(&gssin, "\nrecipient=") == -1) return 0;
     if (buffer_puts(&gssin, rcptto.s) == -1) return 0;
     if (buffer_puts(&gssin, "\n\n") == -1) return 0;
-    if (buffer_flush(&gssin)== -1) return 0;
+    if (buffer_flush(&gssin) == -1) return 0;
 
     buffer_init(&gssin, _gread, greylistfd, greylistbuf, sizeof greylistbuf);
 
@@ -401,9 +392,7 @@ static const char *greylist(void) {
     if (!stralloc_0(&greylistresp)) die_nomem();
     log_t2("greylist: ", greylistresp.s);
     if (greylistresp.len >= 12) {
-        if (!case_diffb(greylistresp.s, 12, "action=dunno")) {
-            return 0;
-        }
+        if (!case_diffb(greylistresp.s, 12, "action=dunno")) { return 0; }
     }
     if (greylistresp.len >= 13) {
         if (!case_diffb(greylistresp.s, 13, "action=reject")) {
@@ -429,35 +418,36 @@ static long long smtpline(const char *append, int addlogid) {
 
     if (!stralloc_copys(&cline, "")) die_nomem();
 
-    buffer_GETC(&sscin, (char *)&ch); code = ch - '0';
+    buffer_GETC(&sscin, (char *) &ch);
+    code = ch - '0';
     smtp_line_append(&cline, ch, "child SMTP reply");
-    buffer_GETC(&sscin, (char *)&ch); code = code * 10 + (ch - '0');
+    buffer_GETC(&sscin, (char *) &ch);
+    code = code * 10 + (ch - '0');
     smtp_line_append(&cline, ch, "child SMTP reply");
-    buffer_GETC(&sscin, (char *)&ch); code = code * 10 + (ch - '0');
+    buffer_GETC(&sscin, (char *) &ch);
+    code = code * 10 + (ch - '0');
     smtp_line_append(&cline, ch, "child SMTP reply");
 
     for (;;) {
-        buffer_GETC(&sscin, (char *)&ch);
+        buffer_GETC(&sscin, (char *) &ch);
         if (append && code == 250 && ch == ' ') {
             smtp_line_append(&cline, '-', "child SMTP reply");
         }
-        else {
-            smtp_line_append(&cline, ch, "child SMTP reply");
-        }
+        else { smtp_line_append(&cline, ch, "child SMTP reply"); }
         if (ch != '-') break;
         while (ch != '\n') {
-            buffer_GETC(&sscin, (char *)&ch);
+            buffer_GETC(&sscin, (char *) &ch);
             smtp_line_append(&cline, ch, "child SMTP reply");
         }
-        buffer_GETC(&sscin, (char *)&ch);
+        buffer_GETC(&sscin, (char *) &ch);
         smtp_line_append(&cline, ch, "child SMTP reply");
-        buffer_GETC(&sscin, (char *)&ch);
+        buffer_GETC(&sscin, (char *) &ch);
         smtp_line_append(&cline, ch, "child SMTP reply");
-        buffer_GETC(&sscin, (char *)&ch);
+        buffer_GETC(&sscin, (char *) &ch);
         smtp_line_append(&cline, ch, "child SMTP reply");
     }
     while (ch != '\n') {
-        buffer_GETC(&sscin, (char *)&ch);
+        buffer_GETC(&sscin, (char *) &ch);
         smtp_line_append(&cline, ch, "child SMTP reply");
     }
     if (append && code == 250) {
@@ -473,8 +463,10 @@ static long long smtpline(const char *append, int addlogid) {
 
     /* add logid */
     if (addlogid && log_get_id()) {
-        if (cline.len > 0) if (cline.s[cline.len - 1] == '\n') --cline.len;
-        if (cline.len > 0) if (cline.s[cline.len - 1] == '\r') --cline.len;
+        if (cline.len > 0)
+            if (cline.s[cline.len - 1] == '\n') --cline.len;
+        if (cline.len > 0)
+            if (cline.s[cline.len - 1] == '\r') --cline.len;
         if (!_catlogid(&cline)) die_nomem();
         if (!stralloc_cats(&cline, "\r\n")) die_nomem();
         if (!stralloc_0(&cline)) die_nomem();
@@ -494,13 +486,14 @@ static void readline(void) {
     if (!stralloc_copys(&line, "")) die_nomem();
 
     for (;;) {
-      char ch;
-      buffer_GETC(&ssin, &ch);
-      if (ch == '\n') break;
-      if (!ch) ch = '\n';
-      smtp_line_append(&line, ch, "SMTP command line");
+        char ch;
+        buffer_GETC(&ssin, &ch);
+        if (ch == '\n') break;
+        if (!ch) ch = '\n';
+        smtp_line_append(&line, ch, "SMTP command line");
     }
-    if (line.len > 0) if (line.s[line.len - 1] == '\r') --line.len;
+    if (line.len > 0)
+        if (line.s[line.len - 1] == '\r') --line.len;
     if (!stralloc_cats(&line, "\r\n")) die_nomem();
     if (!stralloc_0(&line)) die_nomem();
     --line.len;
@@ -567,9 +560,7 @@ static long long copy(int logid) {
 /*
  * smtp_default - pass unhandled commands through unchanged
  */
-static void smtp_default(void) {
-    copy(0);
-}
+static void smtp_default(void) { copy(0); }
 
 /*
  * smtp_quit - proxy QUIT and terminate the wrapper cleanly
@@ -601,8 +592,10 @@ static void smtp_data(void) {
     for (;;) {
         readline();
         buffer_puts(&sscout, line.s);
-        if (line.len > 0) if (line.s[line.len - 1] == '\n') --line.len;
-        if (line.len > 0) if (line.s[line.len - 1] == '\r') --line.len;
+        if (line.len > 0)
+            if (line.s[line.len - 1] == '\n') --line.len;
+        if (line.len > 0)
+            if (line.s[line.len - 1] == '\r') --line.len;
         if ((line.len == 1) && line.s[0] == '.') break;
     }
     buffer_flush(&sscout);
@@ -612,9 +605,7 @@ static void smtp_data(void) {
     if (code != 250) {
         log_w6("F=", mailfrom.s, " T=", rcpttodata.s, ": ", cline.s);
     }
-    else {
-        log_i6("F=", mailfrom.s, " T=", rcpttodata.s, ": ", cline.s);
-    }
+    else { log_i6("F=", mailfrom.s, " T=", rcpttodata.s, ": ", cline.s); }
     smtp_reset_transaction();
 }
 
@@ -631,7 +622,8 @@ static void smtp_mail(void) {
     smtp_reset_transaction();
     if (line.len >= 10) {
         if (!case_diffb(line.s, 10, "mail from:")) {
-            if (!stralloc_copyb(&mailfrom, line.s + 10, line.len - 10)) die_nomem();
+            if (!stralloc_copyb(&mailfrom, line.s + 10, line.len - 10))
+                die_nomem();
             if (mailfrom.s[mailfrom.len - 1] == '\n') --mailfrom.len;
             if (mailfrom.s[mailfrom.len - 1] == '\r') --mailfrom.len;
             for (i = 0; i < mailfrom.len; ++i) {
@@ -646,9 +638,7 @@ static void smtp_mail(void) {
     }
 
     code = copy(1);
-    if (code != 250) {
-        log_w4("F=", mailfrom.s, ": ", cline.s);
-    }
+    if (code != 250) { log_w4("F=", mailfrom.s, ": ", cline.s); }
 }
 
 /*
@@ -724,9 +714,7 @@ static void smtp_ehlo(void) {
     if (flagstarttls && fstat(5, &st) == 0) {
         (void) smtpline("250 STARTTLS\r\n", 0);
     }
-    else {
-        (void) smtpline(0, 0);
-    }
+    else { (void) smtpline(0, 0); }
     errno = 0;
     buffer_putsflush(&ssout, cline.s);
     log_d3(line.s, ": ", cline.s);
@@ -767,6 +755,7 @@ static void smtp_starttls(void) {
     smtp_reset_transaction();
 }
 
+/* clang-format off */
 struct commands smtpcommands[] = {
   { "quit", smtp_quit }
 , { "data", smtp_data }
@@ -776,7 +765,7 @@ struct commands smtpcommands[] = {
 , { "starttls", smtp_starttls }
 , { 0, smtp_default }
 } ;
-
+/* clang-format on */
 
 /*
  * main_tlswrapper_smtp - run the SMTP wrapper front-end
@@ -801,7 +790,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
     log_set_name("tlswrapper-smtp");
     log_set_id(0);
 
-
+    /* clang-format off */
     (void) argc;
     if (!argv[0]) usage();
     for (;;) {
@@ -847,20 +836,23 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
             usage();
         }
     }
+    /* clang-format on */
+
     if (!*++argv) usage();
     timeout = timeout_parse(timeoutstr);
     crwtimeout = timeout_parse(crwtimeoutstr);
     if (greylisthostport) {
-        if (!hostport_parse(greylisthost, sizeof greylisthost, greylistport, greylisthostport)) {
-            log_f3("unable to parse greylist host:port from the string: '", greylisthostport, "'");
+        if (!hostport_parse(greylisthost, sizeof greylisthost, greylistport,
+                            greylisthostport)) {
+            log_f3("unable to parse greylist host:port from the string: '",
+                   greylisthostport, "'");
             die(100);
         }
-        log_t5("greylist address '", greylisthost, ":", log_port(greylistport), "'");
+        log_t5("greylist address '", greylisthost, ":", log_port(greylistport),
+               "'");
     }
 
-    if (fstat(5, &st) == 0) {
-        flagstarttls = 1;
-    }
+    if (fstat(5, &st) == 0) { flagstarttls = 1; }
 
     /* run child process */
     if (open_pipe(tochild) == -1) die_pipe();
@@ -884,7 +876,8 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
             close(5);
 
             /* drop root */
-            if (user) if (jail_droppriv(user) == -1) die_droppriv(user);
+            if (user)
+                if (jail_droppriv(user) == -1) die_droppriv(user);
 
             signal(SIGPIPE, SIG_DFL);
             log_t3("running '", argv[0], "'");
@@ -925,30 +918,32 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
 
     if (greylisthostport) {
         if (flagnojail) {
-            greylistiplen = resolvehost(greylistip, sizeof greylistip, greylisthost);
+            greylistiplen =
+                resolvehost(greylistip, sizeof greylistip, greylisthost);
         }
         else {
-            greylistiplen = resolvehost_do(greylistip, sizeof greylistip, greylisthost);
+            greylistiplen =
+                resolvehost_do(greylistip, sizeof greylistip, greylisthost);
         }
         if (greylistiplen < 0) {
             log_f3("unable to resolve host '", greylisthost, "'");
             die(111);
         }
         if (greylistiplen == 0) {
-            log_f3("unable to resolve host '", greylisthost, "': name not exist");
+            log_f3("unable to resolve host '", greylisthost,
+                   "': name not exist");
             die(111);
         }
         log_d4("resolvehost: ", greylisthost, ": ", log_ip(greylistip));
         if (!flagnojail) resolvehost_close();
 
-        if (!conn(greylistfds, crwtimeout, greylistip, greylistiplen, greylistport)) {
+        if (!conn(greylistfds, crwtimeout, greylistip, greylistiplen,
+                  greylistport)) {
             if (flaggreyfailclosed) {
                 log_f2("unable to connect to ", greylisthostport);
                 die(111);
             }
-            else {
-                log_w2("unable to connect to ", greylisthostport);
-            }
+            else { log_w2("unable to connect to ", greylisthostport); }
         }
         else {
             greylistfd = greylistfds[0];
@@ -971,5 +966,3 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
     die(111);
     return 111;
 }
-
-/* clang-format on */
