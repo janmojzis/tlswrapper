@@ -1,3 +1,13 @@
+## 20260416
+
+- fd.[ch]: add `fd_read()`/`fd_write()` wrappers with length capping (1 MiB), `EWOULDBLOCK`→`EAGAIN` normalization, and optional tracing; `fd_close_read()`/`fd_close_write()` now accept a descriptor name for tracing; `tryshutdown()` returns success status; add `tryclose()` helper
+- main_tlswrapper.c, main_tlswrapper_tcp.c: switch all raw `read()`/`write()` calls to `fd_read()`/`fd_write()`, removing inline I/O logging now handled by the fd layer
+- stralloc.c: keep capacity unchanged when growth allocation fails; fix compiler warnings
+- alloc.[ch]: add configurable `alloc_MAX` limit with explicit error message on overflow
+- tls_pubcrt.c: stop append after the first allocation failure
+- log.[ch]: add `log_errno()` public API
+- tests: replace STARTTLS sleep-based sync with `select`-driven waits, reduce inflight payload sizes
+
 ## 20260413
 
 - tls relay: distinguish wrapped-child `SIGCHLD` from helper `SIGCHLD`, preserve child output draining on child exit, and delay TLS shutdown until both child directions are closed
