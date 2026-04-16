@@ -28,7 +28,7 @@ connectioninfo.o: connectioninfo.c strtoip.h strtoport.h porttostr.h \
 e.o: e.c e.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c e.c
 
-fd.o: fd.c e.h log.h fd.h
+fd.o: fd.c log.h fd.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fd.c
 
 fixname.o: fixname.c fixname.h
