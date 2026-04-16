@@ -185,15 +185,12 @@ void *alloc(long long norig) {
         return (void *) (space + avail);
     }
 
-    /*
-     * Check for signed integer overflow before updating the tracked
-     * total size of outstanding heap allocations.
-     */
     if ((unsigned long long) allocated + (unsigned long long) norig >
-        (((unsigned long long) (-1)) >> 1)) {
+        alloc_MAX) {
         errno = ENOMEM;
-        log_e3("alloc(", log_num(norig),
-               ") ... failed, tracked allocation total would overflow");
+        log_e5("alloc(", log_num(norig),
+               ") ... failed, allocation limit ",
+               log_num((long long) alloc_MAX), "B reached");
         return (void *) 0;
     }
 
