@@ -392,6 +392,10 @@ static const char *greylist(void) {
 
     do {
         if (buffer_get(&gssin, &ch, 1) != 1) return 0;
+        if (greylistresp.len >= SMTP_MAX_LINE) {
+            log_d1("greylist response exceeds configured limit");
+            return 0;
+        }
         if (!stralloc_append(&greylistresp, &ch)) die_nomem();
     } while (ch != '\n');
     if (!stralloc_0(&greylistresp)) die_nomem();
