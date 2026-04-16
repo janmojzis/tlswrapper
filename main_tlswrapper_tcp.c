@@ -37,9 +37,9 @@ static struct context {
     .empty_dir = EMPTYDIR,
 };
 
-static unsigned char inbuf[4096];
+static unsigned char inbuf[8192];
 static unsigned long long inbuflen = 0;
-static unsigned char outbuf[4096];
+static unsigned char outbuf[8192];
 static unsigned long long outbuflen = 0;
 
 #define NUMIP 8
