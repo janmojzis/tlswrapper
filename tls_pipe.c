@@ -302,7 +302,7 @@ static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type,
                               unsigned version, void *datav, size_t *data_len) {
     unsigned char ch = tls_pipe_DECRYPT;
     unsigned char *data = datav;
-    char offset = 0;
+    signed char offset = 0;
     (void) cc;
     if (pipe_write(tls_pipe_tochild, &ch, sizeof ch) == -1) goto fail;
     if (pipe_write(tls_pipe_tochild, &record_type, sizeof record_type) == -1)
@@ -311,6 +311,7 @@ static unsigned char *decrypt(const br_sslrec_in_class **cc, int record_type,
     if (pipe_write(tls_pipe_tochild, data, *data_len) == -1) goto fail;
     if (pipe_readall(tls_pipe_fromchild, &offset, sizeof offset) == -1)
         goto fail;
+    if (offset < -64 || offset > 64) goto fail;
     if (pipe_readmax(tls_pipe_fromchild, data + offset, data_len) == -1)
         goto fail;
     if (!*data_len) goto fail;
@@ -383,7 +384,7 @@ static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type,
                               unsigned version, void *datav, size_t *data_len) {
     unsigned char ch = tls_pipe_ENCRYPT;
     unsigned char *data = datav;
-    char offset;
+    signed char offset;
     (void) cc;
     if (pipe_write(tls_pipe_tochild, &ch, sizeof ch) == -1) goto cleanup;
     if (pipe_write(tls_pipe_tochild, &record_type, sizeof record_type) == -1)
@@ -395,6 +396,7 @@ static unsigned char *encrypt(const br_sslrec_out_class **cc, int record_type,
     *data_len += 85;
     if (pipe_readall(tls_pipe_fromchild, &offset, sizeof offset) == -1)
         goto cleanup;
+    if (offset < -64 || offset > 64) goto cleanup;
     if (pipe_readmax(tls_pipe_fromchild, data + offset, data_len) == -1)
         goto cleanup;
     return data + offset;

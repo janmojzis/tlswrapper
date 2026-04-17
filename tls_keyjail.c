@@ -328,7 +328,8 @@ void tls_keyjail(struct tls_context *ctx) {
                     unsigned int version;
                     unsigned char data[BR_SSL_BUFSIZE_INPUT + 64];
                     size_t data_len;
-                    char offset;
+                    signed char offset;
+                    intptr_t raw_offset;
                     void *ret;
                     if (pipe_readall(0, &record_type, sizeof record_type) == -1)
                         goto cleanup;
@@ -349,8 +350,13 @@ void tls_keyjail(struct tls_context *ctx) {
                         log_d1("decrypt failed");
                     }
                     else {
-                        offset = (char) (intptr_t) ((uintptr_t) ret -
-                                                    (uintptr_t) data - 64);
+                        raw_offset = (intptr_t) ((uintptr_t) ret -
+                                                 (uintptr_t) data - 64);
+                        if (raw_offset < -64 || raw_offset > 64) {
+                            log_d1("decrypt offset out of range");
+                            goto cleanup;
+                        }
+                        offset = (signed char) raw_offset;
                         if (pipe_write(1, &offset, sizeof offset) == -1)
                             goto cleanup;
                         if (pipe_write(1, ret, data_len) == -1) goto cleanup;
@@ -364,7 +370,8 @@ void tls_keyjail(struct tls_context *ctx) {
                     unsigned int version;
                     unsigned char data[BR_SSL_BUFSIZE_INPUT + 64];
                     size_t data_len;
-                    char offset;
+                    signed char offset;
+                    intptr_t raw_offset;
                     void *ret;
                     if (pipe_readall(0, &record_type, sizeof record_type) == -1)
                         goto cleanup;
@@ -376,8 +383,13 @@ void tls_keyjail(struct tls_context *ctx) {
                     ret = cc->eng.out.vtable->encrypt(&cc->eng.out.vtable,
                                                       record_type, version,
                                                       data + 64, &data_len);
-                    offset = (char) (intptr_t) ((uintptr_t) ret -
-                                                (uintptr_t) data - 64);
+                    raw_offset = (intptr_t) ((uintptr_t) ret -
+                                             (uintptr_t) data - 64);
+                    if (raw_offset < -64 || raw_offset > 64) {
+                        log_d1("encrypt offset out of range");
+                        goto cleanup;
+                    }
+                    offset = (signed char) raw_offset;
                     if (pipe_write(1, &offset, sizeof offset) == -1)
                         goto cleanup;
                     if (pipe_write(1, ret, data_len) == -1) goto cleanup;
