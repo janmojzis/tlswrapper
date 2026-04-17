@@ -121,14 +121,20 @@ static void pemparse(struct tls_pem *ctx) {
  * tls_pem_encrypt - encrypt or decrypt the secret PEM buffer in place
  *
  * @ctx: PEM container holding the secret section
- * @key: ChaCha20 key
+ * @key: ChaCha20 key, freshly generated per PEM file by the caller
  *
- * Applies a ChaCha20 stream to ctx->sec using a nonce owned by @ctx.
- * The same function is used for both encryption and decryption.
+ * Applies a ChaCha20 stream to ctx->sec. The same function is used for
+ * both encryption and decryption because ChaCha20 is a stream cipher.
  *
  * Security:
- *   - each tls_pem instance gets its own random nonce
- *   - decryption reuses the stored nonce instead of process-global state
+ *   - the caller (see tls_keyjail.c) generates a fresh random 256-bit
+ *     key for every PEM file before calling this helper, so even though
+ *     the 96-bit nonce is a process-global value reset once at startup,
+ *     no (key, nonce) pair is ever reused for more than the single
+ *     encrypt/decrypt cycle of one file.
+ *   - the nonce lives outside of ctx on purpose so it stays in a
+ *     different memory region than the secret key, reducing the chance
+ *     of accidental colocated disclosure.
  */
 static unsigned char nonce[12];
 static int initialized = 0;
