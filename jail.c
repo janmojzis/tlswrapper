@@ -75,16 +75,6 @@ int jail(const char *account, const char *dir, int limits) {
         shell = pw->pw_shell;
     }
 
-    /* Block creation of new descriptors before entering the jailed workload. */
-#ifdef RLIMIT_NOFILE
-    if (limits) {
-        if (setrlimit(RLIMIT_NOFILE, &r) == -1) {
-            log_e1("unable to set RLIMIT_NOFILE to 0");
-            goto cleanup;
-        }
-    }
-#endif
-
     /* Switch the primary group before touching supplementary groups. */
     if (setgid(gid) == -1 || getgid() != gid) {
         log_e3("setgid(", log_num(gid), ") failed");
@@ -123,6 +113,21 @@ int jail(const char *account, const char *dir, int limits) {
         log_e3("setuid(", log_num(uid), ") failed");
         goto cleanup;
     }
+
+    /*
+     * Block creation of new descriptors after supplementary groups and
+     * chroot are installed. initgroups() and chroot() may need to open
+     * NSS databases or the new root directory, which requires a free FD
+     * slot.
+     */
+#ifdef RLIMIT_NOFILE
+    if (limits) {
+        if (setrlimit(RLIMIT_NOFILE, &r) == -1) {
+            log_e1("unable to set RLIMIT_NOFILE to 0");
+            goto cleanup;
+        }
+    }
+#endif
 
     if (pw) {
         if (setenv("HOME", home, 1) == -1) goto cleanup;
