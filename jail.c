@@ -14,12 +14,56 @@
 #include <pwd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <errno.h>
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif
 #include "log.h"
 #include "randommod.h"
 #include "jail.h"
+
+/*
+ * jail_limit_memory - best-effort cap of jailed process memory use
+ *
+ * @resource: RLIMIT_AS or RLIMIT_DATA selector
+ * @name: resource name for logging
+ * @limit: requested soft and hard cap in bytes
+ *
+ * Reads the current limit and lowers it to @limit when the inherited soft
+ * limit is larger. Unsupported limits are ignored so the jail can still be
+ * applied on platforms where the kernel advertises but does not enforce a
+ * given resource.
+ *
+ * Returns 0 on success or when the limit is unsupported, and -1 on other
+ * errors.
+ */
+static int jail_limit_memory(int resource, const char *name, rlim_t limit) {
+
+    struct rlimit r;
+
+    if (getrlimit(resource, &r) == -1) {
+        if (errno == EINVAL) {
+            log_t2("skipping unsupported ", name);
+            return 0;
+        }
+        log_e2("unable to get ", name);
+        return -1;
+    }
+    if (r.rlim_cur <= limit) return 0;
+    r.rlim_cur = limit;
+    if (r.rlim_max > limit) r.rlim_max = limit;
+    if (setrlimit(resource, &r) == -1) {
+        if (errno == EINVAL) {
+            log_t2("skipping unsupported ", name);
+            return 0;
+        }
+        log_e2("unable to set ", name);
+        return -1;
+    }
+
+    log_t4("setrlimit ", name, " set to ", log_num(limit));
+    return 0;
+}
 
 /*
  * jail - drop privileges and confine the current process
@@ -164,23 +208,17 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
-    /* Cap the data segment at 128 MiB when the inherited limit is larger. */
+    /* Cap the address space or data segment at 128 MiB when possible. */
 #define DATAMAX 134217728
-#ifndef __APPLE__
-#ifdef RLIMIT_DATA
-    if (getrlimit(RLIMIT_DATA, &r) == -1) {
-        log_e1("unable to get RLIMIT_DATA");
+#ifdef RLIMIT_AS
+    if (jail_limit_memory(RLIMIT_AS, "RLIMIT_AS", DATAMAX) == -1) {
         goto cleanup;
     }
-    if (r.rlim_cur > DATAMAX) {
-        r.rlim_cur = r.rlim_max = DATAMAX;
-        if (setrlimit(RLIMIT_DATA, &r) == -1) {
-            log_e1("unable to set RLIMIT_DATA to 0");
-            goto cleanup;
-        }
-        log_t2("setrlimit RLIMIT_DATA set to ", log_num(DATAMAX));
-    }
 #endif
+#ifdef RLIMIT_DATA
+    if (jail_limit_memory(RLIMIT_DATA, "RLIMIT_DATA", DATAMAX) == -1) {
+        goto cleanup;
+    }
 #endif
 
     log_t4("running under uid = ", log_num(uid), ", gid = ", log_num(gid));
