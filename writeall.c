@@ -32,7 +32,7 @@ int writeall(int fd, const void *xv, long long xlen) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
                 struct pollfd p;
                 p.fd = fd;
-                p.events = POLLOUT | POLLERR;
+                p.events = POLLOUT;
                 jail_poll(&p, 1, -1);
                 continue;
             }
