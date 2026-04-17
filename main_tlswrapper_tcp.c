@@ -359,7 +359,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
 
     /* Prepend the outgoing PROXY header to the first bytes sent upstream. */
     if (ppout) {
-        inbuflen = ppout((char *) inbuf, sizeof outbuf, localip, localport,
+        inbuflen = ppout((char *) inbuf, sizeof inbuf, localip, localport,
                          remoteip, remoteport);
         if (inbuflen <= 0) die_ppout(ppoutver);
         log_t4("prepared outgoing proxy-protocol header version=", ppoutver,
