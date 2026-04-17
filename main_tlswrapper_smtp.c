@@ -624,8 +624,10 @@ static void smtp_mail(void) {
         if (!case_diffb(line.s, 10, "mail from:")) {
             if (!stralloc_copyb(&mailfrom, line.s + 10, line.len - 10))
                 die_nomem();
-            if (mailfrom.s[mailfrom.len - 1] == '\n') --mailfrom.len;
-            if (mailfrom.s[mailfrom.len - 1] == '\r') --mailfrom.len;
+            if (mailfrom.len > 0 && mailfrom.s[mailfrom.len - 1] == '\n')
+                --mailfrom.len;
+            if (mailfrom.len > 0 && mailfrom.s[mailfrom.len - 1] == '\r')
+                --mailfrom.len;
             for (i = 0; i < mailfrom.len; ++i) {
                 if (mailfrom.s[i] == ' ') mailfrom.len = i;
             }
@@ -654,8 +656,10 @@ static void smtp_rcpt(void) {
     if (line.len >= 8) {
         if (!case_diffb(line.s, 8, "rcpt to:")) {
             if (!stralloc_copyb(&rcptto, line.s + 8, line.len - 8)) die_nomem();
-            if (rcptto.s[rcptto.len - 1] == '\n') --rcptto.len;
-            if (rcptto.s[rcptto.len - 1] == '\r') --rcptto.len;
+            if (rcptto.len > 0 && rcptto.s[rcptto.len - 1] == '\n')
+                --rcptto.len;
+            if (rcptto.len > 0 && rcptto.s[rcptto.len - 1] == '\r')
+                --rcptto.len;
             for (i = 0; i < rcptto.len; ++i) {
                 if (rcptto.s[i] == ' ') {
                     rcptto.len = i;
