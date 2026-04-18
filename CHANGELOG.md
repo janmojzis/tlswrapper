@@ -1,3 +1,19 @@
+## 20260418
+
+- main_tlswrapper_smtp.c: limit greylist response size to `SMTP_MAX_LINE` and fix an out-of-bounds read on empty `MAIL FROM:` / `RCPT TO:` lines
+- alloc.[ch]: add `alloc_limit()` with `RLIMIT_AS`/`RLIMIT_DATA` fallback
+- jail.c: treat memory limits as best-effort, set `RLIMIT_AS` as well, and use the allocator limit as a fallback safeguard
+- tls_keyjail.c: use a signed offset for record exchange between the parent and keyjail and validate the offset range
+- main_tlswrapper_tcp.c: increase the TCP buffer `4096->8192` and fix the `sizeof` bug when generating the outgoing PROXY header
+- proxyprotocol.c: zero-initialize the PROXY v1 header buffer
+- connectioninfo.c: reject unknown address families in `connectioninfo_fromfd()`
+- fd.c: warn on failed `fcntl(F_GETFL/F_GETFD)`
+- writeall.c: drop `POLLERR` from the `writeall()` event mask
+- stralloc.c: avoid undefined behavior in `stralloc_catnum0()` for `LLONG_MIN`
+- e.c: remove duplicate `ENODEV` / `EREMOTE` entries from `e_str()`
+- tls_pem.c: clarify the ChaCha20 nonce comment in PEM encryption
+- tests: disable flaky tests for chunked responses after half-EOF
+
 ## 20260416
 
 - fd.[ch]: add `fd_read()`/`fd_write()` wrappers with length capping (1 MiB), `EWOULDBLOCK`→`EAGAIN` normalization, and optional tracing; `fd_close_read()`/`fd_close_write()` now accept a descriptor name for tracing; `tryshutdown()` returns success status; add `tryclose()` helper
