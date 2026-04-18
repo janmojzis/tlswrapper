@@ -1,7 +1,7 @@
 #ifndef FD_H____
 #define FD_H____
 
-#define fd_VERSION "20260415"
+#define fd_VERSION "20260418"
 
 extern long long fd_read_(int, void *, long long);
 extern long long fd_read(const char *, int, void *, long long);

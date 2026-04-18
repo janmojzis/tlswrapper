@@ -271,7 +271,13 @@ void fd_close_write(const char *fdname, int *fd) {
  * Clears O_NONBLOCK on @fd.
  */
 void fd_blocking_enable(int fd) {
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) & ~O_NONBLOCK);
+    int flags = fcntl(fd, F_GETFL, 0);
+
+    if (flags == -1) {
+        log_w1("fcntl(F_GETFL) failed during fd_blocking_enable");
+        return;
+    }
+    fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
 }
 
 /*
@@ -282,7 +288,13 @@ void fd_blocking_enable(int fd) {
  * Sets O_NONBLOCK on @fd.
  */
 void fd_blocking_disable(int fd) {
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+    int flags = fcntl(fd, F_GETFL, 0);
+
+    if (flags == -1) {
+        log_w1("fcntl(F_GETFL) failed during fd_blocking_disable");
+        return;
+    }
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 /*
@@ -293,7 +305,13 @@ void fd_blocking_disable(int fd) {
  * Set FD_CLOEXEC on @fd.
  */
 void fd_coe_enable(int fd) {
-    fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
+    int flags = fcntl(fd, F_GETFD, 0);
+
+    if (flags == -1) {
+        log_w1("fcntl(F_GETFD) failed during fd_coe_enable");
+        return;
+    }
+    fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
 }
 
 /*
@@ -304,5 +322,11 @@ void fd_coe_enable(int fd) {
  * Clears FD_CLOEXEC on @fd.
  */
 void fd_coe_disable(int fd) {
-    fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) & ~FD_CLOEXEC);
+    int flags = fcntl(fd, F_GETFD, 0);
+
+    if (flags == -1) {
+        log_w1("fcntl(F_GETFD) failed during fd_coe_disable");
+        return;
+    }
+    fcntl(fd, F_SETFD, flags & ~FD_CLOEXEC);
 }
