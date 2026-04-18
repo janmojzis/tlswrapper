@@ -48,7 +48,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     buffer sin = buffer_INIT(buffer_read, fd, /*no buffer*/ 0, /*no buffer*/ 0);
     int ret = 0;
     long long pos;
-    char bufspace[PROXYPROTOCOL_MAX];
+    char bufspace[PROXYPROTOCOL_MAX] = {0};
     char buforig[PROXYPROTOCOL_MAX];
     char *buf = bufspace;
     int (*strtoipop)(unsigned char *, const char *);
