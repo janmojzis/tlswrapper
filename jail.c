@@ -19,6 +19,7 @@
 #include <sys/prctl.h>
 #endif
 #include "log.h"
+#include "alloc.h"
 #include "randommod.h"
 #include "jail.h"
 
@@ -208,8 +209,13 @@ int jail(const char *account, const char *dir, int limits) {
     }
 #endif
 
-    /* Cap the address space or data segment at 128 MiB when possible. */
+    /*
+     * Cap the address space or data segment at 128 MiB when possible.
+     * Add the same value into alloc() as a fallback on systems where
+     * RLIMIT_AS or RLIMIT_DATA is advertised but not enforced reliably.
+     */
 #define DATAMAX 134217728
+    alloc_limit(DATAMAX);
 #ifdef RLIMIT_AS
     if (jail_limit_memory(RLIMIT_AS, "RLIMIT_AS", DATAMAX) == -1) {
         goto cleanup;

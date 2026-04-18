@@ -46,7 +46,7 @@ hostport.o: hostport.c strtoport.h hostport.h
 iptostr.o: iptostr.c iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c iptostr.c
 
-jail.o: jail.c log.h randommod.h jail.h
+jail.o: jail.c log.h alloc.h randommod.h jail.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c jail.c
 
 jail_poll.o: jail_poll.c log.h jail.h
