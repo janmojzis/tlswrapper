@@ -271,6 +271,8 @@ static int stralloc_catunum0(stralloc *sa, unsigned long long u, long long n) {
  */
 int stralloc_catnum0(stralloc *sa, long long l, long long n) {
 
+    unsigned long long u;
+
     if (!sa) {
         errno = EINVAL;
         return 0;
@@ -278,9 +280,14 @@ int stralloc_catnum0(stralloc *sa, long long l, long long n) {
 
     if (l < 0) {
         if (!stralloc_append(sa, "-")) return 0;
-        l = -l;
+        /* Compute the absolute value through unsigned arithmetic so that
+         * LLONG_MIN does not trigger signed overflow on negation. */
+        u = -(unsigned long long) l;
     }
-    return stralloc_catunum0(sa, (unsigned long long) l, n);
+    else {
+        u = (unsigned long long) l;
+    }
+    return stralloc_catunum0(sa, u, n);
 }
 
 /*
