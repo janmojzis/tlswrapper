@@ -53,9 +53,7 @@ static int connectioninfo_fromfd(unsigned char *localip,
         memcpy(localip, &sin6->sin6_addr, 16);
         memcpy(localport, &sin6->sin6_port, 2);
     }
-    else {
-        return 0;
-    }
+    else { return 0; }
 
     salen = sizeof sa;
     if (getpeername(fd, (struct sockaddr *) &sa, &salen) == -1) return 0;
@@ -71,9 +69,7 @@ static int connectioninfo_fromfd(unsigned char *localip,
         memcpy(remoteip, &sin6->sin6_addr, 16);
         memcpy(remoteport, &sin6->sin6_port, 2);
     }
-    else {
-        return 0;
-    }
+    else { return 0; }
     log_t4("connectioninfo_fromfd(): local=", log_ipport(localip, localport),
            ", remote=", log_ipport(remoteip, remoteport));
     return 1;

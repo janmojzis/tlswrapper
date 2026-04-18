@@ -383,8 +383,8 @@ void tls_keyjail(struct tls_context *ctx) {
                     ret = cc->eng.out.vtable->encrypt(&cc->eng.out.vtable,
                                                       record_type, version,
                                                       data + 64, &data_len);
-                    raw_offset = (intptr_t) ((uintptr_t) ret -
-                                             (uintptr_t) data - 64);
+                    raw_offset =
+                        (intptr_t) ((uintptr_t) ret - (uintptr_t) data - 64);
                     if (raw_offset < -64 || raw_offset > 64) {
                         log_d1("encrypt offset out of range");
                         goto cleanup;
