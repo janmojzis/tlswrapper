@@ -1,14 +1,19 @@
 /*
- * alloc.c - memory allocator with tracked cleanup
+ * alloc.c - memory allocator with tracked cleanup and heap limits
  *
  * This module provides zero-initialized memory allocations.
  * Every allocation is tracked in a small linked list so callers can
  * wipe individual blocks and reset all outstanding allocations.
+ *
+ * Small allocations are served from a static arena. Larger allocations
+ * fall back to malloc() and count against a tracked heap budget derived
+ * from RLIMIT_AS/RLIMIT_DATA or overridden explicitly with alloc_limit().
  */
 
 #include "alloc.h"
 #include "log.h"
 #include <errno.h>
+#include <sys/resource.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -23,6 +28,58 @@ static unsigned char space[alloc_STATICSPACE]
 static unsigned long long avail = sizeof space;
 static long long allocated = 0;
 static struct alloc_node *alloc_head = 0;
+static long long alloc_limit_value = -1;
+
+/*
+ * alloc_limit - set the heap allocation limit in bytes
+ *
+ * @value: new malloc-backed allocation ceiling in bytes
+ *
+ * Stores a caller-provided limit that overrides lazy RLIMIT_AS/RLIMIT_DATA
+ * detection. A value of 0 permits only allocations satisfied from the static
+ * arena. Negative values are rejected and leave the current state unchanged.
+ */
+void alloc_limit(long long value) {
+
+    if (value < 0) {
+        log_b3("alloc_limit(", log_num(value), ") ignored, negative limit");
+        return;
+    }
+    alloc_limit_value = value;
+}
+
+/*
+ * alloc_limit_get - return the effective heap allocation limit
+ *
+ * On first use, initializes the cached limit to the largest signed value and
+ * lowers it to the smallest positive RLIMIT_AS or RLIMIT_DATA soft limit.
+ * Later calls return the cached value unchanged.
+ */
+static long long alloc_limit_get(void) {
+
+    struct rlimit r;
+
+    if (alloc_limit_value != -1) return alloc_limit_value;
+
+    alloc_limit_value = (((unsigned long long) (-1)) >> 1);
+#ifdef RLIMIT_AS
+    if (getrlimit(RLIMIT_AS, &r) != -1) {
+        if ((long long) r.rlim_cur > 0 &&
+            (long long) r.rlim_cur < alloc_limit_value) {
+            alloc_limit_value = (long long) r.rlim_cur;
+        }
+    }
+#endif
+#ifdef RLIMIT_DATA
+    if (getrlimit(RLIMIT_DATA, &r) != -1) {
+        if ((long long) r.rlim_cur > 0 &&
+            (long long) r.rlim_cur < alloc_limit_value) {
+            alloc_limit_value = (long long) r.rlim_cur;
+        }
+    }
+#endif
+    return alloc_limit_value;
+}
 
 /*
  * alloc_aligned_len - compute the backing size for a logical length
@@ -153,6 +210,7 @@ static struct alloc_node *alloc_remove(void *ptr) {
 void *alloc(long long norig) {
 
     unsigned char *x;
+    long long limit;
     unsigned long long n;
 
     if (norig < 0) {
@@ -185,11 +243,15 @@ void *alloc(long long norig) {
         return (void *) (space + avail);
     }
 
-    if ((unsigned long long) allocated + (unsigned long long) norig >
-        alloc_MAX) {
+    limit = alloc_limit_get();
+    /*
+     * Safe: norig is known to be non-negative. Reject allocations once the
+     * tracked heap usage exceeds the limit or the remaining budget.
+     */
+    if (allocated > limit || norig > limit - allocated) {
         errno = ENOMEM;
-        log_e5("alloc(", log_num(norig), ") ... failed, allocation limit ",
-               log_num((long long) alloc_MAX), "B reached");
+        log_e5("alloc(", log_num(norig), ") ... failed, rlimit limit ",
+               log_num(limit), "B reached");
         return (void *) 0;
     }
 
