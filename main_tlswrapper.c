@@ -1499,7 +1499,10 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 waitchildren:
     signal(SIGCHLD, SIG_DFL);
     signal(SIGALRM, SIG_DFL);
-    fd_close_read("childctlfd", &childctlfd);
+
+    /* close peer fd */
+    fd_close_read("peerinfd", &peerinfd);
+    fd_close_write("peeroutfd", &peeroutfd);
 
     /* wait for keyjail child */
     close(fromkeyjail[0]);
@@ -1518,6 +1521,7 @@ waitchildren:
     }
 
     /* wait for child */
+    fd_close_read("childctlfd", &childctlfd);
     fd_close_read("childoutfd", &childoutfd);
     fd_close_write("childinfd", &childinfd);
     do {
