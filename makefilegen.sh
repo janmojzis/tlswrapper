@@ -106,6 +106,9 @@
     echo "test: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
     echo "	\$(MAKE) test -C tests"
     echo
+    echo "pythontest: \$(BINARIES) tlswrapper-tcp tlswrapper-smtp"
+    echo "	\$(MAKE) pythontest -C tests"
+    echo
 
     echo "clean:"
     echo "	\$(MAKE) clean -C tests"

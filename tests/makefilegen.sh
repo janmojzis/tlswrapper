@@ -99,7 +99,9 @@
     echo "	sh runtest.sh test-badkey.sh test-badkey.out test-badkey.exp"
     echo "	sh runtest.sh test-childexit.sh test-childexit.out test-childexit.exp"
     echo "	sh runtest.sh test-okcert.sh test-okcert.out test-okcert.exp"
-    echo "	# python regression tests covering EOF, half-close, and STARTTLS flows"
+    echo
+    echo "pythontest: \$(BINARIES) tlswrappernojail tlswrappernojail-tcp tlswrappernojail-smtp"
+    echo "	# python3 tests cover boundary conditions and are known to be flaky"
     echo "	sh runtest.sh test-tlswrapper-tcp.sh test-tlswrapper-tcp.out test-tlswrapper-tcp.exp"
     echo "	sh runtest.sh test-tlswrapper-smtp.sh test-tlswrapper-smtp.out test-tlswrapper-smtp.exp"
     echo "	sh runtest.sh test-tlswrapper.sh test-tlswrapper.out test-tlswrapper.exp"

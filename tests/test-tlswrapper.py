@@ -1133,6 +1133,16 @@ SCENARIOS: list[Scenario] = []
 
 # --- Delayed data-flow scenarios ---
 SCENARIOS += [
+    # This scenario covers only the empty-EOF case on FD 5: the child closes
+    # the STARTTLS control pipe without writing any control data first. That
+    # path is handled correctly: run_cleartext_phase() sees r == 0 with an
+    # empty cleartext_tonet5buf and terminates the cleartext phase.
+    #
+    # A different state also exists in the implementation: the child may write
+    # reply data to stdout and then exit without ever writing STARTTLS control
+    # data. In run_cleartext_phase(), childctlfd is polled and handled before
+    # childoutfd; if the empty EOF on childctlfd is observed first, the
+    # function returns before unread child stdout data is drained.
     Scenario(
         name="delayed_control_pipe_eof_before_starttls",
         mode="delayed", child_script=child_close_control(),
@@ -1146,6 +1156,7 @@ SCENARIOS += [
         expected_child_log=_received_log(SMALL_REQUEST),
         expected_reply_chunks=[b"reply-after-eof\n"],
     ),
+    # This case is timing-sensitive on slow systems: e.g. emulated ppc64el.
     Scenario(
         name="delayed_reply_after_eof_no_payload",
         mode="delayed",
@@ -1195,6 +1206,7 @@ SCENARIOS += [
         expected_child_log=_received_log(SMALL_REQUEST),
         expected_reply_chunks=[b"reply-after-eof\n"],
     ),
+    # This case is timing-sensitive on slow systems: e.g. emulated ppc64el.
     Scenario(
         name="tls_only_reply_after_eof_no_payload",
         mode="tls_only",
@@ -1265,6 +1277,7 @@ SCENARIOS += [
         expected_child_log=_received_log(SMALL_REQUEST),
         expected_reply_chunks=[b"reply-after-eof\n"],
     ),
+    # This case is timing-sensitive on slow systems: e.g. emulated ppc64el.
     Scenario(
         name="hybrid_reply_after_eof_no_payload",
         mode="hybrid",
@@ -1326,9 +1339,10 @@ _PAYLOAD_VARIANTS = [
     ("no_payload", [], b""),
     ("small", [SMALL_REQUEST], SMALL_REQUEST),
     ("large", [BIG_REQUEST], BIG_REQUEST),
-    # Chunked variant disabled: sends 3 separate TLS records, conflicts with
-    # the wrapper's deliberate instant-drain policy after child closes stdout.
-    # ("chunked", [b"request-", b"before-", b"multi-write"], b"request-before-multi-write"),
+    # This test currently does not match the contract: after half-close we
+    # drain data already buffered, but we do not wait for any further data.
+    # It currently fails on slow or emulated systems such as riscv64.
+    ("chunked", [b"request-", b"before-", b"multi-write"], b"request-before-multi-write"),
 ]
 _REPLY_VARIANTS = [
     ("reply", [b"reply-before-eof\n"]),
