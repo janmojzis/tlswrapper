@@ -1133,21 +1133,6 @@ SCENARIOS: list[Scenario] = []
 
 # --- Delayed data-flow scenarios ---
 SCENARIOS += [
-    # This scenario covers only the empty-EOF case on FD 5: the child closes
-    # the STARTTLS control pipe without writing any control data first. That
-    # path is handled correctly: run_cleartext_phase() sees r == 0 with an
-    # empty cleartext_tonet5buf and terminates the cleartext phase.
-    #
-    # A different state also exists in the implementation: the child may write
-    # reply data to stdout and then exit without ever writing STARTTLS control
-    # data. In run_cleartext_phase(), childctlfd is polled and handled before
-    # childoutfd; if the empty EOF on childctlfd is observed first, the
-    # function returns before unread child stdout data is drained.
-    Scenario(
-        name="delayed_control_pipe_eof_before_starttls",
-        mode="delayed", child_script=child_close_control(),
-        expect_early_exit=True,
-    ),
     Scenario(
         name="delayed_reply_after_eof",
         mode="delayed",
@@ -1524,6 +1509,27 @@ def test_delayed_socket_eof_after_child_exit() -> None:
         w.close()
 
 
+def test_delayed_control_pipe_eof_before_starttls() -> None:
+    w = Wrapper()
+    try:
+        pipes = w.start(child_close_control(), delayed=True)
+        assert pipes is not None
+        stdin, stdout = pipes
+
+        assert w.proc is not None
+        try:
+            rc = w.proc.wait(timeout=EARLY_EXIT_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            step_ok("exit", "not early")
+        else:
+            raise TestFailure(f"exit code {rc}, expected wrapper to keep relaying cleartext")
+
+        PlainClient(stdin, stdout).half_close()
+        w.wait()
+    finally:
+        w.close()
+
+
 def test_tls_only_socket_eof_after_child_exit() -> None:
     w = Wrapper()
     try:
@@ -1893,6 +1899,7 @@ for _ts in TIMEOUT_SCENARIOS:
     TESTS[_ts.name] = _make_t()
 
 TESTS["delayed_socket_eof_after_child_exit"] = test_delayed_socket_eof_after_child_exit
+TESTS["delayed_control_pipe_eof_before_starttls"] = test_delayed_control_pipe_eof_before_starttls
 TESTS["tls_only_socket_eof_after_child_exit"] = test_tls_only_socket_eof_after_child_exit
 TESTS["hybrid_socket_eof_after_child_exit"] = test_hybrid_socket_eof_after_child_exit
 TESTS["tls_only_fast_shutdown"] = test_tls_only_fast_shutdown

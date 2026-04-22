@@ -804,11 +804,13 @@ static int run_cleartext_phase(void) {
         /* Control pipe: STARTTLS signalling from the child.
            - Partial read (r > 0): accumulate the banner; on the next
              iteration the ingest guards will block new cleartext.
-           - EOF (r == 0): child closed fd 5 — drain any residual
-             cleartext buffers, flush the STARTTLS banner to the
-             network, and return 1 to enter the TLS phase.
+           - EOF (r == 0): child closed fd 5 — if STARTTLS data was
+             queued, drain any residual cleartext buffers, flush the
+             STARTTLS banner to the network, and return 1 to enter the
+             TLS phase.
            - Empty EOF: control pipe closed without data — the child
-             decided not to request STARTTLS; end the cleartext phase. */
+             decided not to request STARTTLS; stop polling fd 5 and
+             continue relaying ordinary cleartext/stdout traffic. */
         if (watchfromchildctl) {
             r = fd_read("childctlfd", childctlfd,
                         cleartext_tonet5buf + cleartext_tonet5buflen,
@@ -821,8 +823,8 @@ static int run_cleartext_phase(void) {
             if (r == 0) {
                 fd_close_read("childctlfd", &childctlfd);
                 if (!cleartext_tonet5buflen) {
-                    log_d1("control pipe closed before STARTTLS, cleartext phase ended");
-                    return 0;
+                    log_d1("control pipe closed before STARTTLS, continuing cleartext relay");
+                    continue;
                 }
                 if (cleartext_tonetbuflen) {
                     if (writeall(peeroutfd, cleartext_tonetbuf, cleartext_tonetbuflen) == -1) {

@@ -1,7 +1,3 @@
-=== delayed_control_pipe_eof_before_starttls ===
-  exit: 0 (early) ok
-  PASS
-
 === delayed_reply_after_eof ===
   peerin: b'request-before-eof' ok
   peerin: half-close ok
@@ -630,6 +626,12 @@
   peerout: EOF ok
   exit: 0 ok
   childlog: received=request-before-eof saw_eof=yes ok
+  PASS
+
+=== delayed_control_pipe_eof_before_starttls ===
+  exit: not early ok
+  peerin: half-close ok
+  exit: 0 ok
   PASS
 
 === tls_only_socket_eof_after_child_exit ===
