@@ -3,8 +3,9 @@
  *
  * Provides the runtime jail used by the network-facing processes after
  * they finish privileged setup. The jail drops privileges to a target
- * account or a randomized numeric uid/gid, optionally chroots into an
- * empty directory, and applies conservative resource limits.
+ * account or to a numeric uid/gid derived from the process ID, optionally
+ * chroots into an empty directory, and applies conservative resource
+ * limits.
  */
 
 #include <sys/types.h>
@@ -20,7 +21,6 @@
 #endif
 #include "log.h"
 #include "alloc.h"
-#include "randommod.h"
 #include "jail.h"
 
 /*
@@ -69,14 +69,16 @@ static int jail_limit_memory(int resource, const char *name, rlim_t limit) {
 /*
  * jail - drop privileges and confine the current process
  *
- * @account: user name to switch to, or NULL to derive a randomized uid/gid
+ * @account: user name to switch to, or NULL to derive uid/gid from getpid()
  * @dir: directory to chroot into, or NULL to skip chroot
  * @limits: non-zero to enable resource limits that forbid new files,
  *          processes, and core dumps
  *
  * Resolves the target uid/gid, switches the process credentials, and
- * updates supplementary groups. When @dir is set, the process changes
- * into that directory before chrooting to ".".
+ * updates supplementary groups. When @account is NULL, the derived uid
+ * and gid are identical and are mapped from the current process ID into
+ * a high numeric range. When @dir is set, the process changes into that
+ * directory before chrooting to ".".
  *
  * When @account names a real system user, the function also exports the
  * standard HOME, SHELL, USER, and LOGNAME environment variables from the
@@ -105,7 +107,7 @@ int jail(const char *account, const char *dir, int limits) {
 #endif
 
     if (!account) {
-        gid = uid = 100000000 + 100000 * randommod(1000) + (getpid() % 100000);
+        gid = uid = 141500000 + (getpid() % 1000000000);
     }
     else {
         pw = getpwnam(account);
