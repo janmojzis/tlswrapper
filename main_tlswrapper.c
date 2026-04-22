@@ -119,8 +119,9 @@ static void signalhandler(int signum, siginfo_t *si, void *ucontext) {
     if (signum == SIGALRM) {
         ch = 'A';
     }
-    w = write(selfpipe[1], &ch, 1);
-    (void) w;
+    do {
+        w = write(selfpipe[1], &ch, 1);
+    } while (w == -1 && errno == EINTR);
 }
 
 /*
