@@ -16,8 +16,8 @@
 #include "stralloc.h"
 #include "jail.h"
 #include "iptostr.h"
-#include "strtoip.h"
-#include "strtoport.h"
+#include "parseip.h"
+#include "parseport.h"
 #include "porttostr.h"
 #include "proxyprotocol.h"
 
@@ -51,7 +51,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     char bufspace[PROXYPROTOCOL_MAX] = {0};
     char buforig[PROXYPROTOCOL_MAX];
     char *buf = bufspace;
-    int (*strtoipop)(unsigned char *, const char *);
+    int (*parseipop)(unsigned char *, const char *);
     unsigned char localip[16] = {0};
     unsigned char localport[2] = {0};
     unsigned char remoteip[16] = {0};
@@ -82,8 +82,8 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
         ret = 1;
         goto cleanup;
     }
-    else if (str_start(buf, "PROXY TCP4 ")) { strtoipop = strtoip4; }
-    else if (str_start(buf, "PROXY TCP6 ")) { strtoipop = strtoip6; }
+    else if (str_start(buf, "PROXY TCP4 ")) { parseipop = parseip4_; }
+    else if (str_start(buf, "PROXY TCP6 ")) { parseipop = parseip6_; }
     else {
         log_e3("unable to parse proxy-protocol string '", buforig, "'");
         goto cleanup;
@@ -93,7 +93,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     /* Parse the source endpoint first, matching the wire format order. */
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
-    if (!strtoipop(remoteip, buf)) {
+    if (!parseipop(remoteip, buf)) {
         log_e3("unable to parse remoteip from proxy-protocol string '", buforig,
                "'");
         goto cleanup;
@@ -103,7 +103,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     /* Parse the destination IP address. */
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
-    if (!strtoipop(localip, buf)) {
+    if (!parseipop(localip, buf)) {
         log_e3("unable to parse localip from proxy-protocol string '", buforig,
                "'");
         goto cleanup;
@@ -113,7 +113,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     /* Parse the source port. */
     pos = str_chr(buf, ' ');
     buf[pos] = 0;
-    if (!strtoport(remoteport, buf)) {
+    if (!parseport_(remoteport, buf)) {
         log_e3("unable to parse remoteport from proxy-protocol string '",
                buforig, "'");
         goto cleanup;
@@ -123,7 +123,7 @@ int proxyprotocol_v1_get(int fd, unsigned char *localipx,
     /* Parse the destination port and ignore the trailing CRLF. */
     buf[str_chr(buf, '\n')] = 0;
     buf[str_chr(buf, '\r')] = 0;
-    if (!strtoport(localport, buf)) {
+    if (!parseport_(localport, buf)) {
         log_e3("unable to parse localport from proxy-protocol string '",
                buforig, "'");
         goto cleanup;

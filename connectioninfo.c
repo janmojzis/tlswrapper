@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
-#include "strtoip.h"
-#include "strtoport.h"
+#include "parseip.h"
+#include "parseport.h"
 #include "porttostr.h"
 #include "iptostr.h"
 #include "log.h"
@@ -91,10 +91,10 @@ static int connectioninfo_fromenv(unsigned char *localip,
                                   unsigned char *remoteip,
                                   unsigned char *remoteport) {
 
-    if (!strtoip(localip, getenv("TCPLOCALIP"))) return 0;
-    if (!strtoport(localport, getenv("TCPLOCALPORT"))) return 0;
-    if (!strtoip(remoteip, getenv("TCPREMOTEIP"))) return 0;
-    if (!strtoport(remoteport, getenv("TCPREMOTEPORT"))) return 0;
+    if (!parseip(localip, getenv("TCPLOCALIP"))) return 0;
+    if (!parseport(localport, getenv("TCPLOCALPORT"))) return 0;
+    if (!parseip(remoteip, getenv("TCPREMOTEIP"))) return 0;
+    if (!parseport(remoteport, getenv("TCPREMOTEPORT"))) return 0;
     log_t4("connectioninfo_fromenv(): local=", log_ipport(localip, localport),
            ", remote=", log_ipport(remoteip, remoteport));
     return 1;

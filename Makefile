@@ -25,7 +25,7 @@ case.o: case.c case.h
 conn.o: conn.c jail.h socket.h milliseconds.h e.h log.h conn.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c conn.c
 
-connectioninfo.o: connectioninfo.c strtoip.h strtoport.h porttostr.h \
+connectioninfo.o: connectioninfo.c parseip.h parseport.h porttostr.h \
  iptostr.h log.h connectioninfo.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c connectioninfo.c
 
@@ -43,9 +43,6 @@ fixpath.o: fixpath.c fixpath.h
 
 fsyncfile.o: fsyncfile.c fsyncfile.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c fsyncfile.c
-
-hostport.o: hostport.c strtoport.h hostport.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c hostport.c
 
 iptostr.o: iptostr.c iptostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c iptostr.c
@@ -67,13 +64,14 @@ main_tlswrapper.o: main_tlswrapper.c fd.h pipe.h log.h e.h jail.h \
 
 main_tlswrapper_smtp.o: main_tlswrapper_smtp.c str.h randombytes.h \
  haslibrandombytes.h log.h iptostr.h connectioninfo.h jail.h writeall.h \
- buffer.h stralloc.h open.h e.h tls.h fd.h resolvehost.h hostport.h \
- conn.h case.h timeoutwrite.h timeoutread.h parsenum.h alloc.h main.h
+ buffer.h stralloc.h open.h e.h tls.h fd.h resolvehost.h parsehostport.h \
+ parseport.h conn.h case.h timeoutwrite.h timeoutread.h parsenum.h \
+ alloc.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_smtp.c
 
 main_tlswrapper_tcp.o: main_tlswrapper_tcp.c randombytes.h \
  haslibrandombytes.h fd.h iptostr.h proxyprotocol.h connectioninfo.h \
- resolvehost.h strtoport.h socket.h e.h log.h conn.h str.h tls.h jail.h \
+ resolvehost.h parseport.h socket.h e.h log.h conn.h str.h tls.h jail.h \
  randommod.h parsenum.h alloc.h main.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c main_tlswrapper_tcp.c
 
@@ -86,8 +84,18 @@ open_pipe.o: open_pipe.c open.h fd.h
 open_read.o: open_read.c open.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c open_read.c
 
+parsehostport.o: parsehostport.c log.h parsehostport.h parseip.h \
+ parseport.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c parsehostport.c
+
+parseip.o: parseip.c e.h log.h parseip.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c parseip.c
+
 parsenum.o: parsenum.c e.h log.h parsenum.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c parsenum.c
+
+parseport.o: parseport.c e.h log.h parsenum.h parseport.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c parseport.c
 
 pipe.o: pipe.c e.h readall.h writeall.h alloc.h pipe.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c pipe.c
@@ -96,7 +104,7 @@ porttostr.o: porttostr.c porttostr.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c porttostr.c
 
 proxyprotocol.o: proxyprotocol.c e.h log.h str.h buffer.h stralloc.h \
- jail.h iptostr.h strtoip.h strtoport.h porttostr.h proxyprotocol.h
+ jail.h iptostr.h parseip.h parseport.h porttostr.h proxyprotocol.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c proxyprotocol.c
 
 randombytes.o: randombytes.c randombytes.h haslibrandombytes.h
@@ -120,12 +128,6 @@ str.o: str.c str.h
 
 stralloc.o: stralloc.c alloc.h stralloc.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c stralloc.c
-
-strtoip.o: strtoip.c strtoip.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoip.c
-
-strtoport.o: strtoport.c strtoport.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c strtoport.c
 
 timeoutread.o: timeoutread.c timeoutread.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c timeoutread.c
@@ -203,7 +205,6 @@ OBJECTS+=fd.o
 OBJECTS+=fixname.o
 OBJECTS+=fixpath.o
 OBJECTS+=fsyncfile.o
-OBJECTS+=hostport.o
 OBJECTS+=iptostr.o
 OBJECTS+=jail.o
 OBJECTS+=jail_poll.o
@@ -214,7 +215,10 @@ OBJECTS+=main_tlswrapper_tcp.o
 OBJECTS+=milliseconds.o
 OBJECTS+=open_pipe.o
 OBJECTS+=open_read.o
+OBJECTS+=parsehostport.o
+OBJECTS+=parseip.o
 OBJECTS+=parsenum.o
+OBJECTS+=parseport.o
 OBJECTS+=pipe.o
 OBJECTS+=porttostr.o
 OBJECTS+=proxyprotocol.o
@@ -225,8 +229,6 @@ OBJECTS+=resolvehost.o
 OBJECTS+=socket.o
 OBJECTS+=str.o
 OBJECTS+=stralloc.o
-OBJECTS+=strtoip.o
-OBJECTS+=strtoport.o
 OBJECTS+=timeoutread.o
 OBJECTS+=timeoutwrite.o
 OBJECTS+=tls_anchor.o

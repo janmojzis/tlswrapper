@@ -16,7 +16,7 @@
 #include "proxyprotocol.h"
 #include "connectioninfo.h"
 #include "resolvehost.h"
-#include "strtoport.h"
+#include "parseport.h"
 #include "socket.h"
 #include "e.h"
 #include "log.h"
@@ -285,7 +285,7 @@ int main_tlswrapper_tcp(int argc, char **argv, int flagnojail) {
     hoststr = *++argv;
     if (!hoststr) usage();
     portstr = *++argv;
-    if (!strtoport(port, portstr)) {
+    if (!parseport(port, portstr)) {
         log_f3(
             "unable to parse TCP port (a number 0 - 65535) from the string '",
             portstr, "'");

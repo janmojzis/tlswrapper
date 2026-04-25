@@ -30,7 +30,8 @@
 #include "tls.h"
 #include "fd.h"
 #include "resolvehost.h"
-#include "hostport.h"
+#include "parsehostport.h"
+#include "parseport.h"
 #include "conn.h"
 #include "case.h"
 #include "timeoutwrite.h"
@@ -300,7 +301,7 @@ static void smtp_line_append(stralloc *sa, char ch, const char *what) {
 static stralloc greylistresp = {0};
 static const char *greylistmsg = 0;
 static char *greylisthostport = 0;
-static char greylisthost[256];
+static char greylisthost[parsehostport_HOSTBYTES];
 static unsigned char greylistport[2];
 static unsigned char greylistip[16];
 static long long greylistiplen;
@@ -846,12 +847,18 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
     timeout = timeout_parse(timeoutstr);
     crwtimeout = timeout_parse(crwtimeoutstr);
     if (greylisthostport) {
-        if (!hostport_parse(greylisthost, sizeof greylisthost, greylistport,
-                            greylisthostport)) {
+        char greylistportstr[parsehostport_PORTBYTES];
+        if (!parsehostport(greylisthost, greylistportstr, greylisthostport)) {
             log_f3("unable to parse greylist host:port from the string: '",
                    greylisthostport, "'");
             die(100);
         }
+        if (!parseport(greylistport, greylistportstr)) {
+            log_f3("unable to parse greylist host:port from the string: '",
+                   greylisthostport, "'");
+            die(100);
+        }
+
         log_t5("greylist address '", greylisthost, ":", log_port(greylistport),
                "'");
     }
