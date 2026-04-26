@@ -28,12 +28,13 @@ int writeall(int fd, const void *xv, long long xlen) {
         w = xlen;
         if (w > 1048576) w = 1048576;
         w = write(fd, x, w);
-        if (w < 0) {
+        if (w == 0) errno = EPIPE;
+        if (w <= 0) {
             if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
                 struct pollfd p;
                 p.fd = fd;
                 p.events = POLLOUT;
-                jail_poll(&p, 1, -1);
+                if (jail_poll(&p, 1, -1) == -1 && errno != EINTR) return -1;
                 continue;
             }
             return -1;
