@@ -43,7 +43,9 @@ WRAPPER_EXECUTABLE = WORKSPACE / "tlswrapper-test"
 CERT_PATH = WORKSPACE / "testcerts" / "okcert-ec-prime256v1-ec-prime256v1-ok.pem"
 CHILD_LOG: Path = WORKSPACE / "test-tlswrapper-child.log"
 
-STARTTLS_BANNER = b"220 ready for tls\n"
+STARTTLS_BANNER = b"220 ready to start TLS (#2.0.0)\r\n"
+STARTTLS_SIGNAL_REQUEST = b"\x00"
+STARTTLS_SIGNAL_ACK = b"\x00"
 PRETLS_GREETING = b"220-plaintext-before-starttls\n"
 SMALL_REQUEST = b"request-before-eof"
 MULTIWRITE_REQUEST = b"request-before-multi-write"
@@ -631,7 +633,7 @@ os.close(sys.stdout.fileno())
 def child_reply_after_delay_then_half_close_then_read_exact(
     reply_chunks: list[bytes], read_size: int, delay: float, starttls: bool = False,
 ) -> str:
-    prefix = _starttls_prefix() if starttls else ""
+    prefix = _starttls_post_ack_prefix() if starttls else ""
     return f"""import os, sys, time
 {prefix}remaining = {read_size}
 chunks = []
@@ -701,7 +703,7 @@ def child_write_marker_then_close_stdout_verify_sha256(
     expected_sha256: str,
     starttls: bool = False,
 ) -> str:
-    prefix = _starttls_prefix() if starttls else ""
+    prefix = _starttls_post_ack_prefix() if starttls else ""
     return f"""import hashlib, os, select, sys
 {prefix}sys.stdout.buffer.write({marker!r})
 sys.stdout.buffer.flush()
@@ -740,16 +742,36 @@ for chunk in {chunks!r}:
 """
 
 
-# --- STARTTLS variants (write banner to FD 5) ---
+# --- STARTTLS variants (write plaintext marker, then control signal to FD 5) ---
 
 def _starttls_prefix() -> str:
-    return f"os.write(5, {STARTTLS_BANNER!r})\nos.close(5)\n"
+    return f"""import os, sys
+sys.stdout.buffer.write({STARTTLS_BANNER!r})
+sys.stdout.buffer.flush()
+os.write(5, {STARTTLS_SIGNAL_REQUEST!r})
+os.close(5)
+"""
+
+
+def _starttls_ack_wait_prefix() -> str:
+    return """import os
+try:
+    ack = os.read(6, 1)
+    if ack != b"\\x00":
+        raise SystemExit(f"unexpected ack={ack!r}")
+except OSError:
+    pass
+"""
+
+
+def _starttls_post_ack_prefix() -> str:
+    return _starttls_prefix() + _starttls_ack_wait_prefix()
 
 
 def child_starttls_then_reply(reply_chunks: list[bytes], read_size: int | None = None) -> str:
     rc = f"sys.stdin.buffer.read({read_size})" if read_size else "sys.stdin.buffer.read()"
     return f"""import os, sys, time
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
 data = {rc}
 if log_path is not None:
@@ -766,7 +788,7 @@ for chunk in {reply_chunks!r}:
 def child_starttls_then_exit(read_size: int | None = None) -> str:
     rc = f"sys.stdin.buffer.read({read_size})" if read_size else "sys.stdin.buffer.read()"
     return f"""import os, sys
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
 data = {rc}
 if log_path is not None:
@@ -785,7 +807,7 @@ rest = sys.stdin.buffer.read(remaining)
 data = first + rest
 """
     return f"""import os, select, sys
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
 if not ready:
     raise SystemExit("stdin not readable after STARTTLS")
@@ -802,7 +824,7 @@ if log_path is not None:
 
 def child_starttls_then_immediate_half_close() -> str:
     return f"""import os, sys
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 os.close(sys.stdout.fileno())
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
 data = sys.stdin.buffer.read()
@@ -816,7 +838,7 @@ if log_path is not None:
 def child_starttls_then_half_close_then_read_exact(read_size: int) -> str:
     if read_size == 0:
         return f"""import os
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 os.close(1)
 data = b""
 remaining = 0
@@ -827,7 +849,7 @@ if log_path is not None:
         f.write(f"read_complete={{remaining == 0}}\\n")
 """
     return f"""import os, select, sys
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
 if not ready:
     raise SystemExit("stdin not readable after STARTTLS")
@@ -853,7 +875,7 @@ def child_starttls_then_close_stdout_read_chunks(
     chunk_sizes: list[int], pause: float = 0.05,
 ) -> str:
     return f"""import os, sys, time
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 os.close(sys.stdout.fileno())
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
 chunks = []
@@ -875,7 +897,7 @@ def child_starttls_then_reply_then_half_close_then_read_exact(
     reply_chunks: list[bytes], read_size: int,
 ) -> str:
     return f"""import os, sys, time
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 remaining = {read_size}
 chunks = []
 while remaining:
@@ -899,20 +921,88 @@ os.close(sys.stdout.fileno())
 
 def child_starttls_then_wait() -> str:
     return f"""import os, sys
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 sys.stdin.buffer.read()
 """
 
 
 def child_starttls_then_wait_for_more(read_size: int) -> str:
     return f"""import os, sys
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
 data = sys.stdin.buffer.read({read_size})
 if log_path is not None:
     with open(log_path, "w") as f:
         f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
         f.write("saw_eof=yes\\n")
+sys.stdin.buffer.read()
+"""
+
+
+def child_read_starttls_then_log_post_starttls(post_read_size: int) -> str:
+    return f"""import os, sys
+trigger = sys.stdin.buffer.read(len(b"STARTTLS\\r\\n"))
+if trigger != b"STARTTLS\\r\\n":
+    raise SystemExit(f"unexpected trigger={{trigger!r}}")
+{_starttls_post_ack_prefix()}\
+try:
+    os.set_blocking(sys.stdin.fileno(), False)
+    while True:
+        chunk = sys.stdin.buffer.read(256)
+        if not chunk:
+            break
+except BlockingIOError:
+    pass
+finally:
+    os.set_blocking(sys.stdin.fileno(), True)
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+data = sys.stdin.buffer.read({post_read_size})
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write(f"command={{trigger.strip().decode('utf-8', errors='replace')}}\\n")
+        f.write(f"received={{data.decode('utf-8', errors='replace')}}\\n")
+        f.write("saw_eof=yes\\n")
+"""
+
+
+def child_starttls_wait_for_ack_then_emit_marker(marker: bytes) -> str:
+    return f"""import os, sys
+{_starttls_prefix()}\
+{_starttls_ack_wait_prefix()}\
+sys.stdout.buffer.write({marker!r})
+sys.stdout.buffer.flush()
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write("ack=yes\\n")
+"""
+
+
+def child_starttls_with_closed_ack() -> str:
+    return f"""import os, sys
+sys.stdout.buffer.write({STARTTLS_BANNER!r})
+sys.stdout.buffer.flush()
+os.close(6)
+os.write(5, {STARTTLS_SIGNAL_REQUEST!r})
+os.close(5)
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write("ack=closed\\n")
+sys.stdin.buffer.read()
+"""
+
+
+def child_starttls_with_oversized_control_signal() -> str:
+    return f"""import os, sys
+sys.stdout.buffer.write({STARTTLS_BANNER!r})
+sys.stdout.buffer.flush()
+os.write(5, b"\\x00\\x00")
+os.close(5)
+log_path = os.environ.get("TLSWRAPPER_CHILD_LOG")
+if log_path is not None:
+    with open(log_path, "w") as f:
+        f.write("control=oversized\\n")
 sys.stdin.buffer.read()
 """
 
@@ -933,7 +1023,7 @@ for chunk in {pre_chunks!r}:
     sys.stdout.buffer.write(chunk)
     sys.stdout.buffer.flush()
     time.sleep(0.01)
-{_starttls_prefix()}
+{_starttls_post_ack_prefix()}
 ready, _, _ = select.select([sys.stdin], [], [], {TIMEOUT!r})
 if not ready:
     raise SystemExit("stdin not readable after STARTTLS")
@@ -1578,6 +1668,137 @@ def test_hybrid_socket_eof_after_child_exit() -> None:
         w.close()
 
 
+def test_hybrid_discards_pipelined_cleartext_after_starttls() -> None:
+    payload = b"STARTTLS\r\nMAIL FROM:<cleartext-after-starttls>\r\n"
+    w = Wrapper()
+    try:
+        w.start(
+            child_read_starttls_then_log_post_starttls(
+                len(payload) - len(b"STARTTLS\r\n")
+            ),
+            delayed=True, socket_transport=True,
+        )
+        assert w.peer_socket is not None
+        plain = PlainSocketClient(w.peer_socket)
+        plain.write(payload)
+
+        ready, _, _ = select.select([w.peer_socket], [], [], TIMEOUT)
+        if not ready:
+            raise TestFailure("timed out waiting for STARTTLS banner")
+        banner = w.peer_socket.recv(len(STARTTLS_BANNER))
+        if banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected STARTTLS banner, got {banner!r}")
+        step_ok("childout[plain]", repr(banner))
+
+        plain.half_close()
+        w.wait()
+        check_child_log([
+            "command=STARTTLS",
+            "received=",
+            "saw_eof=yes",
+        ])
+    finally:
+        w.close()
+
+
+def test_hybrid_starttls_ack_barrier() -> None:
+    marker = b"post-ack-marker"
+    w = Wrapper()
+    try:
+        w.start(
+            child_starttls_wait_for_ack_then_emit_marker(marker),
+            delayed=True, socket_transport=True,
+        )
+        assert w.peer_socket is not None
+        plain = PlainSocketClient(w.peer_socket)
+
+        ready, _, _ = select.select([w.peer_socket], [], [], TIMEOUT)
+        if not ready:
+            raise TestFailure("timed out waiting for STARTTLS banner")
+        banner = w.peer_socket.recv(len(STARTTLS_BANNER))
+        if banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected STARTTLS banner, got {banner!r}")
+        step_ok("childout[plain]", repr(banner))
+
+        ready, _, _ = select.select([w.peer_socket], [], [], 0.2)
+        if ready:
+            raise TestFailure("child produced post-STARTTLS data before TLS handshake")
+        step_ok("childout", "blocked before ack")
+
+        client = TlsSocketClient(w.peer_socket)
+        client.handshake()
+        got_marker = client.read_exact(len(marker), label="childout")
+        if got_marker != marker:
+            raise TestFailure(f"expected marker {marker!r}, got {got_marker!r}")
+        client.half_close()
+        w.wait()
+        check_child_log(["ack=yes"])
+    finally:
+        w.close()
+
+
+def test_hybrid_starttls_missing_ack_pipe_aborts() -> None:
+    w = Wrapper()
+    try:
+        w.start(
+            child_starttls_with_closed_ack(),
+            delayed=True, socket_transport=True,
+        )
+        assert w.peer_socket is not None
+
+        ready, _, _ = select.select([w.peer_socket], [], [], TIMEOUT)
+        if not ready:
+            raise TestFailure("timed out waiting for STARTTLS banner")
+        banner = w.peer_socket.recv(len(STARTTLS_BANNER))
+        if banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected STARTTLS banner, got {banner!r}")
+        step_ok("childout[plain]", repr(banner))
+
+        client = TlsSocketClient(w.peer_socket)
+        try:
+            client.handshake()
+        except ssl.SSLError:
+            step_ok("tls", "handshake aborted without ack")
+        else:
+            raise TestFailure("TLS handshake unexpectedly succeeded without STARTTLS ack pipe")
+
+        w.wait(0)
+        check_child_log(["ack=closed"])
+    finally:
+        w.close()
+
+
+def test_hybrid_starttls_oversized_control_signal_aborts() -> None:
+    w = Wrapper()
+    try:
+        w.start(
+            child_starttls_with_oversized_control_signal(),
+            delayed=True, socket_transport=True,
+        )
+        assert w.peer_socket is not None
+
+        ready, _, _ = select.select([w.peer_socket], [], [], TIMEOUT)
+        if not ready:
+            raise TestFailure("timed out waiting for STARTTLS banner")
+        banner = w.peer_socket.recv(len(STARTTLS_BANNER))
+        if banner != STARTTLS_BANNER:
+            raise TestFailure(f"expected STARTTLS banner, got {banner!r}")
+        step_ok("childout[plain]", repr(banner))
+
+        client = TlsSocketClient(w.peer_socket)
+        try:
+            client.handshake()
+        except ssl.SSLError:
+            step_ok("tls", "handshake aborted after oversized control signal")
+        else:
+            raise TestFailure("TLS handshake unexpectedly succeeded after oversized control signal")
+
+        w.wait(0)
+        check_child_log(["control=oversized"])
+    finally:
+        w.close()
+
+
 def test_tls_only_fast_shutdown() -> None:
     w = Wrapper()
     try:
@@ -1902,6 +2123,10 @@ TESTS["delayed_socket_eof_after_child_exit"] = test_delayed_socket_eof_after_chi
 TESTS["delayed_control_pipe_eof_before_starttls"] = test_delayed_control_pipe_eof_before_starttls
 TESTS["tls_only_socket_eof_after_child_exit"] = test_tls_only_socket_eof_after_child_exit
 TESTS["hybrid_socket_eof_after_child_exit"] = test_hybrid_socket_eof_after_child_exit
+TESTS["hybrid_discards_pipelined_cleartext_after_starttls"] = test_hybrid_discards_pipelined_cleartext_after_starttls
+TESTS["hybrid_starttls_ack_barrier"] = test_hybrid_starttls_ack_barrier
+TESTS["hybrid_starttls_missing_ack_pipe_aborts"] = test_hybrid_starttls_missing_ack_pipe_aborts
+TESTS["hybrid_starttls_oversized_control_signal_aborts"] = test_hybrid_starttls_oversized_control_signal_aborts
 TESTS["tls_only_fast_shutdown"] = test_tls_only_fast_shutdown
 TESTS["tls_only_child_eof_requires_close_notify"] = test_tls_only_child_eof_requires_close_notify
 TESTS["tls_only_large_reply_complete_before_clean_eof"] = test_tls_only_large_reply_complete_before_clean_eof

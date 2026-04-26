@@ -137,6 +137,11 @@ static void __attribute__((noreturn)) die(int x) {
         log_f3("unable to drop privileges to '", (x), "'");                    \
         die(111);                                                              \
     } while (0)
+#define die_starttlsack()                                                      \
+    do {                                                                       \
+        log_f1("unable to receive valid STARTTLS acknowledgement on control fd 6"); \
+        die(111);                                                              \
+    } while (0)
 
 /*
  * usage - print command usage and exit
@@ -227,8 +232,8 @@ static char inbuf[8192];
 static buffer ssin = buffer_INIT(_read, 0, inbuf, sizeof inbuf);
 static char outbuf[128];
 static buffer ssout = buffer_INIT(_write, 1, outbuf, sizeof outbuf);
-static char outbuf5[32];
-static buffer ssout5 = buffer_INIT(_write, 5, outbuf5, sizeof outbuf5);
+static buffer ssout5 = buffer_INIT(_write, 5, 0, 0);
+static buffer ssin6 = buffer_INIT(_read, 6, 0, 0);
 static char cinbuf[128];
 static buffer sscin;
 static char coutbuf[8192];
@@ -241,6 +246,45 @@ static stralloc mailfrom = {0};
 static stralloc rcptto = {0};
 static stralloc rcpttodata = {0};
 static unsigned int rcptcount = 0;
+
+static int smtp_starttls_control_ready(void) {
+
+    struct stat fd5st, fd6st;
+    return flagstarttls && fstat(5, &fd5st) == 0 && fstat(6, &fd6st) == 0;
+}
+
+/*
+ * smtp_discard_starttls_cleartext - discard pipelined plaintext past STARTTLS
+ *
+ * Resets the line-reader buffer and drains any immediately readable stdin
+ * bytes so post-STARTTLS cleartext cannot be interpreted as SMTP commands.
+ */
+static void smtp_discard_starttls_cleartext(void) {
+    char discardbuf[256];
+    long long discarded = 0;
+
+    buffer_init(&ssin, _read, 0, inbuf, sizeof inbuf);
+
+    fd_blocking_disable(0);
+    for (;;) {
+        long long r = read(0, discardbuf, sizeof discardbuf);
+        if (r > 0) {
+            discarded += r;
+            continue;
+        }
+        if (r == 0) break;
+        if (errno == EINTR) continue;
+        if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+        log_d1("discard of pipelined STARTTLS cleartext failed");
+        die(111);
+    }
+    fd_blocking_enable(0);
+
+    if (discarded) {
+        log_d2("discarded pipelined cleartext bytes after STARTTLS ",
+               log_num(discarded));
+    }
+}
 
 /*
  * _catlogid - append the current log id in bracket form
@@ -712,11 +756,8 @@ static void smtp_rcpt(void) {
  * smtp_ehlo - proxy EHLO and advertise STARTTLS when available
  */
 static void smtp_ehlo(void) {
-
-    struct stat st;
-
     buffer_putsflush(&sscout, line.s);
-    if (flagstarttls && fstat(5, &st) == 0) {
+    if (smtp_starttls_control_ready()) {
         (void) smtpline("250 STARTTLS\r\n", 0);
     }
     else { (void) smtpline(0, 0); }
@@ -728,21 +769,22 @@ static void smtp_ehlo(void) {
 /*
  * smtp_starttls - switch the client side to TLS when supported
  *
- * Sends the STARTTLS readiness reply on descriptor 5, closes the plaintext
- * control descriptor, and resets the child SMTP state with RSET.
+ * Sends the one-byte zero-valued STARTTLS request on descriptor 5, discards
+ * queued plaintext input, waits for the parent to acknowledge the transition
+ * with a zero byte on descriptor 6, and resets the child SMTP state with
+ * RSET.
  */
 static void smtp_starttls(void) {
+    char ack = 0xff;
 
-    struct stat st;
-
-    if (!flagstarttls || fstat(5, &st) != 0) {
+    if (!smtp_starttls_control_ready()) {
         if (!stralloc_copys(&cline, "502 unimplemented (#5.5.1)")) die_nomem();
         if (!_catlogid(&cline)) die_nomem();
         if (!stralloc_cats(&cline, "\r\n")) die_nomem();
         if (!stralloc_0(&cline)) die_nomem();
         buffer_putsflush(&ssout, cline.s);
-        log_d3(line.s, ": ", cline.s);
         errno = 0;
+        log_d3(line.s, ": ", cline.s);
         return;
     }
 
@@ -750,10 +792,16 @@ static void smtp_starttls(void) {
     if (!_catlogid(&cline)) die_nomem();
     if (!stralloc_cats(&cline, "\r\n")) die_nomem();
     if (!stralloc_0(&cline)) die_nomem();
+    buffer_putsflush(&ssout, cline.s);
 
-    buffer_putsflush(&ssout5, cline.s);
+    buffer_putflush(&ssout5, "", 1);
     close(5);
     log_d3(line.s, ": ", cline.s);
+
+    smtp_discard_starttls_cleartext();
+
+    if (buffer_get(&ssin6, &ack, 1) != 1 || ack != 0) die_starttlsack();
+    close(6);
 
     buffer_putsflush(&sscout, "RSET\r\n");
     smtpline(0, 1);
@@ -863,7 +911,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
                "'");
     }
 
-    if (fstat(5, &st) == 0) { flagstarttls = 1; }
+    if (fstat(5, &st) == 0 && fstat(6, &st) == 0) { flagstarttls = 1; }
 
     /* run child process */
     if (open_pipe(tochild) == -1) die_pipe();

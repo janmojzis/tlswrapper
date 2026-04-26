@@ -19,6 +19,8 @@ SMTP_MAX_RCPTTODATA = 65536
 WORKSPACE = Path(__file__).resolve().parent
 LOGGER = logging.getLogger(__name__)
 WRAPPER_PATH = WORKSPACE / "tlswrappernojail-smtp"
+STARTTLS_SIGNAL_REQUEST = b"\x00"
+STARTTLS_SIGNAL_ACK = b"\x00"
 
 
 class TestFailure(Exception):
@@ -36,6 +38,16 @@ def step_ok(label: str, detail: str = "") -> None:
     """Print an indented test step that passed."""
     suffix = f" {detail}" if detail else ""
     step(f"{label}:{suffix} ok")
+
+
+def move_fd_away_from_reserved(fd: int) -> int:
+    """Duplicate a pipe endpoint away from reserved control descriptors."""
+
+    if fd not in {5, 6}:
+        return fd
+    moved = os.dup(fd)
+    os.close(fd)
+    return moved
 
 
 class TestSmtpWrapper:
@@ -79,6 +91,8 @@ class TestSmtpWrapper:
         self,
         session: bytes,
         with_control_pipe: bool = False,
+        with_control_ack: bool | None = None,
+        auto_ack: bool = True,
     ) -> tuple[int, str, str, list[str]]:
         """Run one SMTP session and collect wrapper outputs."""
 
@@ -98,20 +112,46 @@ class TestSmtpWrapper:
         env["TCPLOCALIP"] = "127.0.0.1"
         env["TCPLOCALPORT"] = "25"
         self.control_output = b""
+        if with_control_ack is None:
+            with_control_ack = with_control_pipe
 
         control_read_fd: int | None = None
         control_write_fd: int | None = None
+        ack_read_fd: int | None = None
+        ack_write_fd: int | None = None
         saved_fd5: int | None = None
+        saved_fd6: int | None = None
         if with_control_pipe:
             control_read_fd, control_write_fd = os.pipe()
+            control_read_fd = move_fd_away_from_reserved(control_read_fd)
+            control_write_fd = move_fd_away_from_reserved(control_write_fd)
             try:
                 os.fstat(5)
             except OSError:
                 saved_fd5 = None
             else:
                 saved_fd5 = os.dup(5)
+            try:
+                os.fstat(6)
+            except OSError:
+                saved_fd6 = None
+            else:
+                saved_fd6 = os.dup(6)
             os.dup2(control_write_fd, 5)
             os.set_inheritable(5, True)
+        if with_control_ack:
+            ack_read_fd, ack_write_fd = os.pipe()
+            ack_read_fd = move_fd_away_from_reserved(ack_read_fd)
+            ack_write_fd = move_fd_away_from_reserved(ack_write_fd)
+            if saved_fd6 is None:
+                try:
+                    os.fstat(6)
+                except OSError:
+                    saved_fd6 = None
+                else:
+                    saved_fd6 = os.dup(6)
+            os.dup2(ack_read_fd, 6)
+            os.set_inheritable(6, True)
 
         LOGGER.debug("Starting wrapper process: %s", " ".join(cmd))
         try:
@@ -122,18 +162,30 @@ class TestSmtpWrapper:
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                pass_fds=() if control_write_fd is None else (5,),
+                pass_fds=tuple(fd for fd, enabled in ((5, with_control_pipe), (6, with_control_ack)) if enabled),
                 preexec_fn=os.setsid,
             )
+            if ack_write_fd is not None and auto_ack:
+                os.write(ack_write_fd, STARTTLS_SIGNAL_ACK)
         finally:
             if control_write_fd is not None:
                 os.close(control_write_fd)
+            if ack_read_fd is not None:
+                os.close(ack_read_fd)
+            if ack_write_fd is not None:
+                os.close(ack_write_fd)
             if with_control_pipe:
                 if saved_fd5 is None:
                     os.close(5)
                 else:
                     os.dup2(saved_fd5, 5)
                     os.close(saved_fd5)
+            if with_control_ack:
+                if saved_fd6 is None:
+                    os.close(6)
+                else:
+                    os.dup2(saved_fd6, 6)
+                    os.close(saved_fd6)
 
         try:
             stdout, stderr = self.proc.communicate(session, timeout=self.timeout)
@@ -167,12 +219,14 @@ class TestSmtpWrapper:
 
         deadline = time.monotonic() + 1
         lines: list[str] = []
+        previous: list[str] | None = None
 
         while time.monotonic() < deadline:
             if self.child_log_path.exists():
                 lines = self.child_log_path.read_text(encoding="utf-8").splitlines()
-                if lines:
+                if lines and lines == previous:
                     return lines
+                previous = lines
             time.sleep(0.05)
 
         if not self.child_log_path.exists():
@@ -1056,7 +1110,7 @@ def test_starttls_unavailable_rejected(child_log_path: Path) -> None:
 
 
 def test_starttls_available_advertised(child_log_path: Path) -> None:
-    """Verify EHLO advertises STARTTLS when control fd 5 exists."""
+    """Verify EHLO advertises STARTTLS only when both control fds exist."""
 
     session = b"EHLO client.example\r\nQUIT\r\n"
     expected_stdout = [
@@ -1077,6 +1131,7 @@ def test_starttls_available_advertised(child_log_path: Path) -> None:
         returncode, stdout_text, stderr_text, child_log = test.run(
             session,
             with_control_pipe=True,
+            with_control_ack=True,
         )
 
     stdout_lines = split_smtp_lines(stdout_text)
@@ -1097,36 +1152,84 @@ def test_starttls_available_advertised(child_log_path: Path) -> None:
     step_ok("childlog", f"{len(child_log)} lines")
 
 
-def test_starttls_control_pipe_banner(child_log_path: Path) -> None:
-    """Verify STARTTLS writes its banner to fd 5 and sends internal RSET."""
+def test_starttls_not_advertised_with_only_fd5(child_log_path: Path) -> None:
+    """Verify EHLO does not advertise STARTTLS when only fd 5 exists."""
+
+    session = b"EHLO client.example\r\nQUIT\r\n"
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(
+            session,
+            with_control_pipe=True,
+            with_control_ack=False,
+        )
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if "250 STARTTLS" in stdout_lines:
+        raise TestFailure(f"Unexpected STARTTLS advertisement with only fd 5: {stdout_lines!r}")
+    if child_log[-2:] != ["cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(f"Unexpected fake child QUIT sequence: {child_log!r}")
+    step_ok("stdout", "STARTTLS hidden without fd 6")
+
+
+def test_starttls_not_advertised_with_only_fd6(child_log_path: Path) -> None:
+    """Verify EHLO does not advertise STARTTLS when only fd 6 exists."""
+
+    session = b"EHLO client.example\r\nQUIT\r\n"
+
+    with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
+        returncode, stdout_text, stderr_text, child_log = test.run(
+            session,
+            with_control_pipe=False,
+            with_control_ack=True,
+        )
+
+    stdout_lines = split_smtp_lines(stdout_text)
+    if returncode != 0:
+        raise TestFailure(
+            f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
+        )
+    if "250 STARTTLS" in stdout_lines:
+        raise TestFailure(f"Unexpected STARTTLS advertisement with only fd 6: {stdout_lines!r}")
+    if child_log[-2:] != ["cmd QUIT", "reply 221 bye"]:
+        raise TestFailure(f"Unexpected fake child QUIT sequence: {child_log!r}")
+    step_ok("stdout", "STARTTLS hidden without fd 5")
+
+
+def test_starttls_control_pipe_signal(child_log_path: Path) -> None:
+    """Verify STARTTLS writes only its signal to fd 5 and discards queued plaintext."""
 
     session = b"EHLO client.example\r\nSTARTTLS\r\nQUIT\r\n"
     expected_stdout = [
         "220 ready",
         "250-ok",
         "250 STARTTLS",
-        "221 bye",
+        "220 ready to start TLS (#2.0.0)",
     ]
-    expected_control_output = b"220 ready to start TLS (#2.0.0)\r\n"
+    expected_control_output = STARTTLS_SIGNAL_REQUEST
     expected_child_log = [
         "reply 220 ready",
         "cmd EHLO client.example",
         "reply 250 ok",
         "cmd RSET",
         "reply 250 reset",
-        "cmd QUIT",
-        "reply 221 bye",
+        "eof",
     ]
 
     with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
         returncode, stdout_text, stderr_text, child_log = test.run(
             session,
             with_control_pipe=True,
+            with_control_ack=True,
         )
         control_output = test.control_output
 
     stdout_lines = split_smtp_lines(stdout_text)
-    if returncode != 0:
+    if returncode != 111:
         raise TestFailure(
             f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
         )
@@ -1149,7 +1252,7 @@ def test_starttls_control_pipe_banner(child_log_path: Path) -> None:
 
 
 def test_starttls_short_session(child_log_path: Path) -> None:
-    """Verify a short SMTP session succeeds after STARTTLS."""
+    """Verify pipelined plaintext after STARTTLS is discarded."""
 
     session = (
         b"EHLO client.example\r\n"
@@ -1167,43 +1270,28 @@ def test_starttls_short_session(child_log_path: Path) -> None:
         "220 ready",
         "250-ok",
         "250 STARTTLS",
-        "250 ok",
-        "250 ok",
-        "354 go ahead",
-        "250 queued",
-        "221 bye",
+        "220 ready to start TLS (#2.0.0)",
     ]
-    expected_control_output = b"220 ready to start TLS (#2.0.0)\r\n"
+    expected_control_output = STARTTLS_SIGNAL_REQUEST
     expected_child_log = [
         "reply 220 ready",
         "cmd EHLO client.example",
         "reply 250 ok",
         "cmd RSET",
         "reply 250 reset",
-        "cmd MAIL FROM:<alice@example.com>",
-        "reply 250 ok",
-        "cmd RCPT TO:<bob@example.com>",
-        "reply 250 ok",
-        "cmd DATA",
-        "reply 354 go ahead",
-        "data Subject: starttls test",
-        "data ",
-        "data hello over starttls",
-        "data-end",
-        "reply 250 queued",
-        "cmd QUIT",
-        "reply 221 bye",
+        "eof",
     ]
 
     with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
         returncode, stdout_text, stderr_text, child_log = test.run(
             session,
             with_control_pipe=True,
+            with_control_ack=True,
         )
         control_output = test.control_output
 
     stdout_lines = split_smtp_lines(stdout_text)
-    if returncode != 0:
+    if returncode != 111:
         raise TestFailure(
             f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
         )
@@ -1226,7 +1314,7 @@ def test_starttls_short_session(child_log_path: Path) -> None:
 
 
 def test_starttls_fresh_transaction(child_log_path: Path) -> None:
-    """Verify STARTTLS is followed by a fresh MAIL/RCPT/DATA transaction."""
+    """Verify queued commands after STARTTLS are not forwarded."""
 
     session = (
         b"EHLO client.example\r\n"
@@ -1248,13 +1336,9 @@ def test_starttls_fresh_transaction(child_log_path: Path) -> None:
         "250 STARTTLS",
         "250 ok",
         "250 ok",
-        "250 ok",
-        "250 ok",
-        "354 go ahead",
-        "250 queued",
-        "221 bye",
+        "220 ready to start TLS (#2.0.0)",
     ]
-    expected_control_output = b"220 ready to start TLS (#2.0.0)\r\n"
+    expected_control_output = STARTTLS_SIGNAL_REQUEST
     expected_child_log = [
         "reply 220 ready",
         "cmd EHLO client.example",
@@ -1265,30 +1349,19 @@ def test_starttls_fresh_transaction(child_log_path: Path) -> None:
         "reply 250 ok",
         "cmd RSET",
         "reply 250 reset",
-        "cmd MAIL FROM:<after-starttls@example.com>",
-        "reply 250 ok",
-        "cmd RCPT TO:<after-recipient@example.com>",
-        "reply 250 ok",
-        "cmd DATA",
-        "reply 354 go ahead",
-        "data Subject: fresh transaction",
-        "data ",
-        "data body-after-starttls",
-        "data-end",
-        "reply 250 queued",
-        "cmd QUIT",
-        "reply 221 bye",
+        "eof",
     ]
 
     with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
         returncode, stdout_text, stderr_text, child_log = test.run(
             session,
             with_control_pipe=True,
+            with_control_ack=True,
         )
         control_output = test.control_output
 
     stdout_lines = split_smtp_lines(stdout_text)
-    if returncode != 0:
+    if returncode != 111:
         raise TestFailure(
             f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
         )
@@ -1311,7 +1384,7 @@ def test_starttls_fresh_transaction(child_log_path: Path) -> None:
 
 
 def test_starttls_resets_envelope(child_log_path: Path) -> None:
-    """Verify STARTTLS resets envelope state via the internal RSET."""
+    """Verify STARTTLS discards queued recipients and message data."""
 
     first_batch = [
         f"RCPT TO:<e{i:03d}@example.com>\r\n".encode("ascii") for i in range(1, 131)
@@ -1330,18 +1403,19 @@ def test_starttls_resets_envelope(child_log_path: Path) -> None:
         + b".\r\n"
         + b"QUIT\r\n"
     )
-    expected_control_output = b"220 ready to start TLS (#2.0.0)\r\n"
-    expected_stdout_len = 1 + 2 + 1 + 130 + 130 + 1 + 1 + 1
+    expected_control_output = STARTTLS_SIGNAL_REQUEST
+    expected_stdout_len = 1 + 2 + 1 + 130 + 1
 
     with TestSmtpWrapper(TIMEOUT, child_log_path) as test:
         returncode, stdout_text, stderr_text, child_log = test.run(
             session,
             with_control_pipe=True,
+            with_control_ack=True,
         )
         control_output = test.control_output
 
     stdout_lines = split_smtp_lines(stdout_text)
-    if returncode != 0:
+    if returncode != 111:
         raise TestFailure(
             f"Wrapper exited with {returncode}: {stderr_text.strip() or '<empty stderr>'}"
         )
@@ -1358,20 +1432,25 @@ def test_starttls_resets_envelope(child_log_path: Path) -> None:
         raise TestFailure(
             f"Unexpected EHLO reply lines: {stdout_lines[1:3]!r}, expected ['250-ok', '250 STARTTLS']"
         )
-    if stdout_lines[-1] != "221 bye":
+    if "220 ready to start TLS (#2.0.0)" not in stdout_lines:
+        raise TestFailure(f"Missing STARTTLS banner in wrapper stdout: {stdout_lines!r}")
+    if stdout_lines.count("354 go ahead") != 0:
         raise TestFailure(
-            f"Unexpected final wrapper stdout line: {stdout_lines[-1]!r}, expected '221 bye'"
+            f"Unexpected DATA prompt count: {stdout_lines.count('354 go ahead')!r}, expected 0"
         )
-    if stdout_lines.count("354 go ahead") != 1:
+    if stdout_lines.count("250 queued") != 0:
         raise TestFailure(
-            f"Unexpected DATA prompt count: {stdout_lines.count('354 go ahead')!r}, expected 1"
+            f"Unexpected queued reply count: {stdout_lines.count('250 queued')!r}, expected 0"
         )
-    if stdout_lines.count("250 queued") != 1:
-        raise TestFailure(
-            f"Unexpected queued reply count: {stdout_lines.count('250 queued')!r}, expected 1"
-        )
-    if any(line not in {"220 ready", "250-ok", "250 STARTTLS", "250 ok", "354 go ahead", "250 queued", "221 bye"} for line in stdout_lines):
+    if any(
+        line not in {"220 ready", "250-ok", "250 STARTTLS", "220 ready to start TLS (#2.0.0)", "250 ok"}
+        for line in stdout_lines
+    ):
         raise TestFailure(f"Unexpected wrapper stdout lines: {stdout_lines!r}")
+    if stdout_lines.count("250 ok") != 1 + 130:
+        raise TestFailure(
+            f"Unexpected count of '250 ok' wrapper replies: {stdout_lines.count('250 ok')!r}, expected 131"
+        )
     step_ok("stdout", f"{len(stdout_lines)} lines")
     if control_output != expected_control_output:
         raise TestFailure(
@@ -1400,15 +1479,15 @@ def test_starttls_resets_envelope(child_log_path: Path) -> None:
             f"Unexpected internal RSET sequence count in fake child log: {child_log!r}"
         )
     step_ok("childlog", "internal RSET")
-    if len(cmd_rcpts) != 260:
+    if len(cmd_rcpts) != 130:
         raise TestFailure(
-            f"Unexpected forwarded RCPT count: {len(cmd_rcpts)!r}, expected 260"
+            f"Unexpected forwarded RCPT count: {len(cmd_rcpts)!r}, expected 130"
         )
-    if len(reply_oks) != 1 + 1 + 260:
+    if len(reply_oks) != 1 + 1 + 130:
         raise TestFailure(
-            f"Unexpected count of 'reply 250 ok' lines: {len(reply_oks)!r}, expected 262"
+            f"Unexpected count of 'reply 250 ok' lines: {len(reply_oks)!r}, expected 132"
         )
-    step_ok("childlog", "260 RCPT forwarded")
+    step_ok("childlog", "130 RCPT forwarded")
     if cmd_rcpts[0] != "cmd RCPT TO:<e001@example.com>":
         raise TestFailure(
             f"Unexpected first RCPT log line: {cmd_rcpts[0]!r}"
@@ -1417,31 +1496,27 @@ def test_starttls_resets_envelope(child_log_path: Path) -> None:
         raise TestFailure(
             f"Unexpected last first-batch RCPT log line: {cmd_rcpts[129]!r}"
         )
-    if cmd_rcpts[130] != "cmd RCPT TO:<f001@example.com>":
-        raise TestFailure(
-            f"Unexpected first second-batch RCPT log line: {cmd_rcpts[130]!r}"
-        )
-    if cmd_rcpts[-1] != "cmd RCPT TO:<f130@example.com>":
-        raise TestFailure(
-            f"Unexpected final RCPT log line: {cmd_rcpts[-1]!r}"
-        )
     step_ok("childlog", "batch boundaries")
-    if child_log.count("cmd DATA") != 1:
+    if any(line.startswith("cmd RCPT TO:<f") for line in child_log):
         raise TestFailure(
-            f"Unexpected DATA command count in fake child log: {child_log.count('cmd DATA')!r}, expected 1"
+            f"Unexpected post-STARTTLS RCPT in fake child log: {child_log!r}"
         )
-    if child_log.count("data post-starttls message") != 1:
+    if child_log.count("cmd DATA") != 0:
         raise TestFailure(
-            f"Missing post-STARTTLS message body in fake child log: {child_log!r}"
+            f"Unexpected DATA command count in fake child log: {child_log.count('cmd DATA')!r}, expected 0"
         )
-    if child_log.count("data-end") != 1:
+    if child_log.count("data post-starttls message") != 0:
         raise TestFailure(
-            f"Unexpected DATA termination count in fake child log: {child_log.count('data-end')!r}, expected 1"
+            f"Unexpected post-STARTTLS message body in fake child log: {child_log!r}"
         )
-    step_ok("childlog", "1 DATA + 1 data-end")
-    if "cmd QUIT" not in child_log or child_log[-1] != "reply 221 bye":
-        raise TestFailure(f"Missing clean QUIT sequence in fake child log: {child_log!r}")
-    step_ok("childlog", "clean QUIT")
+    if child_log.count("data-end") != 0:
+        raise TestFailure(
+            f"Unexpected DATA termination count in fake child log: {child_log.count('data-end')!r}, expected 0"
+        )
+    step_ok("childlog", "post-STARTTLS payload discarded")
+    if child_log[-1] != "eof":
+        raise TestFailure(f"Unexpected final fake child log line: {child_log[-1]!r}, expected 'eof'")
+    step_ok("childlog", "clean EOF")
 
 
 TESTS: dict[str, Callable[[Path], None]] = {
@@ -1458,7 +1533,9 @@ TESTS: dict[str, Callable[[Path], None]] = {
     "rcptto_too_long": test_rcptto_too_long,
     "short_session": test_short_session,
     "starttls_available_advertised": test_starttls_available_advertised,
-    "starttls_control_pipe_banner": test_starttls_control_pipe_banner,
+    "starttls_not_advertised_with_only_fd5": test_starttls_not_advertised_with_only_fd5,
+    "starttls_not_advertised_with_only_fd6": test_starttls_not_advertised_with_only_fd6,
+    "starttls_control_pipe_signal": test_starttls_control_pipe_signal,
     "starttls_fresh_transaction": test_starttls_fresh_transaction,
     "starttls_short_session": test_starttls_short_session,
     "starttls_resets_envelope": test_starttls_resets_envelope,

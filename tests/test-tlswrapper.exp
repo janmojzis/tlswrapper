@@ -126,7 +126,7 @@
   PASS
 
 === hybrid_reply_after_eof ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   peerin: half-close ok
@@ -136,7 +136,7 @@
   PASS
 
 === hybrid_reply_after_eof_no_payload ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: half-close ok
   childout: b'reply-after-empty-eof\n' ok
@@ -145,7 +145,7 @@
   PASS
 
 === hybrid_reply_after_eof_large ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-chunk-request-chunk-requ'...b'quest-chunk-tail' (5604 bytes) ok
   peerin: half-close ok
@@ -155,7 +155,7 @@
   PASS
 
 === hybrid_reply_after_eof_multi_write ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-multi-write' ok
   peerin: half-close ok
@@ -167,7 +167,7 @@
   PASS
 
 === hybrid_eof_child_silent_exit ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-silent-exit' ok
   peerin: half-close ok
@@ -176,7 +176,7 @@
   PASS
 
 === hybrid_child_half_closes_client_writes ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   peerin: half-close ok
@@ -186,7 +186,7 @@
 
 === hybrid_plaintext_before_starttls ===
   childout[plain]: b'220-plaintext-before-starttls\n' ok
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   peerin: half-close ok
@@ -430,7 +430,7 @@
   PASS
 
 === hybrid_child_eof_no_payload ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   childout: EOF ok
   peerin: half-close ok
@@ -439,7 +439,7 @@
   PASS
 
 === hybrid_child_eof_small ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   childout: EOF ok
@@ -449,7 +449,7 @@
   PASS
 
 === hybrid_child_eof_large ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-chunk-request-chunk-requ'...b'quest-chunk-tail' (5604 bytes) ok
   childout: EOF ok
@@ -459,7 +459,7 @@
   PASS
 
 === hybrid_child_eof_chunked ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-' ok
   peerin: b'before-' ok
@@ -471,7 +471,7 @@
   PASS
 
 === hybrid_child_eof_reply_no_payload ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   childout: b'reply-before-eof\n' ok
   childout: EOF ok
@@ -481,7 +481,7 @@
   PASS
 
 === hybrid_child_eof_reply_small ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   childout: b'reply-before-eof\n' ok
@@ -492,7 +492,7 @@
   PASS
 
 === hybrid_child_eof_reply_large ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-chunk-request-chunk-requ'...b'quest-chunk-tail' (5604 bytes) ok
   childout: b'reply-before-eof\n' ok
@@ -503,7 +503,7 @@
   PASS
 
 === hybrid_child_eof_reply_chunked ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-' ok
   peerin: b'before-' ok
@@ -516,7 +516,7 @@
   PASS
 
 === hybrid_child_eof_large_reply_no_payload ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   childout: b'reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-' ok
   childout: b'reply-tail\n' ok
@@ -527,7 +527,7 @@
   PASS
 
 === hybrid_child_eof_large_reply_small ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   childout: b'reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-' ok
@@ -539,7 +539,7 @@
   PASS
 
 === hybrid_child_eof_large_reply_large ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-chunk-request-chunk-requ'...b'quest-chunk-tail' (5604 bytes) ok
   childout: b'reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-reply-chunk-' ok
@@ -551,7 +551,7 @@
   PASS
 
 === hybrid_child_eof_large_reply_chunked ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-' ok
   peerin: b'before-' ok
@@ -595,26 +595,26 @@
   PASS
 
 === hybrid_stalled_after_starttls_timeout ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   timeout: ~1s ok
   exit: 0 ok
   PASS
 
 === hybrid_immediate_child_half_close_timeout ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   timeout: ~1s ok
   exit: 0 ok
   PASS
 
 === hybrid_idle_after_handshake_timeout ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   timeout: ~1s ok
   exit: 0 ok
   PASS
 
 === hybrid_post_handshake_activity_idle_timeout ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'idle-after-activity' ok
   timeout: ~1s ok
@@ -644,13 +644,45 @@
   PASS
 
 === hybrid_socket_eof_after_child_exit ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   peerout: EOF ok
   peerin: half-close ok
   exit: 0 ok
   childlog: received=request-before-eof saw_eof=yes ok
+  PASS
+
+=== hybrid_discards_pipelined_cleartext_after_starttls ===
+  peerin: b'STARTTLS\r\nMAIL FROM:<cleartext-after-starttls>\r\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  peerin: half-close ok
+  exit: 0 ok
+  childlog: command=STARTTLS received= saw_eof=yes ok
+  PASS
+
+=== hybrid_starttls_ack_barrier ===
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  childout: blocked before ack ok
+  handshake: ok
+  childout: b'post-ack-marker' ok
+  peerin: half-close ok
+  exit: 0 ok
+  childlog: ack=yes ok
+  PASS
+
+=== hybrid_starttls_missing_ack_pipe_aborts ===
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  tls: handshake aborted without ack ok
+  exit: 0 ok
+  childlog: ack=closed ok
+  PASS
+
+=== hybrid_starttls_oversized_control_signal_aborts ===
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
+  tls: handshake aborted after oversized control signal ok
+  exit: 0 ok
+  childlog: control=oversized ok
   PASS
 
 === tls_only_fast_shutdown ===
@@ -720,7 +752,7 @@
   PASS
 
 === hybrid_delayed_reply_after_peer_eof ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   peerin: b'request-before-eof' ok
   peerin: half-close ok
@@ -731,7 +763,7 @@
   PASS
 
 === hybrid_large_inflight_payload_survives_child_stdout_close ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   childout: b'ready-over-tls' ok
   peerin: b'inflight-payload-inflight-payloa'...b'ght-payload-tail' (1007 bytes) ok
@@ -741,11 +773,11 @@
   PASS
 
 === hybrid_child_closes_stdout_idle_peer_finishes ===
-  childout[plain]: b'220 ready for tls\n' ok
+  childout[plain]: b'220 ready to start TLS (#2.0.0)\r\n' ok
   handshake: ok
   childout: closed by child ok
   exit: 0 ok
   childlog: saw_eof=yes ok
   PASS
 
-all 81 tests passed
+all 85 tests passed

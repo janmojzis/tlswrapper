@@ -40,9 +40,8 @@ The tlswrapper uses BearSSL. BearSSL is an implementation of the SSL/TLS protoco
 
 ## Delayed-encryption (STARTTLS)
 The tlswrapper can also operate in delayed-encryption mode, which makes it possible to add STARTTLS support in front of existing software that does not implement it on its own.
-For SMTP, `tlswrapper-smtp` accepts the connection and keeps the session in plaintext mode until the client sends a `STARTTLS` request. At that moment, `tlswrapper-smtp` notifies `tlswrapper` through an inherited file descriptor, and tlswrapper starts TLS encryption for the rest of the session.
+For SMTP, `tlswrapper-smtp` accepts the connection and keeps the session in plaintext mode until the client sends a `STARTTLS` request. At that moment, `tlswrapper-smtp` emits the SMTP `220 ready to start TLS` reply on its normal output stream, sends a one-byte `0x00` control signal to `tlswrapper` on inherited `fd 5`, waits for the `0x00` acknowledgement on inherited `fd 6`, and then the session continues under TLS.
 This allows tlswrapper to be placed in front of almost any existing SMTP server. The backend server continues to speak its normal protocol, while tlswrapper handles the switch from plaintext traffic to encrypted traffic after `STARTTLS`.
 
 # Examples
 - [examples page](examples.md)
-

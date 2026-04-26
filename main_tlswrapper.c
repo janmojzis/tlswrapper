@@ -52,13 +52,13 @@ static struct tls_context ctx = {
 };
 
 #define CONTROLPIPEFD 5
+#define CONTROLACKPIPEFD 6
 
 static const char *hstimeoutstr = "30";
 static const char *timeoutstr = "60";
 static const char *user = 0;
 static const char *userfromcert = 0;
 
-static long long starttimeout = 3;
 static long long finishtimeout = 1;
 static long long hstimeout;
 static long long timeout;
@@ -66,6 +66,7 @@ static long long timeout;
 static int flagverbose = 1;
 
 static int fromchildcontrol[2] = {-1, -1};
+static int tochildcontrol[2] = {-1, -1};
 static int fromchild[2] = {-1, -1};
 static int tochild[2] = {-1, -1};
 static pid_t child = -1;
@@ -81,14 +82,13 @@ static int peeroutfd = -1;
 static int childoutfd = -1;
 static int childinfd = -1;
 static int childctlfd = -1;
+static int childackfd = -1;
 
 #define CLEARTEXT_BUFSIZE 8192
 static unsigned char cleartext_tochildbuf[CLEARTEXT_BUFSIZE];
 static size_t cleartext_tochildbuflen = 0;
 static unsigned char cleartext_tonetbuf[CLEARTEXT_BUFSIZE];
 static size_t cleartext_tonetbuflen = 0;
-static unsigned char cleartext_tonet5buf[CLEARTEXT_BUFSIZE];
-static size_t cleartext_tonet5buflen = 0;
 
 static unsigned char localip[16] = {0};
 static unsigned char localport[2] = {0};
@@ -149,7 +149,8 @@ static int handle_selfpipe_event(void) {
     }
 
     if (ch == 'A') {
-        if (childinfd != -1 || childoutfd != -1 || childctlfd != -1) {
+        if (childinfd != -1 || childoutfd != -1 || childctlfd != -1 ||
+            childackfd != -1) {
             /* Close the remaining child filedescriptors and stop waiting
              * for more child-side I/O.
              */
@@ -157,6 +158,7 @@ static int handle_selfpipe_event(void) {
             fd_close_write("childinfd", &childinfd);
             fd_close_read("childoutfd", &childoutfd);
             fd_close_read("childctlfd", &childctlfd);
+            fd_close_write("childackfd", &childackfd);
             goto finish;
         }
     }
@@ -191,8 +193,6 @@ static void cleanup(void) {
     randombytes(&cleartext_tochildbuflen, sizeof cleartext_tochildbuflen);
     randombytes(cleartext_tonetbuf, sizeof cleartext_tonetbuf);
     randombytes(&cleartext_tonetbuflen, sizeof cleartext_tonetbuflen);
-    randombytes(cleartext_tonet5buf, sizeof cleartext_tonet5buf);
-    randombytes(&cleartext_tonet5buflen, sizeof cleartext_tonet5buflen);
     alloc_freeall();
     {
         unsigned char stack[4096];
@@ -214,6 +214,12 @@ static void cleanup(void) {
     do {                                                                       \
         log_f3("unable to create control pipe on filedescriptor ",             \
                log_num(CONTROLPIPEFD), ": filedescriptor exits");              \
+        die(111);                                                              \
+    } while (0)
+#define die_controlackpipe()                                                   \
+    do {                                                                       \
+        log_f3("unable to create control ack pipe on filedescriptor ",         \
+               log_num(CONTROLACKPIPEFD), ": filedescriptor exits");           \
         die(111);                                                              \
     } while (0)
 #define die_devnull()                                                          \
@@ -650,7 +656,6 @@ static void report_tls_phase_fds(unsigned int st, int can_recvrec, int can_sendr
 static int run_cleartext_phase(void) {
     cleartext_tochildbuflen = 0;
     cleartext_tonetbuflen = 0;
-    cleartext_tonet5buflen = 0;
     log_t1("cleartext phase entered");
 
     for (;;) {
@@ -670,10 +675,7 @@ static int run_cleartext_phase(void) {
             fd_close_write("childinfd", &childinfd);
             log_t1("network peer closed the connection, cleartext phase propagated network EOF to child");
         }
-        if (childoutfd == -1 &&
-            !cleartext_tonet5buflen &&
-            peeroutfd != -1 &&
-            !cleartext_tonetbuflen) {
+        if (childoutfd == -1 && peeroutfd != -1 && !cleartext_tonetbuflen) {
             fd_close_write("peeroutfd", &peeroutfd);
             log_d1("child closed the connection, cleartext phase propagated child EOF to network");
         }
@@ -684,26 +686,12 @@ static int run_cleartext_phase(void) {
             return 0;
         }
 
-        /* STARTTLS guards: abort when the transition cannot succeed.
-           - network half-closed: TLS handshake is impossible.
-           - control buffer full: cannot read EOF, transition will never
-             complete; the child wrote garbage to the control pipe. */
-        if (cleartext_tonet5buflen) {
-            if (peerinfd == -1 || peeroutfd == -1) {
-                log_d1("STARTTLS pending but network descriptors already closed, aborting");
-                return 0;
-            }
-            if (cleartext_tonet5buflen >= sizeof cleartext_tonet5buf) {
-                log_d1("STARTTLS control buffer full, aborting");
-                return 0;
-            }
-        }
-
         watchfrompeer = watchtopeer = watchfromchild = watchtochild = watchfromselfpipe = 0;
         watchfromchildctl = 0;
         q = p;
 
-        /* Flush: always allow draining pending data to its destination. */
+        /* Flush: before the STARTTLS boundary is observed, always allow
+           draining pending data to its destination. */
         if (peeroutfd != -1 && cleartext_tonetbuflen) {
             watchtopeer = q;
             q->fd = peeroutfd;
@@ -717,11 +705,9 @@ static int run_cleartext_phase(void) {
             ++q;
         }
 
-        /* Ingest: accept new cleartext data only when no STARTTLS signal
-           has arrived yet.  Once cleartext_tonet5buflen > 0 the child has
-           declared its intent to switch to TLS; accepting more cleartext
-           would let the child interleave data across the TLS boundary. */
-        if (!cleartext_tonet5buflen &&
+        /* Ingest: relay ordinary cleartext until the child raises the
+           STARTTLS control signal on fd 5. */
+        if (
             peerinfd != -1 &&
             cleartext_tochildbuflen < sizeof cleartext_tochildbuf &&
             childinfd != -1) {
@@ -730,7 +716,7 @@ static int run_cleartext_phase(void) {
             q->events = POLLIN;
             ++q;
         }
-        if (!cleartext_tonet5buflen &&
+        if (
             childoutfd != -1 && cleartext_tonetbuflen < sizeof cleartext_tonetbuf) {
             watchfromchild = q;
             q->fd = childoutfd;
@@ -738,12 +724,10 @@ static int run_cleartext_phase(void) {
             ++q;
         }
 
-        /* Control pipe: read the STARTTLS signal only after both cleartext
-           buffers have been flushed, so the transition point is clean. */
-        if (peeroutfd != -1 &&
-            childctlfd != -1 &&
-            cleartext_tonet5buflen < sizeof cleartext_tonet5buf &&
-            !cleartext_tonetbuflen && !cleartext_tochildbuflen) {
+        /* Control pipe: consume the one-byte STARTTLS request only after any
+           pending child stdout has been flushed to keep the visible
+           cleartext boundary stable. */
+        if (peeroutfd != -1 && childctlfd != -1 && !cleartext_tonetbuflen) {
             watchfromchildctl = q;
             q->fd = childctlfd;
             q->events = POLLIN;
@@ -772,22 +756,11 @@ static int run_cleartext_phase(void) {
         }
 
         /* --- event handlers, highest-to-lowest priority ---
-           Writes are handled before reads so that buffer space is freed
-           before new data arrives.  The control pipe is handled before
-           new cleartext reads so a pending STARTTLS transition wins over
-           simultaneous child stdout EOF or additional plaintext input. */
-
-        /* Flush: network->child */
-        if (watchtochild) {
-            r = fd_write("childinfd", childinfd, cleartext_tochildbuf, cleartext_tochildbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
-            if (r <= 0) {
-                fd_close_write("childinfd", &childinfd);
-                return 0;
-            }
-            consume_buffer(cleartext_tochildbuf, &cleartext_tochildbuflen, (size_t) r);
-            continue;
-        }
+           Child->network plaintext already produced by the child must be
+           drained before consuming the STARTTLS control signal. This keeps
+           the control plane protocol-agnostic: the child may emit its own
+           final cleartext marker (such as an SMTP banner) on stdout and
+           then raise fd 5. */
 
         /* Flush: child->network */
         if (watchtopeer) {
@@ -801,58 +774,77 @@ static int run_cleartext_phase(void) {
             continue;
         }
 
-        /* Control pipe: STARTTLS signalling from the child.
-           - Partial read (r > 0): accumulate the banner; on the next
-             iteration the ingest guards will block new cleartext.
-           - EOF (r == 0): child closed fd 5 — if STARTTLS data was
-             queued, drain any residual cleartext buffers, flush the
-             STARTTLS banner to the network, and return 1 to enter the
-             TLS phase.
-           - Empty EOF: control pipe closed without data — the child
-             decided not to request STARTTLS; stop polling fd 5 and
-             continue relaying ordinary cleartext/stdout traffic. */
-        if (watchfromchildctl) {
-            r = fd_read("childctlfd", childctlfd,
-                        cleartext_tonet5buf + cleartext_tonet5buflen,
-                        sizeof cleartext_tonet5buf - cleartext_tonet5buflen);
+        /* Ingest: child->network */
+        if (watchfromchild) {
+            r = fd_read("childoutfd", childoutfd,
+                        cleartext_tonetbuf + cleartext_tonetbuflen,
+                        sizeof cleartext_tonetbuf - cleartext_tonetbuflen);
             if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
+            if (r <= 0) {
+                fd_close_read("childoutfd", &childoutfd);
+                continue;
+            }
+            cleartext_tonetbuflen += (size_t) r;
+            alarm(timeout);
+            continue;
+        }
+
+        /* Control pipe: STARTTLS signalling from the child.
+           - 0x00: lock the cleartext boundary, acknowledge with 0x00 over
+             fd 6, and enter TLS after any already-buffered child->peer
+             plaintext has been flushed.
+           - EOF before any signal: child will not request STARTTLS. */
+        if (watchfromchildctl) {
+            unsigned char buf[2] = { 0xff, 0xff };
+
+            r = fd_read("childctlfd", childctlfd, buf, sizeof buf);
             if (r == -1) {
+                if (errno == EINTR || errno == EAGAIN) continue;
                 fd_close_read("childctlfd", &childctlfd);
+                log_d1("control pipe failed before STARTTLS");
                 return 0;
             }
             if (r == 0) {
                 fd_close_read("childctlfd", &childctlfd);
-                if (!cleartext_tonet5buflen) {
-                    log_d1("control pipe closed before STARTTLS, continuing cleartext relay");
-                    continue;
-                }
-                if (cleartext_tonetbuflen) {
-                    if (writeall(peeroutfd, cleartext_tonetbuf, cleartext_tonetbuflen) == -1) {
-                        log_d1("write to standard output failed (pending child data)");
-                        return 0;
-                    }
-                    log_t2("drained pending cleartext_tonetbuf bytes ",
-                           log_num(cleartext_tonetbuflen));
-                    cleartext_tonetbuflen = 0;
-                }
-                if (cleartext_tochildbuflen) {
-                    if (writeall(childinfd, cleartext_tochildbuf, cleartext_tochildbuflen) == -1) {
-                        log_d1("write to child failed (pending net data)");
-                        return 0;
-                    }
-                    log_t2("drained pending cleartext_tochildbuf bytes ",
-                           log_num(cleartext_tochildbuflen));
-                    cleartext_tochildbuflen = 0;
-                }
-                if (writeall(peeroutfd, cleartext_tonet5buf, cleartext_tonet5buflen) == -1) {
-                    log_d1("write to standard output failed");
-                    return 0;
-                }
-                log_d2("child requested encryption(STARTTLS), flushed bytes ",
-                       log_num(cleartext_tonet5buflen));
-                return 1;
+                log_d1("control pipe closed before STARTTLS, continuing cleartext relay");
+                continue;
             }
-            cleartext_tonet5buflen += (size_t) r;
+            if (r != 1) {
+                log_d2("unexpected STARTTLS control signal length ", log_num(r));
+                return 0;
+            }
+            if (buf[0] != 0) {
+                log_d2("unexpected STARTTLS control signal ", log_num(buf[0]));
+                return 0;
+            }
+            fd_close_read("childctlfd", &childctlfd);
+            if (peerinfd == -1 || peeroutfd == -1) {
+                log_d1("STARTTLS pending but network descriptors already closed, aborting");
+                return 0;
+            }
+            if (cleartext_tochildbuflen) {
+                log_d2("discarded pending cleartext_tochildbuf bytes ",
+                       log_num(cleartext_tochildbuflen));
+                cleartext_tochildbuflen = 0;
+            }
+            if (writeall(childackfd, "", 1) == -1) {
+                log_d1("write to STARTTLS ack pipe failed");
+                return 0;
+            }
+            fd_close_write("childackfd", &childackfd);
+            log_t1("child requested encryption(STARTTLS)");
+            return 1;
+        }
+
+        /* Flush: network->child */
+        if (watchtochild) {
+            r = fd_write("childinfd", childinfd, cleartext_tochildbuf, cleartext_tochildbuflen);
+            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
+            if (r <= 0) {
+                fd_close_write("childinfd", &childinfd);
+                return 0;
+            }
+            consume_buffer(cleartext_tochildbuf, &cleartext_tochildbuflen, (size_t) r);
             continue;
         }
 
@@ -867,21 +859,6 @@ static int run_cleartext_phase(void) {
                 continue;
             }
             cleartext_tochildbuflen += (size_t) r;
-            alarm(timeout);
-            continue;
-        }
-
-        /* Ingest: child->network (disabled after STARTTLS signal) */
-        if (watchfromchild) {
-            r = fd_read("childoutfd", childoutfd,
-                        cleartext_tonetbuf + cleartext_tonetbuflen,
-                        sizeof cleartext_tonetbuf - cleartext_tonetbuflen);
-            if (r == -1) if (errno == EINTR || errno == EAGAIN) continue;
-            if (r <= 0) {
-                fd_close_read("childoutfd", &childoutfd);
-                continue;
-            }
-            cleartext_tonetbuflen += (size_t) r;
             alarm(timeout);
             continue;
         }
@@ -1187,7 +1164,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     sigemptyset(&sa.sa_mask);
     if (sigaction(SIGCHLD, &sa, 0) == -1) die(111);
     if (sigaction(SIGTERM, &sa, 0) == -1) die(111);
-    alarm(starttimeout);
+    alarm(10); /* timeout before hstimeout is known */
 
     log_set_name("tlswrapper");
     log_set_id(0);
@@ -1298,6 +1275,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (userfromcert && ctx.flagdelayedenc) die_optionUn();
     timeout = timeout_parse(timeoutstr);
     hstimeout = timeout_parse(hstimeoutstr);
+    alarm(hstimeout);
 
     /* set flagnojail */
     ctx.flagnojail = flagnojail;
@@ -1307,10 +1285,11 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (ctx.flagdelayedenc) {
         struct stat st;
         if (fstat(CONTROLPIPEFD, &st) != -1) die_controlpipe();
+        if (fstat(CONTROLACKPIPEFD, &st) != -1) die_controlackpipe();
         for (;;) {
             r = open_read("/dev/null");
             if (r == -1) die_devnull();
-            if (r > CONTROLPIPEFD) { close(r); break; }
+            if (r > CONTROLACKPIPEFD) { close(r); break; }
         }
     }
 
@@ -1318,6 +1297,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     if (open_pipe(tochild) == -1) die_pipe();
     if (open_pipe(fromchild) == -1) die_pipe();
     if (open_pipe(fromchildcontrol) == -1) die_pipe();
+    if (open_pipe(tochildcontrol) == -1) die_pipe();
     child = fork();
     switch (child) {
         case -1:
@@ -1340,6 +1320,13 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             if (ctx.flagdelayedenc) {
                 if (dup(fromchildcontrol[1]) != CONTROLPIPEFD) die_dup();
                 fd_blocking_enable(CONTROLPIPEFD);
+            }
+
+            close(tochildcontrol[1]);
+            close(CONTROLACKPIPEFD);
+            if (ctx.flagdelayedenc) {
+                if (dup(tochildcontrol[0]) != CONTROLACKPIPEFD) die_dup();
+                fd_blocking_enable(CONTROLACKPIPEFD);
             }
 
             /* read connection info from net-process */
@@ -1372,14 +1359,17 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             die(111);
     }
     close(fromchildcontrol[1]);
+    close(tochildcontrol[0]);
     close(fromchild[1]);
     close(tochild[0]);
     log_t2("child pid ", log_num(child));
 
     childctlfd = fromchildcontrol[0];
+    childackfd = tochildcontrol[1];
     childoutfd = fromchild[0];
     childinfd = tochild[1];
     fd_blocking_disable(childctlfd);
+    fd_blocking_disable(childackfd);
     fd_blocking_disable(childoutfd);
     fd_blocking_disable(childinfd);
 
@@ -1401,6 +1391,7 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
             close(fromkeyjail[0]);
             close(tokeyjail[1]);
             close(childctlfd);
+            close(childackfd);
             close(childoutfd);
             close(childinfd);
             close(0);
@@ -1427,10 +1418,6 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
 
     /* create selfpipe */
     if (open_pipe(selfpipe) == -1) die_pipe();
-
-    /* handshake timeout */
-    if (sigaction(SIGALRM, &sa, 0) == -1) die(111);
-    alarm(hstimeout);
 
     /* drop privileges, chroot, set limits, ... NETJAIL starts here */
     if (!ctx.flagnojail) {
@@ -1484,9 +1471,17 @@ int main_tlswrapper(int argc, char **argv, int flagnojail) {
     }
     else {
         fd_close_read("childctlfd", &childctlfd);
+        fd_close_write("childackfd", &childackfd);
     }
 
+    /*
+     * Up to this point, hstimeout relies on the default SIGALRM action
+     * so a stuck bootstrap aborts the process.
+     */
+    if (sigaction(SIGALRM, &sa, 0) == -1) die(111);
+
     if (ctx.flagdelayedenc) {
+        alarm(timeout);
         if (!run_cleartext_phase()) goto waitchildren;
         ctx.flagdelayedenc = 0;
         ctx.flaghandshakedone = 0;
@@ -1525,6 +1520,7 @@ waitchildren:
 
     /* wait for child */
     fd_close_read("childctlfd", &childctlfd);
+    fd_close_write("childackfd", &childackfd);
     fd_close_read("childoutfd", &childoutfd);
     fd_close_write("childinfd", &childinfd);
     do {
