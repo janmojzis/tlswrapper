@@ -115,6 +115,12 @@ int jail(const char *account, const char *dir, int limits) {
             log_e3("getpwnam for account '", account, "' failed");
             goto cleanup;
         }
+        if ((pw->pw_uid == 0 || pw->pw_gid == 0)) {
+            log_e6("refusing privileged account '", account,
+                   "' with uid = ", log_num(pw->pw_uid),
+                   ", gid = ", log_num(pw->pw_gid));
+            goto cleanup;
+        }
         gid = pw->pw_gid;
         uid = pw->pw_uid;
         home = pw->pw_dir;

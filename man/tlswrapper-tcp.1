@@ -38,7 +38,7 @@ Enable outgoing proxy\-protocol version \fIversion\fR string.
 Chroot network\-process into a specified \fIjaildir\fR (default: /var/lib/tlswrapper/empty).
 .TP
 .B \-j \fIjailuser\fR
-Run network\-process and dnsresolver\-process under a specified \fIjailuser\fR's uid and gid. If unset run network\-process and dnsresolver\-process under random uid and gid.
+Run network\-process and dnsresolver\-process under a specified \fIjailuser\fR's uid and gid. The account must resolve to non-zero uid and non-zero gid; accounts with uid 0 or gid 0 are rejected. If unset run network\-process and dnsresolver\-process under random uid and gid.
 .TP
 .I host
 host or IP

@@ -25,7 +25,7 @@ Set the SMTP session timeout to seconds \fIseconds\fR. (default 600).
 Set the connect/read/write timeout to seconds \fIseconds\fR. (default 15).
 .TP
 .B \-u \fIuser\fR
-Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
+Run program \fIprog\fR under a specified \fIuser\fR's uid and gid. The account must resolve to non-zero uid and non-zero gid; accounts with uid 0 or gid 0 are rejected.
 .TP
 .B \-g \fIhost:port\fR
 Enable greylist support (postgrey protocol) and use server running on \fIhost:port\fR .
@@ -40,7 +40,7 @@ Handle communication to greylist server in fail-open mode. If a greylist lookup 
 Chroot into a specified \fIjaildir\fR (default: /var/lib/tlswrapper/empty).
 .TP
 .B \-j \fIjailuser\fR
-Run under a specified \fIjailuser\fR's uid and gid. If unset run under random uid and gid.
+Run under a specified \fIjailuser\fR's uid and gid. The account must resolve to non-zero uid and non-zero gid; accounts with uid 0 or gid 0 are rejected. If unset run under random uid and gid.
 .TP
 .I prog
 program

@@ -61,10 +61,10 @@ Set the network timeout to seconds \fIseconds\fR. (default 60).
 Set the TLS handshake timeout to seconds \fIseconds\fR. (default 30).
 .TP
 .B \-u \fIuser\fR
-Run program \fIprog\fR under a specified \fIuser\fR's uid and gid
+Run program \fIprog\fR under a specified \fIuser\fR's uid and gid. The account must resolve to non-zero uid and non-zero gid; accounts with uid 0 or gid 0 are rejected.
 .TP
 .B \-U \fIASN.1 object\fR
-Extract the user from \fIASN.1 object\fR from the client certificate and run program \fIprog\fR under user's uid and gid. Supported \fIASN.1 object\fR objects are 'commonName' and 'emailAddress'.
+Extract the user from \fIASN.1 object\fR from the client certificate and run program \fIprog\fR under the resolved user's uid and gid. Certificate-selected accounts must resolve to non-zero uid and non-zero gid; accounts with uid 0 or gid 0 are rejected. Supported \fIASN.1 object\fR objects are 'commonName' and 'emailAddress'.
 .TP
 .B \-p \fIversion\fR
 Enable incoming proxy\-protocol version \fIversion\fR string. The \fBtlswrapper\fR receives the proxy\-protocol header from the upstream proxy and extracts client connection information. Supported versions: 1.
@@ -79,7 +79,7 @@ Don't enforce TLS server preferences.
 Chroot network\-process and key\-process into a specified \fIjaildir\fR (default: /var/lib/tlswrapper/empty).
 .TP
 .B \-j \fIjailuser\fR
-Run network\-process and key\-process under a specified \fIjailuser\fR's uid and gid. If unset run network\-process and key\-process under random uid and gid.
+Run network\-process and key\-process under a specified \fIjailuser\fR's uid and gid. The account must resolve to non-zero uid and non-zero gid; accounts with uid 0 or gid 0 are rejected. If unset run network\-process and key\-process under random uid and gid.
 .TP
 .B \-n
 Enable delayed encryption. This is useful for protocols which uses STARTTLS. \fBtlswrapper\fR provides the child with a control pipe on filedescriptor 5 for child-to-parent signalling and a control pipe on filedescriptor 6 for parent-to-child acknowledgement. The child process starts communication in plaintext and encryption starts when the child writes a one-byte zero-valued control signal on filedescriptor 5 after emitting any protocol-specific cleartext response (for SMTP, `220 ready to start TLS\\r\\n`) on the normal data channel. \fBtlswrapper\fR acknowledges the transition with a one-byte zero-valued signal on filedescriptor 6. See e.g. tlswrapper\-smtp(1).
