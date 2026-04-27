@@ -874,6 +874,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
             die_fork();
             break;
         case 0:
+            alarm(0);
             close(tochild[1]);
             close(0);
             if (dup(tochild[0]) != 0) die_dup();
@@ -891,6 +892,7 @@ int main_tlswrapper_smtp(int argc, char **argv, int flagnojail) {
                 if (jail_droppriv(user) == -1) die_droppriv(user);
 
             signal(SIGPIPE, SIG_DFL);
+            signal(SIGALRM, SIG_DFL);
             log_t3("running '", argv[0], "'");
             execvp(*argv, argv);
             log_f2("unable to run ", *argv);
