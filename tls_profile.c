@@ -143,7 +143,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
                         ctx->certfn, "'");
                     goto bad;
                 }
-                log_w3("unable to obtain certificate(s) from the PEM file '",
+                log_d3("unable to obtain certificate(s) from the PEM file '",
                        ctx->certfn, "', trying next");
                 continue;
             }
