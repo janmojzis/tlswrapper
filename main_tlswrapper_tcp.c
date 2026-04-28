@@ -205,8 +205,10 @@ static int selfpipe[2] = {-1, -1};
  */
 static void signalhandler(int signum) {
     int w;
+    int saved_errno = errno;
     if (signum == SIGCHLD) return;
     do { w = write(selfpipe[1], "", 1); } while (w == -1 && errno == EINTR);
+    errno = saved_errno;
 }
 
 /*

@@ -111,6 +111,7 @@ static char remoteipstr[IPTOSTR_LEN] = {0};
 static void signalhandler(int signum, siginfo_t *si, void *ucontext) {
     char ch = 0;
     int w;
+    int saved_errno = errno;
 
     (void) ucontext;
     if (signum == SIGCHLD && si && si->si_pid == child) {
@@ -122,6 +123,7 @@ static void signalhandler(int signum, siginfo_t *si, void *ucontext) {
     do {
         w = write(selfpipe[1], &ch, 1);
     } while (w == -1 && errno == EINTR);
+    errno = saved_errno;
 }
 
 /*
