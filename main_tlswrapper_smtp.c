@@ -775,7 +775,7 @@ static void smtp_ehlo(void) {
  * RSET.
  */
 static void smtp_starttls(void) {
-    char ack = 0xff;
+    char ack = 1;
 
     if (!smtp_starttls_control_ready()) {
         if (!stralloc_copys(&cline, "502 unimplemented (#5.5.1)")) die_nomem();
