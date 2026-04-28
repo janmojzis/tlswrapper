@@ -16,6 +16,7 @@ Directions (matching the wrapper C variable names):
 from __future__ import annotations
 
 import argparse
+import errno
 import hashlib
 import logging
 import os
@@ -496,6 +497,20 @@ class TlsSocketClient:
             self.incoming.write_eof()
             return
         self.incoming.write(data)
+
+
+def expect_tls_handshake_abort(client: TlsSocketClient, detail: str) -> None:
+    try:
+        client.handshake()
+    except ssl.SSLError:
+        step_ok("tls", detail)
+        return
+    except OSError as exc:
+        if exc.errno in {errno.EPIPE, errno.ECONNRESET}:
+            step_ok("tls", detail)
+            return
+        raise
+    raise TestFailure("TLS handshake unexpectedly succeeded")
 
 
 # ---------------------------------------------------------------------------
@@ -1755,12 +1770,7 @@ def test_hybrid_starttls_missing_ack_pipe_aborts() -> None:
         step_ok("childout[plain]", repr(banner))
 
         client = TlsSocketClient(w.peer_socket)
-        try:
-            client.handshake()
-        except ssl.SSLError:
-            step_ok("tls", "handshake aborted without ack")
-        else:
-            raise TestFailure("TLS handshake unexpectedly succeeded without STARTTLS ack pipe")
+        expect_tls_handshake_abort(client, "handshake aborted without ack")
 
         w.wait(0)
         check_child_log(["ack=closed"])
@@ -1786,12 +1796,9 @@ def test_hybrid_starttls_oversized_control_signal_aborts() -> None:
         step_ok("childout[plain]", repr(banner))
 
         client = TlsSocketClient(w.peer_socket)
-        try:
-            client.handshake()
-        except ssl.SSLError:
-            step_ok("tls", "handshake aborted after oversized control signal")
-        else:
-            raise TestFailure("TLS handshake unexpectedly succeeded after oversized control signal")
+        expect_tls_handshake_abort(
+            client, "handshake aborted after oversized control signal"
+        )
 
         w.wait(0)
         check_child_log(["control=oversized"])
