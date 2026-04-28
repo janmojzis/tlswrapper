@@ -1,3 +1,14 @@
+## 20260428
+
+- STARTTLS/relay: harden the STARTTLS transition with a dedicated ack pipe, drop pipelined plaintext after STARTTLS, tighten bootstrap/handshake alarm handling
+- jail.c: reject privileged jail accounts with `uid == 0` or `gid == 0` and derive jail uid/gid deterministically only from the pid
+- parsing: replace `strtoip`/`strtoport`/`hostport` with `parseip`/`parseport`/`parsehostport`; add `parsename()` and validate SNI `server_name` before certificate-directory lookups
+- tls_profile.c: downgrade missing-certificate logging from warning to debug level
+- tls_keyjail.c: clear the PEM encryption key after signing
+- main_tlswrapper_smtp.c: reset `alarm()`/`SIGALRM` before running the child
+- writeall.c: handle zero-length writes and poll failures more robustly
+- tests/build: move Python tests to a separate `pythontest` target, expand STARTTLS and relay coverage
+
 ## 20260418
 
 - main_tlswrapper_smtp.c: limit greylist response size to `SMTP_MAX_LINE` and fix an out-of-bounds read on empty `MAIL FROM:` / `RCPT TO:` lines
