@@ -198,7 +198,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
         }
     }
 
-    log_e1("no usable PEM certificate");
+    log_d1("no usable PEM certificate");
 bad:
     log_t1("tls_choose() = 0");
     return 0;
