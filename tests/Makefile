@@ -92,6 +92,9 @@ parsehostport.o: parsehostport.c log.h parsehostport.h parseip.h \
 parseip.o: parseip.c e.h log.h parseip.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c parseip.c
 
+parsename.o: parsename.c log.h parsename.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c parsename.c
+
 parsenum.o: parsenum.c e.h log.h parsenum.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c parsenum.c
 
@@ -176,7 +179,7 @@ tls_pipe.o: tls_pipe.c tls.h pipe.h randombytes.h haslibrandombytes.h \
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_pipe.c
 
 tls_profile.o: tls_profile.c log.h randombytes.h haslibrandombytes.h e.h \
- str.h stralloc.h fixpath.h tls.h
+ parsename.h str.h stralloc.h fixpath.h tls.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c tls_profile.c
 
 tls_pubcrt.o: tls_pubcrt.c randombytes.h haslibrandombytes.h alloc.h \
@@ -222,6 +225,7 @@ OBJECTS+=open_pipe.o
 OBJECTS+=open_read.o
 OBJECTS+=parsehostport.o
 OBJECTS+=parseip.o
+OBJECTS+=parsename.o
 OBJECTS+=parsenum.o
 OBJECTS+=parseport.o
 OBJECTS+=pipe.o

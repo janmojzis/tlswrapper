@@ -9,6 +9,7 @@
 #include "log.h"
 #include "randombytes.h"
 #include "e.h"
+#include "parsename.h"
 #include "str.h"
 #include "stralloc.h"
 #include "fixpath.h"
@@ -93,6 +94,7 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
     const br_suite_translated *st;
     size_t i, u, st_num;
     unsigned int chashes;
+    unsigned char server_name_dns[parsename_BYTES];
     struct tls_context *ctx = (struct tls_context *) pctx;
     const char *server_name;
     uint32_t curves;
@@ -117,7 +119,13 @@ static int tls_choose(const br_ssl_server_policy_class **pctx,
     for (i = 0; i < ctx->certfiles_len; ++i) {
         if (ctx->certfiles[i].filetype == S_IFDIR) {
             /* certificate directory, but server didn't send SNI server_name */
-            if (str_len(server_name) == 0) continue;
+            if (!server_name || str_len(server_name) == 0) continue;
+
+            if (!parsename_(server_name_dns, server_name)) {
+                log_d3("invalid SNI server_name '", log_str(server_name),
+                       "' rejected");
+                continue;
+            }
 
             /* create filename */
             if (!copyfn(ctx->certfn, sizeof ctx->certfn, ctx->certfiles[i].name,
