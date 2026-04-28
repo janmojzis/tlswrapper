@@ -202,6 +202,7 @@ void tls_keyjail(struct tls_context *ctx) {
         if (pipe_readmax(0, data, &datalen) == -1) goto cleanup;
         datalen =
             sign(ctx, &pem, pemkey, cc, hash_id, data, datalen, sizeof data);
+        randombytes(pemkey, sizeof pemkey);
         if (pipe_write(1, data, datalen) == -1) goto cleanup;
     }
 
@@ -402,5 +403,6 @@ void tls_keyjail(struct tls_context *ctx) {
     }
 
 cleanup:
+    randombytes(pemkey, sizeof pemkey);
     log_t1("finished keyjail");
 }
