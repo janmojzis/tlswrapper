@@ -1,4 +1,12 @@
-## 20260428
+## 20260501
+
+- summary of changes since full release 20251001
+- code refactoring: substantial cleanup and restructuring of the relay/TLS/STARTTLS code paths, with focus on clearer separation of phases, more reliable EOF and half-close handling, better descriptor management, and improved code documentation
+- bug fixes: fixes for SMTP greylist response bounds, empty `MAIL FROM:` / `RCPT TO:` handling, outgoing PROXY protocol header generation, half-close and child-exit behavior, timeout/alarm edge cases, and several smaller correctness issues in buffer handling, logging, and cleanup paths
+- hardening: stricter STARTTLS transition handling, tighter validation of parser inputs, SNI and certificate selection, jail uid/gid and memory-limit handling, resolver/address-family/file-descriptor checks
+- tests, build, and documentation: significant expansion and reorganization of TCP/SMTP/STARTTLS regression tests, separation of Python-based tests, refreshed generated build files, and updates to manuals, README, examples, and in-source comments
+
+## 20260428 (pre-release)
 
 - STARTTLS/relay: harden the STARTTLS transition with a dedicated ack pipe, drop pipelined plaintext after STARTTLS, tighten bootstrap/handshake alarm handling
 - jail.c: reject privileged jail accounts with `uid == 0` or `gid == 0` and derive jail uid/gid deterministically only from the pid
@@ -9,7 +17,7 @@
 - writeall.c: handle zero-length writes and poll failures more robustly
 - tests/build: move Python tests to a separate `pythontest` target, expand STARTTLS and relay coverage
 
-## 20260418
+## 20260418 (pre-release)
 
 - main_tlswrapper_smtp.c: limit greylist response size to `SMTP_MAX_LINE` and fix an out-of-bounds read on empty `MAIL FROM:` / `RCPT TO:` lines
 - alloc.[ch]: add `alloc_limit()` with `RLIMIT_AS`/`RLIMIT_DATA` fallback
@@ -25,7 +33,7 @@
 - tls_pem.c: clarify the ChaCha20 nonce comment in PEM encryption
 - tests: disable flaky tests for chunked responses after half-EOF
 
-## 20260416
+## 20260416 (pre-release)
 
 - fd.[ch]: add `fd_read()`/`fd_write()` wrappers with length capping (1 MiB), `EWOULDBLOCK`→`EAGAIN` normalization, and optional tracing; `fd_close_read()`/`fd_close_write()` now accept a descriptor name for tracing; `tryshutdown()` returns success status; add `tryclose()` helper
 - main_tlswrapper.c, main_tlswrapper_tcp.c: switch all raw `read()`/`write()` calls to `fd_read()`/`fd_write()`, removing inline I/O logging now handled by the fd layer
@@ -35,7 +43,7 @@
 - log.[ch]: add `log_errno()` public API
 - tests: replace STARTTLS sleep-based sync with `select`-driven waits, reduce inflight payload sizes
 
-## 20260413
+## 20260413 (pre-release)
 
 - tls relay: distinguish wrapped-child `SIGCHLD` from helper `SIGCHLD`, preserve child output draining on child exit, and delay TLS shutdown until both child directions are closed
 - tls relay: handle `SIGALRM` through the self-pipe loop and tighten finish-timeout behavior during child-exit cleanup
@@ -44,7 +52,7 @@
 - tests: expand `test-tlswrapper` coverage for child-exit EOF paths, forced child-stdout-close reads, clean `close_notify` handling, large reply completion, in-flight payload delivery after child stdout EOF,
   idle-peer shutdown after child stdout EOF, and delayed child replies after peer EOF
 
-## 20260408
+## 20260408 (pre-release)
 
 - refactor: split relay logic into cleartext and TLS phases with explicit FD tracking and half-close handling; abstract TLS API to remove BearSSL references from `main_tlswrapper.c`
 - conn.[ch]: `conn()` now returns a descriptor pair, enabling separate read/write-side handling
@@ -61,7 +69,7 @@
 - man/tlswrapper.1: remove the "experimental" label from delayed encryption (`-n`)
 - build: refresh `Makefile`/`tests/Makefile` and apply `clang-format` cleanup in touched sources
 
-## 20260402
+## 20260402 (pre-release)
 
 - conn.c: adjust connect logging
 - main_tlswrapper_tcp.c: remove log message with non-existing proxy-protocol version2
@@ -79,7 +87,7 @@
 - LICENCE -> LICENSE.md
 - README.md: add Delayed-encryption
 
-## 20260312
+## 20260312 (pre-release)
 
 - tls_keyjail.c: validate seed_len
 - tls_pipe.c: return NULL on encrypt failure instead of random data
